@@ -178,6 +178,7 @@ Page({
     if (e.detail.errMsg === 'getPhoneNumber:ok') {
       // 获取到手机号信息，准备调用注册接口
       const phoneInfo = e.detail;
+      console.log('获取到的手机号信息:', phoneInfo);
       
       // 构建注册请求参数
       const registerData = {
