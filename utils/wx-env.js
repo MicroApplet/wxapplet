@@ -6,43 +6,31 @@
 // 不同环境的配置
 const configs = {
   // 开发环境
-  development: {
+  develop: {
     baseUrl: 'https://dev.api.asialjim.cn',
     apiPrefix: '/api',
     debug: true,
     // 应用相关配置
     xAppId: '335233980152156161',
-    xAppChl: 'wechat',
-    xAppChlAppid: 'touristappid',
-    xAppChlAppType: 'miniProgram',
-    // 当前项目的微信小程序appid
-    wxAppId: 'touristappid',
+    appid: "wx4f5939c1b3d39bd2",
   },
   // 测试环境
-  test: {
+  trial: {
     baseUrl: 'http://test-api.example.com',
     apiPrefix: '/api',
     debug: true,
     // 应用相关配置
     xAppId: '335233980152156161',
-    xAppChl: 'wechat',
-    xAppChlAppid: 'touristappid',
-    xAppChlAppType: 'miniProgram',
-    // 当前项目的微信小程序appid
-    wxAppId: 'touristappid',
+    appid: "wxd5013edcdd858d83",
   },
   // 生产环境
-  production: {
+  release: {
     baseUrl: 'http://api.example.com',
     apiPrefix: '/api',
     debug: false,
     // 应用相关配置
     xAppId: '335233980152156161',
-    xAppChl: 'wechat',
-    xAppChlAppid: 'touristappid',
-    xAppChlAppType: 'miniProgram',
-    // 当前项目的微信小程序appid
-    wxAppId: 'touristappid',
+    appid: "wxd5013edcdd858d83",
   },
 };
 
@@ -51,12 +39,9 @@ const configs = {
  * 在微信小程序中，通过全局配置或编译条件来区分环境
  */
 function getCurrentEnv() {
-  // 在实际项目中，可以通过小程序全局配置或编译条件来设置当前环境
-  // 例如：使用微信开发者工具的条件编译，或者从全局配置中读取
-  
-  // 这里为了演示，默认返回development环境
-  // 实际应用中，可以从app.js的globalData或者其他配置中获取
-  return 'development';
+  // 获取当前小程序的运行版本
+  const versionInfo = wx.getAccountInfoSync();
+  return versionInfo.miniProgram.envVersion;
 }
 
 /**
@@ -82,7 +67,7 @@ exports.apiPrefix = currentConfig.apiPrefix;
 exports.debug = currentConfig.debug;
 // 导出应用相关配置
 exports.xAppId = currentConfig.xAppId;
-exports.xAppChl = currentConfig.xAppChl;
-exports.xAppChlAppid = currentConfig.xAppChlAppid;
-exports.xAppChlAppType = currentConfig.xAppChlAppType;
-exports.wxAppId = currentConfig.wxAppId;
+exports.xAppChl = "wechat";
+exports.wxAppId = currentConfig.appid;
+exports.xAppChlAppid = currentConfig.appid;
+exports.xAppChlAppType = "wechat:applet";
