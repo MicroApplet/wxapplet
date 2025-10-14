@@ -35,7 +35,10 @@ Page({
     }
     
     // 检查用户是否已经登录，如果已登录则跳转到首页
-    if (api.userHadLoggedIn()) {
+    const token = wx.getStorageSync('userToken');
+    const userInfo = wx.getStorageSync('userInfo');
+    
+    if (token && userInfo) {
       wx.switchTab({
         url: '/pages/index/index'
       });
@@ -115,6 +118,24 @@ Page({
     api.login('/open/user/auth/login', { username, password })
       .then((res) => {
         console.log('登录成功:', res);
+        
+        // 保存token和用户信息
+        try {
+          wx.setStorageSync('userToken', res.data);
+          // 创建简单的用户信息对象
+          const userInfo = {
+            username: this.data.username,
+            avatarUrl: '',
+            nickName: this.data.username
+          };
+          wx.setStorageSync('userInfo', userInfo);
+          
+          // 保存到全局数据
+          const app = getApp();
+          app.globalData.userInfo = userInfo;
+        } catch (e) {
+          console.error('保存用户信息失败:', e);
+        }
         
         // 登录成功后跳转到首页
         wx.switchTab({
@@ -211,12 +232,17 @@ Page({
       .then((res) => {
         console.log('微信登录成功:', res);
         
-        // 保存token
+        // 保存token和用户信息
         if (res.data) {
           try {
-            wx.setStorageSync('x-user-token', res.data);
+            wx.setStorageSync('userToken', res.data);
+            // 保存用户信息到本地存储
+            const app = getApp();
+            if (app.globalData.userInfo) {
+              wx.setStorageSync('userInfo', app.globalData.userInfo);
+            }
           } catch (e) {
-            console.error('保存token失败:', e);
+            console.error('保存用户信息失败:', e);
           }
         }
         

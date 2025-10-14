@@ -4,12 +4,8 @@ App({
     // 小程序启动时执行
     console.log('App Launch')
     
-    // 可以在这里调用 wx.login 获取用户code
-    // wx.login({
-    //   success: res => {
-    //     // 发送 res.code 到后台换取 openId, sessionKey, unionId
-    //   }
-    // })
+    // 检查用户登录状态
+    this.checkLoginStatus()
     
     // 获取系统信息
     wx.getSystemInfo({
@@ -28,6 +24,23 @@ App({
   onHide: function () {
     // 小程序隐藏时执行
     console.log('App Hide')
+  },
+  
+  // 检查用户登录状态
+  checkLoginStatus: function() {
+    // 从本地存储获取token
+    const token = wx.getStorageSync('userToken')
+    const userInfo = wx.getStorageSync('userInfo')
+    
+    // 保存到全局数据
+    this.globalData.userInfo = userInfo
+    
+    // 如果没有token或用户信息，则跳转到登录页面
+    if (!token || !userInfo) {
+      wx.redirectTo({
+        url: '/pages/login/login'
+      })
+    }
   },
   
   globalData: {

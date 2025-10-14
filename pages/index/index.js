@@ -16,7 +16,10 @@ Page({
     console.log('首页加载')
     
     // 检查用户是否已登录
-    if (!api.userHadLoggedIn()) {
+    const token = wx.getStorageSync('userToken');
+    const userInfo = wx.getStorageSync('userInfo');
+    
+    if (!token || !userInfo) {
       console.log('用户未登录，跳转到登录页面')
       wx.redirectTo({
         url: '/pages/login/login'
@@ -108,17 +111,27 @@ Page({
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          api.logout().catch(() => {
-            // 忽略登出失败的情况
-            wx.showToast({
-              title: '退出登录成功',
-              icon: 'success'
-            })
+          // 清除本地存储的用户信息和token
+          try {
+            wx.removeStorageSync('userToken');
+            wx.removeStorageSync('userInfo');
             
-            // 跳转到登录页面
-            wx.redirectTo({
-              url: '/pages/login/login'
-            })
+            // 清除全局数据
+            const app = getApp();
+            app.globalData.userInfo = null;
+          } catch (e) {
+            console.error('清除用户信息失败:', e);
+          }
+          
+          // 跳转到登录页面
+          wx.redirectTo({
+            url: '/pages/login/login',
+            success: () => {
+              wx.showToast({
+                title: '退出登录成功',
+                icon: 'success'
+              })
+            }
           })
         }
       }
