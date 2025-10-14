@@ -18,7 +18,7 @@ Page({
    */
   onLoad: function () {
     // 检查用户是否已经登录，如果已登录则跳转到首页
-    const token = wx.getStorageSync('userToken');
+    const token = api.userToken();
     
     if (token) {
       wx.switchTab({
@@ -107,7 +107,7 @@ Page({
     
     // 构建请求头
     const headers = {
-      'x-app-id': 'mams',
+      'x-app-id': '335233980152156161',
       'x-app-chl': 'wechat',
       'x-app-chl-appid': appid,
       'x-app-chl-app-type': 'wechat:applet'
