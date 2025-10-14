@@ -9,7 +9,7 @@
       <view class="nickname-container">
         <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
         <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
-        <text wx:if="{{isLoading}}" class="loading">加载中...</text>
+        <text wx:else class="loading">加载中...</text>
       </view>
       
       <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
