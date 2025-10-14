@@ -246,21 +246,13 @@ const request = async (uri, options = {}) => {
     
     // 如果有data参数且是POST/PUT请求，设置请求体
     if (options.data && ['POST', 'PUT'].includes(requestConfig.method)) {
-      // 智能处理不同类型的数据
-      if (options.data instanceof FormData) {
-        // 在微信小程序中，FormData需要特殊处理
-        requestConfig.header = {
-          ...requestConfig.header,
-          'Content-Type': 'multipart/form-data'
-        };
-        requestConfig.data = options.data;
-      } else if (typeof options.data === 'string') {
+      // 微信小程序环境处理
+      if (typeof options.data === 'string') {
         // 已序列化的字符串，直接使用
         requestConfig.data = options.data;
       } else {
         // 其他情况进行JSON序列化
         requestConfig.data = JSON.stringify(options.data);
-        // 在微信小程序中，json需要特殊处理
         requestConfig.header = {
           ...requestConfig.header,
           'Content-Type': 'application/json'
