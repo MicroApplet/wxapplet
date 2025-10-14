@@ -1,0 +1,155 @@
+/* pages/login/login.wxss */
+
+/* 页面容器 */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 0 30rpx;
+}
+
+/* 登录表单容器 */
+.login-form {
+  width: 100%;
+  max-width: 400rpx;
+  padding: 60rpx 40rpx;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 表单标题 */
+.form-title {
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 60rpx;
+}
+
+/* 错误提示 */
+.error-tip {
+  padding: 20rpx;
+  background-color: #fff2f0;
+  color: #ff4d4f;
+  font-size: 24rpx;
+  border-radius: 10rpx;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+/* 输入框项 */
+.input-item {
+  display: flex;
+  align-items: center;
+  height: 90rpx;
+  border-bottom: 1rpx solid #e0e0e0;
+  margin-bottom: 30rpx;
+  position: relative;
+}
+
+/* 输入框图标 */
+.input-icon {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.input-icon image {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+/* 输入框文本 */
+.input-text {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.input-text::-webkit-input-placeholder {
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  background-color: #07c160;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 45rpx;
+  margin-top: 40rpx;
+  margin-bottom: 40rpx;
+}
+
+.login-btn:active {
+  background-color: #06ad56;
+}
+
+/* 微信登录 */
+.wechat-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 0;
+  color: #07c160;
+  font-size: 28rpx;
+}
+
+.wechat-login image {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 15rpx;
+}
+
+/* 辅助链接 */
+.helper-links {
+  display: flex;
+  justify-content: center;
+  margin-top: 30rpx;
+  font-size: 26rpx;
+}
+
+.helper-links text {
+  color: #666666;
+}
+
+.helper-links text:active {
+  color: #07c160;
+}
+
+.separator {
+  margin: 0 20rpx;
+  color: #cccccc;
+}
+
+/* 用户信息区域 */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40rpx;
+}
+
+.user-info image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+}
+
+.user-info text {
+  font-size: 28rpx;
+  color: #333333;
+}

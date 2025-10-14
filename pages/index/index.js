@@ -1,4 +1,8 @@
 //index.js
+
+// 导入API工具
+import { api } from '../../utils/wx-api';
+
 Page({
   data: {
     message: 'Hello 微信小程序!',
@@ -10,6 +14,15 @@ Page({
   // 生命周期函数--监听页面加载
   onLoad: function () {
     console.log('首页加载')
+    
+    // 检查用户是否已登录
+    if (!api.userHadLoggedIn()) {
+      console.log('用户未登录，跳转到登录页面')
+      wx.redirectTo({
+        url: '/pages/login/login'
+      })
+      return
+    }
     
     // 如果已经授权，可以直接获取用户信息
     if (wx.getStorageSync('userInfo')) {
@@ -86,6 +99,30 @@ Page({
       })
       wx.setStorageSync('userInfo', e.detail.userInfo)
     }
+  },
+  
+  // 登出功能
+  logout: function () {
+    wx.showModal({
+      title: '确认登出',
+      content: '确定要退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          api.logout().catch(() => {
+            // 忽略登出失败的情况
+            wx.showToast({
+              title: '退出登录成功',
+              icon: 'success'
+            })
+            
+            // 跳转到登录页面
+            wx.redirectTo({
+              url: '/pages/login/login'
+            })
+          })
+        }
+      }
+    })
   },
 
   // 跳转到日志页面

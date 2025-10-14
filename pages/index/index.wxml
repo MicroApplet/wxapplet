@@ -7,6 +7,7 @@
     <block wx:else>
       <image wx:if="{{hasUserInfo}}" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
       <text class="userinfo-nickname">{{hasUserInfo ? userInfo.nickName : '未登录'}}</text>
+      <button wx:if="{{hasUserInfo}}" class="logout-btn" bindtap="logout">退出登录</button>
     </block>
   </view>
 

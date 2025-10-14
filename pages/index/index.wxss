@@ -107,3 +107,19 @@
   font-size: 12px;
   color: #999;
 }
+
+/* 登出按钮样式 */
+.logout-btn {
+  width: 120px;
+  margin-top: 15px;
+  background-color: #f76260;
+  color: #fff;
+  font-size: 14px;
+  line-height: 36px;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.logout-btn:active {
+  background-color: #e64e4d;
+}
