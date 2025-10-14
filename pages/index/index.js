@@ -1,7 +1,7 @@
 //index.js
 
 // 导入API工具
-import { api } from '../../utils/wx-api';
+const { api } = require('../../utils/wx-api');
 
 Page({
   data: {

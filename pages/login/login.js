@@ -1,7 +1,7 @@
 // pages/login/login.js
 
 // 导入HTTP请求工具
-import { api } from '../../utils/wx-api';
+const { api } = require('../../utils/wx-api');
 
 Page({
   /**
@@ -40,7 +40,14 @@ Page({
     
     if (token && userInfo) {
       wx.switchTab({
-        url: '/pages/index/index'
+        url: '/pages/index/index',
+        fail: (err) => {
+          console.error('跳转到首页失败:', err);
+          // 如果switchTab失败，尝试使用redirectTo
+          wx.redirectTo({
+            url: '/pages/index/index'
+          });
+        }
       });
     }
   },

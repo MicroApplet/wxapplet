@@ -39,11 +39,16 @@ App({
     // 保存到全局数据
     this.globalData.userInfo = userInfo
     
-    // 如果没有token或用户信息，则跳转到登录页面
+    // 如果没有token或用户信息，并且当前不是登录页面，则跳转到登录页面
     if (!token || !userInfo) {
-      wx.redirectTo({
-        url: '/pages/login/login'
-      })
+      const pages = getCurrentPages();
+      // 检查当前是否已经在登录页面
+      const isLoginPage = pages.length > 0 && pages[pages.length - 1].route === 'pages/login/login';
+      if (!isLoginPage) {
+        wx.redirectTo({
+          url: '/pages/login/login'
+        })
+      }
     }
   },
   
