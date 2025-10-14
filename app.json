@@ -19,6 +19,12 @@
         "text": "首页",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home_active.png"
+      }, 
+      {
+        "pagePath": "pages/login/login",
+        "text": "登录",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home_active.png"
       } 
     ]
   },
