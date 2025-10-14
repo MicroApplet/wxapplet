@@ -2,6 +2,8 @@
 
 // 导入HTTP请求工具
 const { api } = require('../../utils/wx-api');
+// 导入环境配置
+const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType, wxAppId } = require('../../utils/wx-env');
 
 Page({
   /**
@@ -9,8 +11,7 @@ Page({
    */
   data: {
     loading: false, // 登录中状态
-    errorMsg: '', // 错误信息
-    appid: 'touristappid' // 从project.config.json获取的appid
+    errorMsg: '' // 错误信息
   },
 
   /**
@@ -103,14 +104,13 @@ Page({
    */
   loginWithCode: function(code) {
     const that = this;
-    const appid = this.data.appid;
     
-    // 构建请求头
+    // 构建请求头 - 从环境配置中获取
     const headers = {
-      'x-app-id': '335233980152156161',
-      'x-app-chl': 'wechat',
-      'x-app-chl-appid': appid,
-      'x-app-chl-app-type': 'wechat:applet'
+      'x-app-id': xAppId,
+      'x-app-chl': xAppChl,
+      'x-app-chl-appid': wxAppId,
+      'x-app-chl-app-type': xAppChlAppType
     };
     
     // 构建请求数据

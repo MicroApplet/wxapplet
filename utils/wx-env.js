@@ -10,18 +10,39 @@ const configs = {
     baseUrl: 'https://dev.api.asialjim.cn',
     apiPrefix: '/api',
     debug: true,
+    // 应用相关配置
+    xAppId: '335233980152156161',
+    xAppChl: 'wechat',
+    xAppChlAppid: 'touristappid',
+    xAppChlAppType: 'miniProgram',
+    // 当前项目的微信小程序appid
+    wxAppId: 'touristappid',
   },
   // 测试环境
   test: {
     baseUrl: 'http://test-api.example.com',
     apiPrefix: '/api',
     debug: true,
+    // 应用相关配置
+    xAppId: '335233980152156161',
+    xAppChl: 'wechat',
+    xAppChlAppid: 'touristappid',
+    xAppChlAppType: 'miniProgram',
+    // 当前项目的微信小程序appid
+    wxAppId: 'touristappid',
   },
   // 生产环境
   production: {
     baseUrl: 'http://api.example.com',
     apiPrefix: '/api',
     debug: false,
+    // 应用相关配置
+    xAppId: '335233980152156161',
+    xAppChl: 'wechat',
+    xAppChlAppid: 'touristappid',
+    xAppChlAppType: 'miniProgram',
+    // 当前项目的微信小程序appid
+    wxAppId: 'touristappid',
   },
 };
 
@@ -59,3 +80,9 @@ exports.default = currentConfig;
 exports.baseUrl = currentConfig.baseUrl;
 exports.apiPrefix = currentConfig.apiPrefix;
 exports.debug = currentConfig.debug;
+// 导出应用相关配置
+exports.xAppId = currentConfig.xAppId;
+exports.xAppChl = currentConfig.xAppChl;
+exports.xAppChlAppid = currentConfig.xAppChlAppid;
+exports.xAppChlAppType = currentConfig.xAppChlAppType;
+exports.wxAppId = currentConfig.wxAppId;
