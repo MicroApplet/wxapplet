@@ -244,43 +244,115 @@ const request = async (uri, options = {}) => {
       ...options
     };
     
-    // 如果有data参数且是POST/PUT请求，设置请求体
-    if (options.data && ['POST', 'PUT'].includes(requestConfig.method)) {
-      // 微信小程序环境处理
-      if (typeof options.data === 'string') {
-        // 已序列化的字符串，直接使用
-        requestConfig.data = options.data;
-      } else {
-        // 其他情况进行JSON序列化
-        requestConfig.data = JSON.stringify(options.data);
-        requestConfig.header = {
-          ...requestConfig.header,
-          'Content-Type': 'application/json'
-        };
-      }
-    }
-    
-    // 移除options中不属于wx.request的属性
-    delete requestConfig.queries;
-    delete requestConfig.headers;
-    delete requestConfig.data;
-    
-    // 应用请求拦截器
-    const config = requestInterceptor(requestConfig, options.headers);
-    
-    // 发送请求（使用Promise包装wx.request）
-    return new Promise((resolve, reject) => {
-      wx.request({
-        ...config,
-        success: (response) => {
-          // 应用响应拦截器
-          responseInterceptor(response).then(resolve).catch(reject);
-        },
-        fail: (error) => {
-          reject(error);
+    // 检查是否需要文件上传
+    if (options.file || options.files) {
+      // 移除options中不属于wx.uploadFile的属性
+      delete requestConfig.queries;
+      delete requestConfig.headers;
+      delete requestConfig.data;
+      delete requestConfig.file;
+      delete requestConfig.files;
+      delete requestConfig.name;
+      
+      // 应用请求拦截器
+      const config = requestInterceptor(requestConfig, options.headers);
+      
+      // 使用wx.uploadFile处理文件上传
+      return new Promise((resolve, reject) => {
+        // 单文件上传
+        if (options.file) {
+          wx.uploadFile({
+            ...config,
+            filePath: options.file,
+            name: options.name || 'file',
+            formData: options.data,
+            success: (response) => {
+              // 解析响应数据
+              try {
+                response.data = JSON.parse(response.data);
+              } catch (e) {
+                // 如果不是JSON格式，保持原样
+              }
+              // 应用响应拦截器
+              responseInterceptor(response).then(resolve).catch(reject);
+            },
+            fail: (error) => {
+              reject(error);
+            }
+          });
+        } else if (options.files) {
+          // 多文件上传（需要逐个上传）
+          const uploadPromises = options.files.map((file, index) => {
+            return new Promise((fileResolve, fileReject) => {
+              wx.uploadFile({
+                ...config,
+                filePath: file,
+                name: options.name || `file${index}`,
+                formData: options.data,
+                success: (response) => {
+                  // 解析响应数据
+                  try {
+                    response.data = JSON.parse(response.data);
+                  } catch (e) {
+                    // 如果不是JSON格式，保持原样
+                  }
+                  fileResolve(response);
+                },
+                fail: (error) => {
+                  fileReject(error);
+                }
+              });
+            });
+          });
+          
+          // 等待所有文件上传完成
+          Promise.all(uploadPromises)
+            .then((responses) => {
+              // 应用响应拦截器到第一个响应
+              responseInterceptor(responses[0]).then(resolve).catch(reject);
+            })
+            .catch(reject);
         }
       });
-    });
+    } else {
+      // 如果有data参数且是POST/PUT请求，设置请求体
+      if (options.data && ['POST', 'PUT'].includes(requestConfig.method)) {
+        // 微信小程序环境处理
+        if (typeof options.data === 'string') {
+          // 已序列化的字符串，直接使用
+          requestConfig.data = options.data;
+        } else {
+          // 其他情况进行JSON序列化
+          requestConfig.data = JSON.stringify(options.data);
+          requestConfig.header = {
+            ...requestConfig.header,
+            'Content-Type': 'application/json'
+          };
+        }
+      }
+      
+      // 移除options中不属于wx.request的属性
+      delete requestConfig.queries;
+      delete requestConfig.headers;
+      delete requestConfig.data;
+      
+      // 应用请求拦截器
+      const config = requestInterceptor(requestConfig, options.headers);
+      
+      // 发送请求（使用Promise包装wx.request）
+      return new Promise((resolve, reject) => {
+        wx.request({
+          ...config,
+          success: (response) => {
+            // 应用响应拦截器
+            responseInterceptor(response).then(resolve).catch(reject);
+          },
+          fail: (error) => {
+            reject(error);
+          }
+        });
+      });
+    }
   } catch (error) {
     // 处理请求错误
     return handleRequestError(error);
