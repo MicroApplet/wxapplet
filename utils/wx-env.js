@@ -10,28 +10,22 @@ const configs = {
     baseUrl: 'https://dev.api.asialjim.cn',
     apiPrefix: '/api',
     debug: true,
-    // 应用相关配置
     xAppId: '335233980152156161',
-    appid: "wx4f5939c1b3d39bd2",
   },
   // 测试环境
   trial: {
-    baseUrl: 'http://test-api.example.com',
+    baseUrl: 'http://test.api.example.com',
     apiPrefix: '/api',
     debug: true,
-    // 应用相关配置
     xAppId: '335233980152156161',
-    appid: "wxd5013edcdd858d83",
   },
   // 生产环境
   release: {
     baseUrl: 'http://api.example.com',
     apiPrefix: '/api',
     debug: false,
-    // 应用相关配置
     xAppId: '335233980152156161',
-    appid: "wxd5013edcdd858d83",
-  },
+  }
 };
 
 /**
@@ -40,8 +34,7 @@ const configs = {
  */
 function getCurrentEnv() {
   // 获取当前小程序的运行版本
-  const versionInfo = wx.getAccountInfoSync();
-  return versionInfo.miniProgram.envVersion;
+  return wx.getAccountInfoSync().miniProgram.envVersion;
 }
 
 /**
@@ -49,7 +42,7 @@ function getCurrentEnv() {
  */
 function env() {
   const currentEnv = getCurrentEnv();
-  return configs[currentEnv] || configs.development;
+  return configs[currentEnv] || configs.develop;
 }
 
 // 导出当前环境的配置作为默认值
@@ -68,6 +61,6 @@ exports.debug = currentConfig.debug;
 // 导出应用相关配置
 exports.xAppId = currentConfig.xAppId;
 exports.xAppChl = "wechat";
-exports.wxAppId = currentConfig.appid;
-exports.xAppChlAppid = currentConfig.appid;
+exports.wxAppId =   wx.getAccountInfoSync().miniProgram.appId;
+exports.xAppChlAppid = this.wxAppId;
 exports.xAppChlAppType = "wechat:applet";
