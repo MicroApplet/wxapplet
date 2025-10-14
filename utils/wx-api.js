@@ -96,13 +96,12 @@ function userToken() {
  * @param {object} headers - 自定义请求头
  * @returns {object} 处理后的请求配置
  */
-function requestInterceptor(config, headers = {}) {
+function requestInterceptor(config, headers = {}, isFileUpload = false) {
   // 仅当请求方法是 POST 或者 PUT 时，且没有 Content-Type 请求头，且不是文件上传时才添加该请求头为 application/json
   const defaultHeaders = {
     ...headers
   };
   // 判断是否为文件上传请求 - 对于文件上传请求，不需要设置默认的Content-Type
-  const isFileUpload = config.url && config.url.includes('/upload'); // 根据实际API路径判断
   if (['POST', 'PUT'].includes(config.method) && (!config.header || !config.header['Content-Type']) && !isFileUpload) {
     defaultHeaders['Content-Type'] = 'application/json';
   } 
@@ -257,7 +256,7 @@ const request = async (uri, options = {}) => {
       delete requestConfig.name;
       
       // 应用请求拦截器
-      const config = requestInterceptor(requestConfig, options.headers);
+      const config = requestInterceptor(requestConfig, options.headers, true);
       
       // 使用wx.uploadFile处理文件上传
       return new Promise((resolve, reject) => {
