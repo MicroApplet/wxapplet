@@ -1,8 +1,7 @@
 {
   "pages": [
     "pages/login/login",
-    "pages/index/index",
-    "pages/logs/logs"
+    "pages/index/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -20,13 +19,7 @@
         "text": "首页",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home_active.png"
-      },
-      {
-        "pagePath": "pages/logs/logs",
-        "text": "日志",
-        "iconPath": "images/logs.png",
-        "selectedIconPath": "images/logs_active.png"
-      }
+      } 
     ]
   },
   "style": "v2",
