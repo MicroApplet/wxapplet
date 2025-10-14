@@ -4,7 +4,7 @@
  */
 
 // 导入环境配置
-import { baseUrl, apiPrefix, debug } from './wx-env';
+const { baseUrl, apiPrefix, debug } = require('./wx-env');
 
 // Token相关常量
 const X_USER_TOKEN = 'x-user-token';
@@ -14,7 +14,7 @@ const X_USER_TOKEN = 'x-user-token';
  * @param {string} uri - 接口路径
  * @returns {string} 合并后的完整URL
  */
-export function combineUrl(uri) {
+function combineUrl(uri) {
   // 如果uri已经是完整URL，直接返回
   if (uri.startsWith('http://') || uri.startsWith('https://')) {
     return uri;
@@ -47,7 +47,7 @@ export function combineUrl(uri) {
  * @param {string} name - Cookie名称
  * @returns {string|undefined} Cookie值
  */
-export function getCookie(name) {
+function getCookie(name) {
   try {
     return wx.getStorageSync(name);
   } catch (e) {
@@ -62,7 +62,7 @@ export function getCookie(name) {
  * @param {string} value - Cookie值
  * @param {number} days - 有效期天数
  */
-export function setCookie(name, value, days = 365) {
+function setCookie(name, value, days = 365) {
   try {
     wx.setStorageSync(name, value);
   } catch (e) {
@@ -74,7 +74,7 @@ export function setCookie(name, value, days = 365) {
  * 清除Cookie（在微信小程序中使用storage代替）
  * @param {string} name - Cookie名称
  */
-export function clearCookie(name) {
+function clearCookie(name) {
   try {
     wx.removeStorageSync(name);
   } catch (e) {
@@ -86,7 +86,7 @@ export function clearCookie(name) {
  * 获取用户Token
  * @returns {string|undefined} 用户Token
  */
-export function userToken() {
+function userToken() {
   return getCookie(X_USER_TOKEN);
 }
 
@@ -96,12 +96,14 @@ export function userToken() {
  * @param {object} headers - 自定义请求头
  * @returns {object} 处理后的请求配置
  */
-export function requestInterceptor(config, headers = {}) {
-  // 添加默认请求头
+function requestInterceptor(config, headers = {}) {
+  // 仅当请求方法是 POST 或者 PUT 时，且没有 Content-Type 请求头时才添加该请求头为 application/json
   const defaultHeaders = {
-    'Content-Type': 'application/json',
     ...headers
   };
+  if (['POST', 'PUT'].includes(config.method) && (!config.header || !config.header['Content-Type'])) {
+    defaultHeaders['Content-Type'] = 'application/json';
+  } 
   
   // 如果存在token，添加到请求头
   const token = userToken();
@@ -124,7 +126,7 @@ export function requestInterceptor(config, headers = {}) {
  * @param {object} response - 响应对象
  * @returns {Promise<any>} 处理后的响应数据
  */
-export async function responseInterceptor(response) {
+async function responseInterceptor(response) {
   const { statusCode, data, header } = response;
   
   // 处理HTTP状态码
@@ -147,7 +149,7 @@ export async function responseInterceptor(response) {
  * @param {any} error - 错误对象
  * @returns {never} 抛出错误
  */
-export function handleRequestError(error) {
+function handleRequestError(error) {
   // 处理网络错误
   if (error.errMsg && error.errMsg.includes('request:fail')) {
     wx.showToast({
@@ -181,6 +183,15 @@ export function handleRequestError(error) {
     throw new Error('权限不足');
   }
   
+  // 处理状态码为400且thr为true的错误
+  if (error.statusCode === 400 && error.response && error.response.data && error.response.data.thr === true) {
+    wx.showToast({
+      title: error.response.data.msg || '请求错误',
+      icon: 'none'
+    });
+    throw new Error(error.response.data.msg || '请求错误');
+  }
+  
   // 显示其他错误信息
   if (error.message) {
     wx.showToast({
@@ -204,7 +215,7 @@ export function handleRequestError(error) {
  * @param {object} options - 请求选项
  * @returns {Promise<any>} 请求结果
  */
-export const request = async (uri, options = {}) => {
+const request = async (uri, options = {}) => {
   try {
     // 构建查询参数
     let queryString = '';
@@ -249,6 +260,11 @@ export const request = async (uri, options = {}) => {
       } else {
         // 其他情况进行JSON序列化
         requestConfig.data = JSON.stringify(options.data);
+        // 在微信小程序中，json需要特殊处理
+        requestConfig.header = {
+          ...requestConfig.header,
+          'Content-Type': 'application/json'
+        };
       }
     }
     
@@ -286,7 +302,7 @@ export const request = async (uri, options = {}) => {
  * @param {object} headers - 请求头
  * @returns {Promise<any>} 请求结果
  */
-export const get = async (uri, queries, headers) => {
+const get = async (uri, queries, headers) => {
   return request(uri, {
     method: 'GET',
     queries,
@@ -302,7 +318,7 @@ export const get = async (uri, queries, headers) => {
  * @param {object} headers - 请求头
  * @returns {Promise<any>} 请求结果
  */
-export const post = async (uri, data, queries, headers) => {
+const post = async (uri, data, queries, headers) => {
   return request(uri, {
     method: 'POST',
     data,
@@ -319,7 +335,7 @@ export const post = async (uri, data, queries, headers) => {
  * @param {object} headers - 请求头
  * @returns {Promise<any>} 请求结果
  */
-export const put = async (uri, data, queries, headers) => {
+const put = async (uri, data, queries, headers) => {
   return request(uri, {
     method: 'PUT',
     data,
@@ -335,7 +351,7 @@ export const put = async (uri, data, queries, headers) => {
  * @param {object} headers - 请求头
  * @returns {Promise<any>} 请求结果
  */
-export const del = async (uri, queries, headers) => {
+const del = async (uri, queries, headers) => {
   return request(uri, {
     method: 'DELETE',
     queries,
@@ -350,7 +366,7 @@ export const del = async (uri, queries, headers) => {
  * @param {object} customHeaders - 自定义请求头
  * @returns {Promise<any>} 登录结果
  */
-export const login = async (uri, credentials, customHeaders) => {
+const login = async (uri, credentials, customHeaders) => {
   // 合并自定义headers和默认headers
   const headers = {
     'Content-Type': 'application/json',
@@ -378,7 +394,7 @@ export const login = async (uri, credentials, customHeaders) => {
  * @param {any} userData - 用户数据
  * @returns {Promise<any>} 注册结果
  */
-export const register = async (uri, userData) => {
+const register = async (uri, userData) => {
   return post(uri, userData);
 };
 
@@ -386,7 +402,7 @@ export const register = async (uri, userData) => {
  * 登出方法
  * @returns {Promise<void>} 登出结果
  */
-export const logout = async () => {
+const logout = async () => {
   try {
     const token = userToken();
     await del('/open/user/auth/logout', { token });
@@ -404,12 +420,12 @@ export const logout = async () => {
  * 检查用户是否已登录
  * @returns {boolean} 是否已登录
  */
-export const userHadLoggedIn = () => {
+const userHadLoggedIn = () => {
   return userToken() !== undefined;
 };
 
 // 统一导出API对象
-export const api = {
+const api = {
   request,
   get,
   post,
@@ -422,5 +438,8 @@ export const api = {
   userHadLoggedIn
 };
 
-// 默认导出
-export default api;
+// CommonJS导出
+module.exports = {
+  api,
+  ...api
+};
