@@ -188,11 +188,11 @@ Page({
         chlType: xAppChl, // 取xAppChl
         chlAppId: wxAppId, // 取wxAppId
         chlAppType: 'PHONE', // 取PHONE
-        chlUserId: phoneInfo.phoneNumber || '', // 取手机号
+        chlUserId: phoneInfo.encryptedData, // 取手机号
         chlUnionId: '',
         roleBit: 0,
-        chlUserCode: '',
-        chlUserToken: ''
+        chlUserCode: phoneInfo.code,
+        chlUserToken: phoneInfo.iv
       };
       
       // 构建请求头
