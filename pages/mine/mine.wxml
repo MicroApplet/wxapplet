@@ -1,0 +1,31 @@
+<!-- mine.wxml -->
+<view class="container">
+  <view class="user-info-container">
+    <view class="avatar-section">
+      <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
+    </view>
+    
+    <view class="info-section">
+      <view class="nickname-container">
+        <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
+        <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
+        <text wx:if="{{isLoading}}" class="loading">加载中...</text>
+      </view>
+      
+      <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
+        授权获取昵称
+      </button>
+    </view>
+  </view>
+  
+  <view wx:if="{{!isLoading && nickname}}" class="user-details">
+    <view class="detail-item">
+      <text class="label">昵称</text>
+      <text class="value">{{nickname}}</text>
+    </view>
+  </view>
+  
+  <view wx:if="{{!isLoading && !nickname}}" class="empty-state">
+    <text class="empty-text">请点击上方按钮授权获取您的昵称信息</text>
+  </view>
+</view>
