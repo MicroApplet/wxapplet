@@ -11,7 +11,8 @@ Page({
    */
   data: {
     loading: false, // 登录中状态
-    errorMsg: '' // 错误信息
+    errorMsg: '', // 错误信息
+    phoneAuthorized: false // 用户是否已授权手机号
   },
 
   /**
@@ -22,6 +23,12 @@ Page({
     const token = api.userToken();
     
     if (token) {
+      // 检查用户是否已授权手机号
+      const phoneAuthorized = wx.getStorageSync('phoneAuthorized') || false;
+      this.setData({
+        phoneAuthorized: phoneAuthorized
+      });
+    } else {
       wx.switchTab({
         url: '/pages/index/index',
         fail: (err) => {
@@ -206,6 +213,12 @@ Page({
       api.post('/rest/user/service/user/registrar/register', registerData, null, headers)
         .then(function(response) {
           console.log('注册成功:', response);
+          
+          // 注册成功后，保存用户已授权手机号的状态
+          wx.setStorageSync('phoneAuthorized', true);
+          that.setData({
+            phoneAuthorized: true
+          });
           
           // 重置加载状态
           that.setData({
