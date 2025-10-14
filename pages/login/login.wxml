@@ -28,8 +28,8 @@
       class="phone-auth-btn"
       open-type="getPhoneNumber"
       bindgetphonenumber="onGetPhoneNumber"
-      loading="{{loading}}"
-      disabled="{{loading}}"
+      loading="{{phoneAuthorized}}"
+      disabled="{{phoneAuthorized}}"
     >
       授权手机号
     </button>
