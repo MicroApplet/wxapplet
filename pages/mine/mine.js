@@ -1,4 +1,7 @@
 // mine.js
+// 导入wx-api.js中的API
+const { api } = require('../../utils/wx-api');
+
 Page({
   data: {
     nickname: '',
@@ -17,41 +20,22 @@ Page({
   async getUserSessionInfo() {
     this.setData({ isLoading: true });
     try {
-      const res = await wx.getStorage({ key: 'token' });
-      if (res.data) {
-        // 有token，调用接口获取用户会话信息
-        wx.request({
-          url: '/api/rest/user/service/user/session',
-          method: 'GET',
-          header: {
-            'content-type': 'application/json',
-            'token': res.data
-          },
-          success: (result) => {
-            if (result.data && result.data.data) {
-              const userInfo = result.data.data;
-              this.setData({
-                nickname: userInfo.nickname || '',
-                isLoading: false
-              });
-            } else {
-              wx.showToast({ title: '获取用户信息失败', icon: 'none' });
-              this.setData({ isLoading: false });
-            }
-          },
-          fail: (error) => {
-            console.error('获取用户会话信息失败:', error);
-            wx.showToast({ title: '获取用户信息失败', icon: 'none' });
-            this.setData({ isLoading: false });
-          }
+      // 直接使用api.get，无需手动获取token，wx-api.js会自动处理
+      const response = await api.get('/user/service/user/session');
+      
+      if (response && response.data) {
+        const userInfo = response.data;
+        this.setData({
+          nickname: userInfo.nickname || '',
+          isLoading: false
         });
       } else {
-        wx.showToast({ title: '请先登录', icon: 'none' });
+        wx.showToast({ title: '获取用户信息失败', icon: 'none' });
         this.setData({ isLoading: false });
       }
     } catch (error) {
-      console.error('获取token失败:', error);
-      wx.showToast({ title: '请先登录', icon: 'none' });
+      console.error('获取用户会话信息失败:', error);
+      // wx-api.js会处理大部分错误情况，这里只需要处理UI状态
       this.setData({ isLoading: false });
     }
   },
@@ -76,29 +60,17 @@ Page({
   },
 
   // 更新用户昵称到服务器
-  updateUserNickname(nickname) {
+  async updateUserNickname(nickname) {
     try {
-      const token = wx.getStorageSync('token');
-      if (token) {
-        wx.request({
-          url: '/api/rest/user/service/user/updateNickname',
-          method: 'POST',
-          data: {
-            nickname: nickname
-          },
-          header: {
-            'content-type': 'application/json',
-            'token': token
-          },
-          success: (res) => {
-            if (res.data && res.data.code === 0) {
-              wx.showToast({ title: '昵称更新成功' });
-            }
-          }
-        });
+      // 直接使用api.post，wx-api.js会自动处理token和请求头等
+      const response = await api.post('/user/service/user/updateNickname', { nickname });
+      
+      if (response && response.code === 0) {
+        wx.showToast({ title: '昵称更新成功' });
       }
     } catch (error) {
       console.error('更新昵称失败:', error);
+      // wx-api.js会处理大部分错误情况
     }
   }
 });
