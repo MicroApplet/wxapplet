@@ -1,4 +1,8 @@
 //app.js
+
+// 导入userToken函数
+const { userToken } = require('./utils/wx-api');
+
 App({
   onLaunch: function () {
     // 小程序启动时执行
@@ -28,8 +32,8 @@ App({
   
   // 检查用户登录状态
   checkLoginStatus: function() {
-    // 从本地存储获取token
-    const token = wx.getStorageSync('userToken')
+    // 从wx-api.js获取token
+    const token = userToken();
     const userInfo = wx.getStorageSync('userInfo')
     
     // 保存到全局数据
