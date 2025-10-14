@@ -187,7 +187,7 @@ Page({
         appid: xAppId, // 取xAppid
         chlType: xAppChl, // 取xAppChl
         chlAppId: wxAppId, // 取wxAppId
-        chlAppType: 'PHONE', // 取PHONE
+        chlAppType: 'WX-PHONE', // 微信手机号
         chlUserId: phoneInfo.encryptedData, // 取手机号
         chlUnionId: '',
         roleBit: 0,
