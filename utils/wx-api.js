@@ -97,11 +97,13 @@ function userToken() {
  * @returns {object} 处理后的请求配置
  */
 function requestInterceptor(config, headers = {}) {
-  // 仅当请求方法是 POST 或者 PUT 时，且没有 Content-Type 请求头时才添加该请求头为 application/json
+  // 仅当请求方法是 POST 或者 PUT 时，且没有 Content-Type 请求头，且不是文件上传时才添加该请求头为 application/json
   const defaultHeaders = {
     ...headers
   };
-  if (['POST', 'PUT'].includes(config.method) && (!config.header || !config.header['Content-Type'])) {
+  // 判断是否为文件上传请求 - 对于文件上传请求，不需要设置默认的Content-Type
+  const isFileUpload = config.url && config.url.includes('/upload'); // 根据实际API路径判断
+  if (['POST', 'PUT'].includes(config.method) && (!config.header || !config.header['Content-Type']) && !isFileUpload) {
     defaultHeaders['Content-Type'] = 'application/json';
   } 
   
