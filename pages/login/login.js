@@ -3,7 +3,7 @@
 // 导入HTTP请求工具
 const { api } = require('../../utils/wx-api');
 // 导入环境配置
-const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType, wxAppId } = require('../../utils/wx-env');
+const { xAppId, xAppChl, wxAppId, xAppChlAppType } = require('../../utils/wx-env');
 
 Page({
   /**
@@ -151,5 +151,86 @@ Page({
           errorMsg: error.message || '登录失败，请重试'
         });
       });
+  },
+  
+  /**
+   * 处理用户授权手机号
+   */
+  onGetPhoneNumber: function(e) {
+    const that = this;
+    
+    // 设置加载状态
+    this.setData({
+      loading: true,
+      errorMsg: ''
+    });
+    
+    // 检查用户是否授权
+    if (e.detail.errMsg === 'getPhoneNumber:fail user deny') {
+      this.setData({
+        loading: false,
+        errorMsg: '请授权手机号以完成注册'
+      });
+      return;
+    }
+    
+    // 用户授权成功，获取手机号信息
+    if (e.detail.errMsg === 'getPhoneNumber:ok') {
+      // 获取到手机号信息，准备调用注册接口
+      const phoneInfo = e.detail;
+      
+      // 构建注册请求参数
+      const registerData = {
+        id: '', // 忽略
+        userid: '', // 忽略
+        appid: xAppId, // 取xAppid
+        chlType: xAppChl, // 取xAppChl
+        chlAppId: wxAppId, // 取wxAppId
+        chlAppType: 'PHONE', // 取PHONE
+        chlUserId: phoneInfo.phoneNumber || '', // 取手机号
+        chlUnionId: '',
+        roleBit: 0,
+        chlUserCode: '',
+        chlUserToken: ''
+      };
+      
+      // 构建请求头
+      const headers = {
+        'x-app-id': xAppId,
+        'x-app-chl': xAppChl,
+        'x-app-chl-appid': wxAppId
+      };
+      
+      // 调用后台注册接口
+      api.post('/rest/user/service/user/registrar/register', registerData, null, headers)
+        .then(function(response) {
+          console.log('注册成功:', response);
+          
+          // 注册成功后跳转到首页
+          wx.switchTab({
+            url: '/pages/index/index',
+            fail: (err) => {
+              console.error('跳转到首页失败:', err);
+              // 如果switchTab失败，尝试使用redirectTo
+              wx.redirectTo({
+                url: '/pages/index/index'
+              });
+            }
+          });
+        })
+        .catch(function(error) {
+          console.error('注册失败:', error);
+          that.setData({
+            loading: false,
+            errorMsg: error.message || '注册失败，请重试'
+          });
+        });
+    } else {
+      // 授权失败的其他情况
+      this.setData({
+        loading: false,
+        errorMsg: '获取手机号失败，请重试'
+      });
+    }
   }
 });
