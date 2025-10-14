@@ -14,14 +14,14 @@ const configs = {
   },
   // 测试环境
   trial: {
-    baseUrl: 'http://test.api.example.com',
+    baseUrl: 'http://test.api.asialjim.cn',
     apiPrefix: '/api',
     debug: true,
     xAppId: '335233980152156161',
   },
   // 生产环境
   release: {
-    baseUrl: 'http://api.example.com',
+    baseUrl: 'http://gateway.api.asialjim.cn',
     apiPrefix: '/api',
     debug: false,
     xAppId: '335233980152156161',
