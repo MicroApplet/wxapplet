@@ -207,6 +207,11 @@ Page({
         .then(function(response) {
           console.log('注册成功:', response);
           
+          // 重置加载状态
+          that.setData({
+            loading: false
+          });
+          
           // 注册成功后跳转到首页
           wx.switchTab({
             url: '/pages/index/index',
