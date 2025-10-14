@@ -335,7 +335,6 @@ const request = async (uri, options = {}) => {
       // 移除options中不属于wx.request的属性
       delete requestConfig.queries;
       delete requestConfig.headers;
-      delete requestConfig.data;
       
       // 应用请求拦截器
       const config = requestInterceptor(requestConfig, options.headers);
