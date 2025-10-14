@@ -110,6 +110,7 @@ function requestInterceptor(config, headers = {}, isFileUpload = false) {
   const token = userToken();
   if (token) {
     defaultHeaders[X_USER_TOKEN] = token;
+    defaultHeaders['Authorization'] = token;
   }
   
   // 合并请求配置
