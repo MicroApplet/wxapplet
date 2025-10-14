@@ -62,5 +62,5 @@ exports.debug = currentConfig.debug;
 exports.xAppId = currentConfig.xAppId;
 exports.xAppChl = "wechat";
 exports.wxAppId =   wx.getAccountInfoSync().miniProgram.appId;
-exports.xAppChlAppid = this.wxAppId;
+exports.xAppChlAppid = wx.getAccountInfoSync().miniProgram.appId;
 exports.xAppChlAppType = "wechat:applet";
