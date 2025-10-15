@@ -187,7 +187,7 @@ Page({
       
       // 1. 检查是否支持人脸核身功能
       if (!wx.startFacialRecognitionVerify) {
-        throw new Error('当前设备不支持人脸核身功能，请升级微信至最新版本（Android 7.0.22+ / iOS 7.0.18+）');
+        throw new Error('当前设备不支持人脸核身功能，请升级微信至最新版本（读数字：Android 6.5.4+ / iOS 6.5.6+；屏幕闪烁：Android 6.7.2+ / iOS 6.7.2+）');
       }
       
       // 2. 获取用户输入的姓名和身份证号
@@ -204,12 +204,12 @@ Page({
         wx.startFacialRecognitionVerify({
           name: idName,          // 姓名
           idCardNumber: idNumber, // 身份证号
+          checkAliveType: 0,     // 人脸核验的交互方式，0表示读数字（默认）
           success: (res) => {
             console.log('人脸核身成功', res);
-            // 提取验证结果，包含凭证信息
+            // 根据文档要求，直接使用返回的verifyResult字符串
             resolve({
-              ticket: res.ticket,    // 人脸核验凭证，用于后端校验
-              requestId: res.requestId, // 请求ID，用于后续查询结果
+              verifyResult: res.verifyResult, // 人脸核验凭证，用于后端校验
               timestamp: Date.now()
             });
           },
@@ -306,7 +306,7 @@ Page({
   },
   
   // 提交实名认证信息（使用微信生物识别人脸核身结果）
-  async submitRealNameInfo(verifyResult) {
+  async submitRealNameInfo(verifyResultData) {
     try {
       this.setData({ isLoading: true });
       
@@ -322,14 +322,14 @@ Page({
         idType, // 证件类型代码
         name: idName, // 姓名
         number: idNumber, // 证件号
-        verifyResult // 人脸认证结果，包含ticket和requestId
+        verifyResult: verifyResultData.verifyResult // 根据文档要求，直接使用verifyResult字符串
       });
       
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
         
         // 2. 再次获取核验结果（提高安全性）
-        const finalResult = await this.getVerificationResult(verifyResult.requestId);
+        const finalResult = await this.getVerificationResult(verifyResultData.verifyResult);
         
         if ((isVerified || (finalResult && finalResult.isVerified)) && realNameInfo) {
           // 3. 缓存认证结果
@@ -363,11 +363,11 @@ Page({
   },
   
   // 根据文档第四部分要求，再次获取核验结果，提高业务方安全性
-  async getVerificationResult(requestId) {
+  async getVerificationResult(verifyResult) {
     try {
       // 调用后端接口再次获取核验结果
       const response = await api.get('/rest/user/service/user/id-card/verify-result', {
-        requestId: requestId
+        verifyResult: verifyResult // 使用verifyResult字符串作为参数
       });
       
       if (response && response.code === 0 && response.data) {
