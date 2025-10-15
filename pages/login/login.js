@@ -130,16 +130,7 @@ Page({
     api.login('/open/user/auth/login', credentials, headers)
       .then(function(response) {
         console.log('登录成功:', response);
-        
-        // 存储登录信息到本地
-        // if (response.data && response.data.token) {
-        //   wx.setStorageSync('userToken', response.data.token);
-        //   // 如果有用户信息也存储起来
-        //   if (response.data.userInfo) {
-        //     wx.setStorageSync('userInfo', response.data.userInfo);
-        //   }
-        // }
-        
+       
         // 登录成功后跳转到首页
         wx.switchTab({
           url: '/pages/index/index',
