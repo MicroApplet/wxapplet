@@ -6,6 +6,17 @@
   align-items: center;
 }
 
+/* 实名认证相关样式 */
+.verified {
+  color: #1aad19;
+  font-weight: bold;
+}
+
+.verify-btn {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+}
+
 .user-info-container {
   width: 100%;
   padding: 40rpx 0;
@@ -91,6 +102,113 @@
 }
 
 .empty-text {
+    font-size: 28rpx;
+    color: #999;
+  }
+
+/* 实名认证弹窗样式 */
+.form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  width: 80%;
+  max-width: 500rpx;
+  background-color: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.close-btn {
+  font-size: 48rpx;
+  color: #999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-container {
+  padding: 30rpx;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  width: 160rpx;
+  font-size: 32rpx;
+  color: #666;
+}
+
+.form-value {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 32rpx;
+  padding: 20rpx;
+  border: 1px solid #ddd;
+  border-radius: 8rpx;
+  color: #333;
+}
+
+.btn-container {
+  padding: 30rpx;
+}
+
+.face-btn {
+  width: 100%;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+}
+
+.form-tip {
+  padding: 30rpx;
+  text-align: center;
+}
+
+.form-tip text {
   font-size: 28rpx;
   color: #999;
 }

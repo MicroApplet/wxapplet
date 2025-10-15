@@ -1,4 +1,3 @@
-<!-- mine.wxml -->
 <view class="container">
   <view class="user-info-container">
     <view class="avatar-section">
@@ -23,9 +22,73 @@
       <text class="label">昵称</text>
       <text class="value">{{nickname}}</text>
     </view>
+    
+    <!-- 实名认证信息 -->
+    <view class="detail-item">
+      <text class="label">实名认证</text>
+      <text wx:if="{{isRealNameVerified}}" class="value verified">已认证</text>
+      <button wx:elif="{{!isRealNameVerified}}" class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
+        去实名认证
+      </button>
+    </view>
+    
+    <!-- 已实名认证时显示脱敏信息 -->
+    <view wx:if="{{isRealNameVerified && realNameInfo}}" class="real-name-info">
+      <view class="detail-item">
+        <text class="label">姓名</text>
+        <text class="value">{{realNameInfo.idName}}</text>
+      </view>
+      <view class="detail-item">
+        <text class="label">证件号码</text>
+        <text class="value">{{realNameInfo.idNumber}}</text>
+      </view>
+    </view>
   </view>
   
   <view wx:if="{{!isLoading && !nickname}}" class="empty-state">
     <text class="empty-text">请点击上方按钮授权获取您的昵称信息</text>
+  </view>
+</view>
+
+<!-- 实名认证表单弹窗 -->
+<view wx:if="{{showRealNameForm}}" class="form-modal">
+  <view class="modal-backdrop" bindtap="hideRealNameForm"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">实名认证</text>
+      <view class="close-btn" bindtap="hideRealNameForm">×</view>
+    </view>
+    
+    <view class="form-container">
+      <!-- 证件类型 -->
+      <view class="form-item">
+        <text class="form-label">证件类型</text>
+        <view class="form-value">身份证</view>
+      </view>
+      
+      <!-- 姓名 -->
+      <view class="form-item">
+        <text class="form-label">姓名</text>
+        <input class="form-input" placeholder="请输入姓名" value="{{idName}}" data-field="idName" bindinput="onInput" />
+      </view>
+      
+      <!-- 证件号码 -->
+      <view class="form-item">
+        <text class="form-label">证件号码</text>
+        <input class="form-input" placeholder="请输入身份证号码" value="{{idNumber}}" data-field="idNumber" bindinput="onInput" />
+      </view>
+    </view>
+    
+    <!-- 人脸认证按钮 -->
+    <view wx:if="{{idName && idNumber}}" class="btn-container">
+      <button class="face-btn" bindtap="performFaceVerification" type="primary">
+        {{isLoading ? '处理中...' : '人脸认证'}}
+      </button>
+    </view>
+    
+    <!-- 表单未填写完整提示 -->
+    <view wx:elif="{{!isLoading}}" class="form-tip">
+      <text>请先填写完整的身份信息</text>
+    </view>
   </view>
 </view>
