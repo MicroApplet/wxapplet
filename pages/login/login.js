@@ -23,12 +23,7 @@ Page({
     const token = api.userToken();
     
     if (token) {
-      // 检查用户是否已授权手机号
-      const phoneAuthorized = wx.getStorageSync('phoneAuthorized') || false;
-      this.setData({
-        phoneAuthorized: phoneAuthorized
-      });
-    } else {
+      // 用户已登录，直接跳转到首页
       wx.switchTab({
         url: '/pages/index/index',
         fail: (err) => {
@@ -38,6 +33,12 @@ Page({
             url: '/pages/index/index'
           });
         }
+      });
+    } else {
+      // 用户未登录，检查是否已授权手机号（用于后续登录状态恢复）
+      const phoneAuthorized = wx.getStorageSync('phoneAuthorized') || false;
+      this.setData({
+        phoneAuthorized: phoneAuthorized
       });
     }
   },
