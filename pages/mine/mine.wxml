@@ -44,7 +44,7 @@
       </view>
       <view class="detail-item">
         <text class="label">证件号码</text>
-        <text class="value">{{maskIdCardNumber(realNameInfo.idType, realNameInfo.idNumber)}}</text>
+        <text class="value">{{realNameInfo.idNumber}}</text>
       </view>
     </view>
   </view>

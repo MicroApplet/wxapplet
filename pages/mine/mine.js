@@ -13,7 +13,7 @@ Page({
     realNameInfo: null,
     showRealNameForm: false,
     // 表单数据
-    idType: '01',  // 身份证代码 01
+    idType: IdCardType.ResidentIdentityCard.code,  // 身份证代码 01
     idName: '',
     idNumber: ''
   },
@@ -253,11 +253,6 @@ Page({
   // 获取证件类型中文名
   getCnNameById(code) {
     return IdCardType.getCnNameById(code);
-  },
-  
-  // 对证件号码进行脱敏处理
-  maskIdCardNumber(code, idNumber) {
-    return IdCardType.maskIdCardNumber(code, idNumber);
   },
   
   // 全局错误处理器
