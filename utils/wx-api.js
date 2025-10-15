@@ -222,13 +222,14 @@ const request = async (uri, options = {}) => {
     // 构建查询参数
     let queryString = '';
     if (options.queries) {
-      const searchParams = new URLSearchParams();
+      // 微信小程序环境不支持URLSearchParams，使用原生JavaScript构建查询字符串
+      const paramsArray = [];
       Object.keys(options.queries).forEach(key => {
         if (options.queries[key] !== undefined && options.queries[key] !== null) {
-          searchParams.append(key, options.queries[key]);
+          paramsArray.push(`${encodeURIComponent(key)}=${encodeURIComponent(options.queries[key])}`);
         }
       });
-      const paramsString = searchParams.toString();
+      const paramsString = paramsArray.join('&');
       if (paramsString) {
         // 检查uri是否已经包含查询参数
         const separator = uri.includes('?') ? '&' : '?';
