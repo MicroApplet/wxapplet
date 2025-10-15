@@ -196,6 +196,9 @@ Page({
         throw new Error('请先填写姓名和身份证号');
       }
       
+      // 3. 根据文档要求，先检查设备是否支持人脸检测
+      await this.checkDeviceSupportFacialRecognition();
+      
       // 3. 调用微信生物识别人脸核身接口
       const verifyResult = await new Promise((resolve, reject) => {
         wx.startFacialRecognitionVerify({
@@ -253,6 +256,52 @@ Page({
       });
     } finally {
       this.setData({ isLoading: false });
+    }
+  },
+  
+  // 根据文档要求，检查设备是否支持人脸检测
+  async checkDeviceSupportFacialRecognition() {
+    try {
+      if (!wx.checkIsSupportFacialRecognition) {
+        console.warn('当前微信版本不支持设备人脸检测检查');
+        return;
+      }
+      
+      await new Promise((resolve, reject) => {
+        wx.checkIsSupportFacialRecognition({
+          checkAliveType: 2, // 先检查是否可以屏幕闪烁，不可以则自动为读数字
+          success: (res) => {
+            // Android设备会返回errCode，0表示支持
+            // iOS设备不返回errCode
+            if (res.errCode !== undefined && res.errCode !== 0) {
+              // 仅对Android设备的错误进行处理
+              if (res.errCode === 10001) {
+                reject(new Error('设备没有前置摄像头，不支持人脸采集'));
+              } else if (res.errCode === 10002) {
+                reject(new Error('没有下载到必要模型，不支持人脸采集'));
+              } else if (res.errCode === 10003) {
+                reject(new Error('后台控制不支持人脸采集'));
+              } else {
+                reject(new Error('设备不支持人脸采集'));
+              }
+            } else {
+              resolve();
+            }
+          },
+          fail: (err) => {
+            console.error('检查设备支持失败:', err);
+            // iOS设备调用此接口可能会进入fail回调，但实际可能支持人脸核身
+            // 因此仅记录错误，不阻止后续流程
+            resolve();
+          },
+          complete: () => {
+            // 无论成功失败都会调用
+          }
+        });
+      });
+    } catch (error) {
+      console.error('设备检查异常:', error);
+      throw error;
     }
   },
   
