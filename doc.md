@@ -1,0 +1,60 @@
+# 后台接口相应数据结构
+```json
+{
+	"status":200,				#网络状态码
+	"thr":false,				#是否弹窗提示错误
+	"pageable":false,			#是否分页展示
+	"code":"0",				    #业务状态码
+	"msg":"成功",				#错误信息
+	"data":T,					#业务数据负载，泛型
+	"errs":[],					#错误详情
+	"page":1,				    #当前页码
+	"size":1,					#分页宽度
+	"pages":1,				    #总页码
+	"total":1					#总记录条数
+}
+```
+
+# 证件类型代码
+```java
+@Getter
+@AllArgsConstructor
+public enum IdCardType {
+    ResidentIdentityCard("01", "ResidentIdentityCard", "居民身份证",6,4),
+    HouseholdRegister("02", "HouseholdRegister", "户口簿",6,4),
+    DriverLicense("03", "DriverLicense", "驾驶证",6,4),
+    SocialSecurityCard("04", "SocialSecurityCard", "社会保障卡",6,4),
+    MilitaryID("05", "MilitaryID", "军官证",1,1),
+    PoliceOfficerID("06", "PoliceOfficerID", "警官证",1,1),
+    OfficerID("07", "OfficerID", "公务员证",1,1),
+    HongKongMacaoPass("08", "HongKongMacaoPass", "港澳通行证",3,3),
+    TaiwanPass("09", "TaiwanPass", "台湾通行证",3,3),
+    BorderPass("10", "BorderPass", "边境通行证",3,3),
+    SeamanBook("11", "SeamanBook", "海员证",3,3),
+    LawyerLicense("12", "LawyerLicense", "律师执业证",3,3),
+    ForResCard("13","ForResCard","外国人居住证",3,3),
+    Passport("99", "Passport", "护照",6,4);
+
+    /**
+     * 证件类型代码
+     */
+    private final String code;
+
+    /**
+     * 证件类型英文名
+     */
+    private final String enName;
+    /**
+     * 证件类型中文名
+     */
+    private final String cnName;
+    /**
+     * 脱敏保留证件号左边多少位
+     */
+    private final int sensitiveLeft;
+    /**
+     * 脱敏保留证件号右边多少位
+     */
+    private final int sensitiveRight;
+}
+```

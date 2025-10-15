@@ -39,8 +39,12 @@
         <text class="value">{{realNameInfo.idName}}</text>
       </view>
       <view class="detail-item">
+        <text class="label">证件类型</text>
+        <text class="value">{{getCnNameById(realNameInfo.idType)}}</text>
+      </view>
+      <view class="detail-item">
         <text class="label">证件号码</text>
-        <text class="value">{{realNameInfo.idNumber}}</text>
+        <text class="value">{{maskIdCardNumber(realNameInfo.idType, realNameInfo.idNumber)}}</text>
       </view>
     </view>
   </view>
@@ -63,7 +67,7 @@
       <!-- 证件类型 -->
       <view class="form-item">
         <text class="form-label">证件类型</text>
-        <view class="form-value">身份证</view>
+        <view class="form-value">{{getCnNameById(idType)}}</view>
       </view>
       
       <!-- 姓名 -->

@@ -1,6 +1,8 @@
 // mine.js
 // 导入wx-api.js中的API
 const { api } = require('../../utils/wx-api');
+// 导入证件类型枚举
+const IdCardType = require('../../utils/id-card-type');
 
 Page({
   data: {
@@ -11,7 +13,7 @@ Page({
     realNameInfo: null,
     showRealNameForm: false,
     // 表单数据
-    idType: 'idCard',
+    idType: '01',  // 身份证代码 01
     idName: '',
     idNumber: ''
   },
@@ -131,8 +133,7 @@ Page({
       }
       
       // 本地未找到或已过期，从服务器获取
-      const response = await api.get('/rest/user/service/user/realname/status');
-      
+      const response = await api.get('/rest/user/service/user/id-card/status')
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
         
@@ -213,7 +214,7 @@ Page({
       const { idType, idName, idNumber } = this.data;
       
       // 调用后端接口提交认证信息
-      const response = await api.post('/rest/user/service/user/realname/authenticate', {
+      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', {
         idType,
         idName,
         idNumber,
@@ -247,6 +248,16 @@ Page({
     } finally {
       this.setData({ isLoading: false });
     }
+  },
+  
+  // 获取证件类型中文名
+  getCnNameById(code) {
+    return IdCardType.getCnNameById(code);
+  },
+  
+  // 对证件号码进行脱敏处理
+  maskIdCardNumber(code, idNumber) {
+    return IdCardType.maskIdCardNumber(code, idNumber);
   },
   
   // 全局错误处理器
