@@ -180,148 +180,70 @@ Page({
     });
   },
   
-  // 执行人脸验证（使用新版VisionKit API）
+  // 执行人脸验证（符合微信人脸核身文档要求）
   async performFaceVerification() {
-    let vkSession = null;
-    let timeoutTimer = null;
-    
     try {
       this.setData({ isLoading: true });
       
-      // 检查是否支持VisionKit
-      if (!wx.createVKSession) {
-        throw new Error('当前设备不支持人脸验证功能');
+      // 1. 检查是否支持人脸核身功能
+      if (!wx.faceDetect) {
+        throw new Error('当前设备不支持人脸核身功能');
       }
       
-      // 创建VisionKit会话对象
-      vkSession = wx.createVKSession({
-        version: 'v2',
-        track: {
-          face: {
-            mode: 1 // 通过摄像头实时检测
-          }
-        }
-      });
-      
-      // 初始化会话
-      await new Promise((resolve, reject) => {
-        vkSession.init({
-          success: () => resolve(),
+      // 2. 调用微信人脸核身接口
+      const verifyResult = await new Promise((resolve, reject) => {
+        wx.faceDetect({
+          // 根据文档要求，设置mode为1表示使用公安部“互联网+”可信身份认证服务平台
+          mode: 1,
+          // 显示人脸框和提示信息
+          showProcess: true,
+          success: (res) => {
+            console.log('人脸检测成功', res);
+            // 提取验证结果，包含凭证信息
+            resolve({
+              faceCode: res.faceCode, // 人脸凭证，用于后端核验
+              requestId: res.requestId, // 请求ID，用于后续查询结果
+              timestamp: Date.now()
+            });
+          },
           fail: (err) => {
-            console.error('VKSession初始化失败:', err);
-            reject(new Error('人脸验证初始化失败，请重试'));
+            console.error('人脸检测失败', err);
+            // 根据错误码提供更具体的提示
+            let errorMsg = '人脸验证失败，请重试';
+            switch(err.errCode) {
+              case 10001:
+                errorMsg = '用户取消验证';
+                break;
+              case 10002:
+                errorMsg = '系统错误，请稍后再试';
+                break;
+              case 10003:
+                errorMsg = '验证超时';
+                break;
+              case 10004:
+                errorMsg = '未检测到人脸';
+                break;
+            }
+            reject(new Error(errorMsg));
           }
         });
       });
       
-      // 启动跟踪
-      vkSession.start();
+      // 3. 提交认证信息到后端
+      await this.submitRealNameInfo(verifyResult);
       
-      // 创建canvas用于显示预览
-      const canvas = wx.createOffscreenCanvas();
-      const ctx = canvas.getContext('2d');
-      
-      // 人脸检测计数器，确保稳定检测
-      let stableFaceDetectedCount = 0;
-      const REQUIRED_STABLE_COUNT = 3;
-      
-      // 监听人脸检测事件
-      vkSession.on('faceDetected', (res) => {
-        if (res.faceInfoList && res.faceInfoList.length > 0) {
-          const faceInfo = res.faceInfoList[0];
-          
-          // 检查人脸质量（置信度）
-          if (faceInfo.confidence > 0.8) {
-            stableFaceDetectedCount++;
-            
-            // 当连续稳定检测到人脸达到要求次数时，视为验证通过
-            if (stableFaceDetectedCount >= REQUIRED_STABLE_COUNT) {
-              // 停止超时计时器
-              if (timeoutTimer) {
-                clearTimeout(timeoutTimer);
-              }
-              
-              // 停止跟踪
-              vkSession.stop();
-              
-              // 构建符合接口要求的人脸验证结果
-              const verifyResult = {
-                faceId: faceInfo.faceId || `face_${Date.now()}`,
-                confidence: faceInfo.confidence,
-                timestamp: Date.now(),
-                faceRect: faceInfo.faceRect,
-                // 根据文档要求添加必要的字段
-                verifyType: 'face',
-                verifyStatus: 'success'
-              };
-              
-              // 提交认证信息到后端
-              this.submitRealNameInfo(verifyResult);
-            }
-          } else {
-            // 重置计数器
-            stableFaceDetectedCount = 0;
-          }
-        } else {
-          // 未检测到人脸，重置计数器
-          stableFaceDetectedCount = 0;
-        }
-      });
-      
-      // 持续渲染预览
-      const renderLoop = () => {
-        // 获取当前帧数据并渲染
-        vkSession.requestAnimationFrame(() => {
-          const frame = vkSession.getVKFrame();
-          if (frame && vkSession.getState() === 'tracking') {
-            // 绘制当前帧到canvas
-            try {
-              ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-            } catch (e) {
-              console.warn('绘制预览帧失败:', e);
-            }
-            renderLoop();
-          }
-        });
-      };
-      renderLoop();
-      
-      // 显示用户引导提示
-      wx.showToast({
-        title: '请将人脸对准取景框',
-        icon: 'none',
-        duration: 3000
-      });
-      
-      // 30秒后自动超时
-      timeoutTimer = setTimeout(() => {
-        if (vkSession && vkSession.getState() === 'tracking') {
-          vkSession.stop();
-          throw new Error('人脸验证超时，请重试');
-        }
-      }, 30000);
     } catch (error) {
       console.error('人脸验证失败:', error);
-      wx.showToast({
-        title: error.message || '人脸验证失败',
-        icon: 'none'
+      wx.showToast({ 
+        title: error.message || '人脸验证失败', 
+        icon: 'none' 
       });
+    } finally {
       this.setData({ isLoading: false });
-      
-      // 清理资源
-      if (vkSession) {
-        vkSession.stop();
-      }
-      if (timeoutTimer) {
-        clearTimeout(timeoutTimer);
-      }
     }
-    
-    // 确保加载状态总是被重置
-    return new Promise(() => {}); // 保持函数运行状态，等待人脸检测事件触发
   },
   
-  // 提交实名认证信息
+  // 提交实名认证信息（符合微信人脸核身文档要求）
   async submitRealNameInfo(verifyResult) {
     try {
       this.setData({ isLoading: true });
@@ -330,7 +252,7 @@ Page({
       // 获取环境配置中的应用信息
       const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
       
-      // 调用后端接口提交认证信息
+      // 1. 调用后端接口提交认证信息
       const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', {
         chl: 'wechat', // 渠道代码
         chlAppId: wxAppId, // 渠道应用ID
@@ -338,35 +260,62 @@ Page({
         idType, // 证件类型代码
         name: idName, // 姓名
         number: idNumber, // 证件号
-        verifyResult // 人脸认证结果代码
+        verifyResult // 人脸认证结果，包含faceCode和requestId
       });
       
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
         
-        if (isVerified && realNameInfo) {
-          // 缓存认证结果
-          wx.setStorageSync('isRealNameVerified', isVerified);
+        // 2. 再次获取核验结果（根据文档第四部分要求，提高安全性）
+        const finalResult = await this.getVerificationResult(verifyResult.requestId);
+        
+        if (finalResult && finalResult.isVerified && realNameInfo) {
+          // 3. 缓存认证结果
+          wx.setStorageSync('isRealNameVerified', true);
           wx.setStorageSync('realNameInfo', realNameInfo);
           
           this.setData({
-            isRealNameVerified: isVerified,
+            isRealNameVerified: true,
             realNameInfo: realNameInfo,
             showRealNameForm: false
           });
           
           wx.showToast({ title: '实名认证成功' });
         } else {
-          wx.showToast({ title: '实名认证失败', icon: 'none' });
+          wx.showToast({ title: '实名认证未通过', icon: 'none' });
         }
       } else {
         wx.showToast({ title: '提交认证信息失败', icon: 'none' });
       }
     } catch (error) {
       console.error('提交实名认证信息失败:', error);
-      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+      // 提供更具体的错误提示
+      let errorMsg = '网络异常，请重试';
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMsg = error.response.data.message;
+      }
+      wx.showToast({ title: errorMsg, icon: 'none' });
     } finally {
       this.setData({ isLoading: false });
+    }
+  },
+  
+  // 根据文档第四部分要求，再次获取核验结果，提高业务方安全性
+  async getVerificationResult(requestId) {
+    try {
+      // 调用后端接口再次获取核验结果
+      const response = await api.get('/rest/user/service/user/id-card/verify-result', {
+        requestId: requestId
+      });
+      
+      if (response && response.code === 0 && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('获取核验结果失败:', error);
+      // 此接口失败不应影响主流程，返回null让主流程继续判断
+      return null;
     }
   },
   
