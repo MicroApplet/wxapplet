@@ -10,10 +10,8 @@ Page({
 
   onLoad() {
     try {
-      // 添加延迟以确保页面完全加载
-      setTimeout(() => {
-        this.getUserSessionInfo();
-      }, 100);
+      // 用户信息在onShow中统一获取，避免重复调用接口
+      this.setData({ isLoading: true });
     } catch (error) {
       console.error('页面加载异常:', error);
       this.setData({ isLoading: false });
