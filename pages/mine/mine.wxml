@@ -36,15 +36,15 @@
     <view wx:if="{{isRealNameVerified && realNameInfo}}" class="real-name-info">
       <view class="detail-item">
         <text class="label">姓名</text>
-        <text class="value">{{realNameInfo.idName}}</text>
+        <text class="value">{{realNameInfo.name}}</text>
       </view>
       <view class="detail-item">
         <text class="label">证件类型</text>
-        <text class="value">{{getCnNameById(realNameInfo.idType)}}</text>
+        <text class="value">{{getCnNameById(realNameInfo.type)}}</text>
       </view>
       <view class="detail-item">
         <text class="label">证件号码</text>
-        <text class="value">{{realNameInfo.idNumber}}</text>
+        <text class="value">{{realNameInfo.number}}</text>
       </view>
     </view>
   </view>

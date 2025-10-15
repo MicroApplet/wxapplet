@@ -133,7 +133,10 @@ Page({
       }
       
       // 本地未找到或已过期，从服务器获取
-      const response = await api.get('/rest/user/service/user/id-card/status')
+      // 支持传入idType参数（可选）
+      const { idType } = this.data;
+      const params = idType ? { idType } : {};
+      const response = await api.get('/rest/user/service/user/id-card/status', params)
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
         
@@ -212,13 +215,18 @@ Page({
       this.setData({ isLoading: true });
       
       const { idType, idName, idNumber } = this.data;
+      // 获取环境配置中的应用信息
+      const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
       
       // 调用后端接口提交认证信息
       const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', {
-        idType,
-        idName,
-        idNumber,
-        verifyResult
+        chl: 'wechat', // 渠道代码
+        chlAppId: wxAppId, // 渠道应用ID
+        chlAppType: xAppChlAppType, // 渠道应用类型
+        idType, // 证件类型代码
+        name: idName, // 姓名
+        number: idNumber, // 证件号
+        verifyResult // 人脸认证结果代码
       });
       
       if (response && response.code === 0 && response.data) {
