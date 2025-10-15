@@ -199,53 +199,64 @@ Page({
       // 3. 根据文档要求，先检查设备是否支持人脸检测
       await this.checkDeviceSupportFacialRecognition();
       
-      // 3. 调用微信生物识别人脸核身接口
+      // 4. 调用微信生物识别人脸核身接口
       const verifyResult = await new Promise((resolve, reject) => {
-        wx.startFacialRecognitionVerify({
-          name: idName,          // 姓名
-          idCardNumber: idNumber, // 身份证号
-          checkAliveType: 0,     // 人脸核验的交互方式，0表示读数字（默认）
-          success: (res) => {
-            console.log('人脸核身成功', res);
-            // 根据文档要求，直接使用返回的verifyResult字符串
-            resolve({
-              verifyResult: res.verifyResult, // 人脸核验凭证，用于后端校验
-              timestamp: Date.now()
-            });
-          },
-          fail: (err) => {
-            console.error('人脸核身失败', err);
-            // 根据错误码提供更具体的提示
-            let errorMsg = '人脸验证失败，请重试';
-            switch(err.errCode) {
-              case -1:
-                errorMsg = '系统错误';
-                break;
-              case 10001:
-                errorMsg = '用户取消验证';
-                break;
-              case 10002:
-                errorMsg = '验证未通过';
-                break;
-              case 10003:
-                errorMsg = '验证超时';
-                break;
-              case 10004:
-                errorMsg = '未检测到人脸';
-                break;
-              case 10005:
-                errorMsg = '设备不支持';
-                break;
-              case 10006:
-                errorMsg = '微信版本过低，请升级';
-                break;
+        try {
+          wx.startFacialRecognitionVerify({
+            name: idName,          // 姓名
+            idCardNumber: idNumber, // 身份证号
+            checkAliveType: 0,     // 人脸核验的交互方式，0表示读数字（默认）
+            success: (res) => {
+              console.log('人脸核身成功', res);
+              // 根据文档要求，直接使用返回的verifyResult字符串
+              resolve({
+                verifyResult: res.verifyResult, // 人脸核验凭证，用于后端校验
+                timestamp: Date.now()
+              });
+            },
+            fail: (err) => {
+              console.error('人脸核身失败', err);
+              // 根据错误码提供更具体的提示
+              let errorMsg = '人脸验证失败，请重试';
+              // 处理权限相关错误
+              if (err.errMsg && (err.errMsg.includes('permission denied') || err.errMsg.includes('未授权') || err.errMsg.includes('not authorized'))) {
+                errorMsg = '当前小程序未获得人脸核身接口权限。请注意：该功能仅在小程序获得官方权限后可用，保留此功能以支持未来商业化场景。';
+              } else {
+                switch(err.errCode) {
+                  case -1:
+                    errorMsg = '系统错误';
+                    break;
+                  case 10001:
+                    errorMsg = '用户取消验证';
+                    break;
+                  case 10002:
+                    errorMsg = '验证未通过';
+                    break;
+                  case 10003:
+                    errorMsg = '验证超时';
+                    break;
+                  case 10004:
+                    errorMsg = '未检测到人脸';
+                    break;
+                  case 10005:
+                    errorMsg = '设备不支持';
+                    break;
+                  case 10006:
+                    errorMsg = '微信版本过低，请升级';
+                    break;
+                }
+              }
+              reject(new Error(errorMsg));
             }
-            reject(new Error(errorMsg));
-          }
-        });
+          });
+        } catch (e) {
+          console.error('调用人脸核身接口异常', e);
+          // 捕获调用接口时可能出现的权限异常
+          reject(new Error('当前小程序未获得人脸核身接口权限。请注意：该功能仅在小程序获得官方权限后可用，保留此功能以支持未来商业化场景。'));
+        }
       });
       
-      // 4. 提交认证信息到后端
+      // 5. 提交认证信息到后端
       await this.submitRealNameInfo(verifyResult);
       
     } catch (error) {

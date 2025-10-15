@@ -88,6 +88,10 @@
       <button class="face-btn" bindtap="performFaceVerification" type="primary">
         {{isLoading ? '处理中...' : '人脸认证'}}
       </button>
+      <!-- 功能状态提示 -->
+      <text class="feature-status-tip">
+        注意：该功能需要微信官方授权后才能正式使用，当前版本保留此功能以支持未来商业化场景
+      </text>
     </view>
     
     <!-- 表单未填写完整提示 -->
