@@ -182,6 +182,9 @@ Page({
   
   // 执行人脸验证（使用新版VisionKit API）
   async performFaceVerification() {
+    let vkSession = null;
+    let timeoutTimer = null;
+    
     try {
       this.setData({ isLoading: true });
       
@@ -191,7 +194,7 @@ Page({
       }
       
       // 创建VisionKit会话对象
-      const vkSession = wx.createVKSession({
+      vkSession = wx.createVKSession({
         version: 'v2',
         track: {
           face: {
@@ -204,7 +207,10 @@ Page({
       await new Promise((resolve, reject) => {
         vkSession.init({
           success: () => resolve(),
-          fail: (err) => reject(err)
+          fail: (err) => {
+            console.error('VKSession初始化失败:', err);
+            reject(new Error('人脸验证初始化失败，请重试'));
+          }
         });
       });
       
@@ -215,56 +221,104 @@ Page({
       const canvas = wx.createOffscreenCanvas();
       const ctx = canvas.getContext('2d');
       
+      // 人脸检测计数器，确保稳定检测
+      let stableFaceDetectedCount = 0;
+      const REQUIRED_STABLE_COUNT = 3;
+      
       // 监听人脸检测事件
       vkSession.on('faceDetected', (res) => {
         if (res.faceInfoList && res.faceInfoList.length > 0) {
-          // 获取人脸检测结果（这里简化处理，实际应根据业务需求提取有效信息）
           const faceInfo = res.faceInfoList[0];
-          const verifyResult = {
-            faceId: faceInfo.faceId,
-            confidence: faceInfo.confidence,
-            timestamp: Date.now()
-          };
           
-          // 停止跟踪
-          vkSession.stop();
-          
-          // 提交认证信息到后端
-          this.submitRealNameInfo(verifyResult);
+          // 检查人脸质量（置信度）
+          if (faceInfo.confidence > 0.8) {
+            stableFaceDetectedCount++;
+            
+            // 当连续稳定检测到人脸达到要求次数时，视为验证通过
+            if (stableFaceDetectedCount >= REQUIRED_STABLE_COUNT) {
+              // 停止超时计时器
+              if (timeoutTimer) {
+                clearTimeout(timeoutTimer);
+              }
+              
+              // 停止跟踪
+              vkSession.stop();
+              
+              // 构建符合接口要求的人脸验证结果
+              const verifyResult = {
+                faceId: faceInfo.faceId || `face_${Date.now()}`,
+                confidence: faceInfo.confidence,
+                timestamp: Date.now(),
+                faceRect: faceInfo.faceRect,
+                // 根据文档要求添加必要的字段
+                verifyType: 'face',
+                verifyStatus: 'success'
+              };
+              
+              // 提交认证信息到后端
+              this.submitRealNameInfo(verifyResult);
+            }
+          } else {
+            // 重置计数器
+            stableFaceDetectedCount = 0;
+          }
+        } else {
+          // 未检测到人脸，重置计数器
+          stableFaceDetectedCount = 0;
         }
       });
       
-      // 持续渲染预览（简化版）
+      // 持续渲染预览
       const renderLoop = () => {
         // 获取当前帧数据并渲染
         vkSession.requestAnimationFrame(() => {
           const frame = vkSession.getVKFrame();
-          if (frame) {
+          if (frame && vkSession.getState() === 'tracking') {
             // 绘制当前帧到canvas
-            // 实际应用中需要根据需要进行处理
+            try {
+              ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+            } catch (e) {
+              console.warn('绘制预览帧失败:', e);
+            }
             renderLoop();
           }
         });
       };
       renderLoop();
       
+      // 显示用户引导提示
+      wx.showToast({
+        title: '请将人脸对准取景框',
+        icon: 'none',
+        duration: 3000
+      });
+      
       // 30秒后自动超时
-      setTimeout(() => {
+      timeoutTimer = setTimeout(() => {
         if (vkSession && vkSession.getState() === 'tracking') {
           vkSession.stop();
           throw new Error('人脸验证超时，请重试');
         }
       }, 30000);
     } catch (error) {
-        console.error('人脸验证失败:', error);
-        wx.showToast({ 
-          title: error.message || '人脸验证失败', 
-          icon: 'none' 
-        });
-        this.setData({ isLoading: false });
+      console.error('人脸验证失败:', error);
+      wx.showToast({
+        title: error.message || '人脸验证失败',
+        icon: 'none'
+      });
+      this.setData({ isLoading: false });
+      
+      // 清理资源
+      if (vkSession) {
+        vkSession.stop();
       }
-      // 确保加载状态总是被重置
-      return new Promise(() => {}); // 保持函数运行状态，等待人脸检测事件触发
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer);
+      }
+    }
+    
+    // 确保加载状态总是被重置
+    return new Promise(() => {}); // 保持函数运行状态，等待人脸检测事件触发
   },
   
   // 提交实名认证信息
