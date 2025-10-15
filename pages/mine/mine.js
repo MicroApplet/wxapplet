@@ -41,7 +41,7 @@ Page({
     this.setData({ isLoading: true });
     try {
       // 直接使用api.get，无需手动获取token，wx-api.js会自动处理
-      const response = await api.get('/user/service/user/session');
+      const response = await api.get('/rest/user/service/user/session');
       
       if (response && response.data) {
         const userInfo = response.data;
@@ -90,7 +90,7 @@ Page({
   async updateUserNickname(nickname) {
     try {
       // 直接使用api.post，wx-api.js会自动处理token和请求头等
-      const response = await api.post('/user/service/user/updateNickname', { nickname });
+      const response = await api.post('/rest/user/service/user/updateNickname', { nickname });
       
       if (response && response.code === 0) {
         wx.showToast({ title: '昵称更新成功' });
