@@ -1,7 +1,8 @@
 {
   "description": "微信小程序项目",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "setting": {
     "urlCheck": true,
@@ -35,27 +36,14 @@
     "enhanceAppData": false
   },
   "compileType": "miniprogram",
-  "libVersion": "2.24.0",
-  "appid": "touristappid",
+  "libVersion": "3.10.2",
+  "appid": "wx4f5939c1b3d39bd2",
   "projectname": "wxapplet",
-  "debugOptions": {
-    "hidedInDevtools": []
-  },
-  "isGameTourist": false,
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
-  "condition": {
-    "search": {
-      "list": []
-    },
-    "conversation": {
-      "list": []
-    },
-    "game": {
-      "list": []
-    },
-    "miniprogram": {
-      "list": []
-    }
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
   }
 }
