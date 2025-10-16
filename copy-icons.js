@@ -19,6 +19,9 @@ const colors = {
   active: '#1aad19'  // app.json中的selectedColor
 };
 
+// 图标尺寸配置（微信小程序tabBar推荐尺寸）
+const iconSize = 40;
+
 // 确保目标目录存在
 if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir, { recursive: true });
@@ -38,13 +41,15 @@ async function processIcons() {
         continue;
       }
 
-      // 复制普通图标（可能需要转换颜色）
+      // 复制普通图标（转换颜色并调整尺寸）
       await sharp(sourcePath)
+        .resize(iconSize, iconSize)
         .tint(colors.normal)
         .toFile(targetNormalPath);
 
-      // 创建激活状态的图标
+      // 创建激活状态的图标（转换颜色并调整尺寸）
       await sharp(sourcePath)
+        .resize(iconSize, iconSize)
         .tint(colors.active)
         .toFile(targetActivePath);
 
