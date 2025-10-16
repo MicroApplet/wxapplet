@@ -77,6 +77,19 @@
   box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
+/* 默认头像样式 */
+.default-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 默认头像图标样式 */
+.avatar-icon {
+  opacity: 0.9;
+}
+
 /* 未认证徽章 */
 .avatar-badge {
   position: absolute;
@@ -97,8 +110,12 @@
   flex: 1;
 }
 
-.nickname-container {
+/* 信息项样式 */
+.info-item {
   margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
 }
 
 .nickname {
@@ -116,6 +133,21 @@
 .loading {
   font-size: 32rpx;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.phone-number {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.real-name {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.id-number {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .authorize-btn {

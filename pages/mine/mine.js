@@ -11,6 +11,7 @@ const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
 Page({
   data: {
     nickname: '',
+    avatarUrl: '',
     isLoading: true,
     // 实名认证相关状态
     isRealNameVerified: false,
@@ -23,8 +24,9 @@ Page({
     idNumber: '',
     availableIdCardTypes: [], // 可用的证件类型列表
     idTypePickerIndex: 0, // picker组件当前选中的索引
-    // 手机号授权状态
+    // 手机号相关
     phoneAuthorized: false,
+    phoneNumber: '',
     errorMsg: '',
     // 用户登录状态
     isLoggedIn: false
@@ -52,25 +54,61 @@ Page({
     }
   },
 
-  // 检查手机号授权状态
-  checkPhoneAuthorizedStatus() {
-    // 获取app实例
-    const app = getApp();
-
-    // 检查用户是否已登录且有用户信息
-    if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
-      const roleBit = app.globalData.userInfo.roleBit;
-      // 使用RoleUtil检查用户是否是手机号用户
-      const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
+  // 获取用户手机号信息
+  async getUserPhoneNumber() {
+    try {
+      // 获取app实例
+      const app = getApp();
+      
+      // 检查用户是否已登录且有用户信息
+      if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
+        const roleBit = app.globalData.userInfo.roleBit;
+        // 使用RoleUtil检查用户是否是手机号用户
+        const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
+        
+        // 如果是手机号用户，调用接口获取手机号
+        if (isPhoneUser) {
+          const response = await api.get('/rest/user/service/user/phone');
+          if (response && response.code === 0 && response.data && response.data.phoneNumber) {
+            // 设置手机号信息
+            this.setData({
+              phoneAuthorized: true,
+              phoneNumber: response.data.phoneNumber
+            });
+          } else {
+            // 接口返回的手机号为空
+            this.setData({
+              phoneAuthorized: false,
+              phoneNumber: ''
+            });
+          }
+        } else {
+          // 非手机号用户
+          this.setData({
+            phoneAuthorized: false,
+            phoneNumber: ''
+          });
+        }
+      } else {
+        // 未登录或无用户信息
+        this.setData({
+          phoneAuthorized: false,
+          phoneNumber: ''
+        });
+      }
+    } catch (error) {
+      console.error('获取用户手机号失败:', error);
       this.setData({
-        phoneAuthorized: isPhoneUser
-      });
-    } else {
-      // 如果没有用户信息，默认设置为未授权
-      this.setData({
-        phoneAuthorized: false
+        phoneAuthorized: false,
+        phoneNumber: ''
       });
     }
+  },
+
+  // 检查手机号授权状态（保持向后兼容）
+  checkPhoneAuthorizedStatus() {
+    // 直接调用getUserPhoneNumber方法
+    this.getUserPhoneNumber();
   },
 
   // 安全获取用户会话信息
@@ -96,11 +134,23 @@ Page({
       // 检查app的globalData中是否已有用户信息
       if (app.globalData.isLoggedIn && app.globalData.userInfo) {
         const userInfo = app.globalData.userInfo;
+        // 检查是否有微信头像，如果没有则使用默认图标
+        let avatarUrl = userInfo.avatarUrl || '';
+        // 如果没有头像，尝试从本地存储获取授权的头像
+        if (!avatarUrl) {
+          const localUserInfo = wx.getStorageSync('userInfo');
+          if (localUserInfo && localUserInfo.avatarUrl) {
+            avatarUrl = localUserInfo.avatarUrl;
+          }
+        }
         this.setData({
           nickname: userInfo.nickname || '',
+          avatarUrl: avatarUrl,
           isLoading: false,
           isLoggedIn: true
         });
+        // 获取手机号信息
+        this.getUserPhoneNumber();
         return;
       }
 
@@ -109,11 +159,23 @@ Page({
 
       if (response && response.data) {
         const userInfo = response.data;
+        // 检查是否有微信头像，如果没有则使用默认图标
+        let avatarUrl = userInfo.avatarUrl || '';
+        // 如果没有头像，尝试从本地存储获取授权的头像
+        if (!avatarUrl) {
+          const localUserInfo = wx.getStorageSync('userInfo');
+          if (localUserInfo && localUserInfo.avatarUrl) {
+            avatarUrl = localUserInfo.avatarUrl;
+          }
+        }
         this.setData({
           nickname: userInfo.nickname || '',
+          avatarUrl: avatarUrl,
           isLoading: false,
           isLoggedIn: true
         });
+        // 获取手机号信息
+        this.getUserPhoneNumber();
       } else {
         wx.showToast({ title: '获取用户信息失败', icon: 'none' });
         this.setData({
@@ -174,8 +236,27 @@ Page({
               success: (res) => {
                 const userInfo = res.userInfo;
                 console.log('用户授权头像成功:', userInfo.avatarUrl);
-                // 这里可以保存头像信息到服务器
-                // 由于当前代码中没有头像的状态管理，暂时不做额外处理
+                
+                // 保存头像信息到本地存储
+                wx.setStorageSync('userInfo', userInfo);
+                
+                // 更新页面头像状态
+                this.setData({
+                  avatarUrl: userInfo.avatarUrl,
+                  nickname: userInfo.nickName
+                });
+                
+                // 更新app的globalData
+                const app = getApp();
+                if (app.globalData.userInfo) {
+                  app.globalData.userInfo.avatarUrl = userInfo.avatarUrl;
+                  app.globalData.userInfo.nickname = userInfo.nickName;
+                }
+                
+                // 保存头像信息到服务器
+                this.updateUserAvatar(userInfo.avatarUrl);
+                this.updateUserNickname(userInfo.nickName);
+                
                 wx.showToast({ title: '头像授权成功' });
               },
               fail: (error) => {
@@ -296,6 +377,21 @@ Page({
         isLoading: false,
         errorMsg: '获取手机号失败，请重试'
       });
+    }
+  },
+
+  // 更新用户头像到服务器
+  async updateUserAvatar(avatarUrl) {
+    try {
+      // 直接使用api.post，wx-api.js会自动处理token和请求头等
+      const response = await api.post('/rest/user/service/user/updateAvatar', { avatarUrl });
+
+      if (response && response.code === 0) {
+        console.log('头像更新成功');
+      }
+    } catch (error) {
+      console.error('更新头像失败:', error);
+      // wx-api.js会处理大部分错误情况
     }
   },
 
