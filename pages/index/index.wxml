@@ -1,5 +1,9 @@
 <!--index.wxml-->
 <view class="container">
+  <!-- 隐藏的视频播放组件，用于实际播放视频 -->
+  <video id="myVideo" style="width: 1px; height: 1px; opacity: 0;"></video>
+  
+  <!-- 用户信息模块 -->
   <view class="userinfo">
     <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo">
       获取头像昵称
@@ -11,7 +15,40 @@
     </block>
   </view>
 
-  
+  <!-- 短视频模块 -->
+  <view class="video-section">
+    <view class="section-header">
+      <text class="section-title">热门视频</text>
+      <text class="more-link">更多</text>
+    </view>
+    
+    <!-- 横向滚动视频列表 -->
+    <scroll-view class="video-scroll-list" scroll-x enable-flex>
+      <!-- 视频列表 -->
+      <block wx:if="{{videoList.length > 0}}">
+        <view wx:for="{{videoList}}" wx:key="id" class="video-item" bindtap="playVideo" data-id="{{item.id}}" data-url="{{item.url}}">
+          <view class="video-thumbnail-container">
+            <image class="video-thumbnail" src="{{item.thumbnail}}" mode="aspectFill"></image>
+            <view class="video-duration">{{item.duration}}</view>
+            <view class="play-icon"></view>
+          </view>
+          <text class="video-title">{{item.title}}</text>
+          <text class="video-views">{{item.views}} 次观看</text>
+        </view>
+      </block>
+      
+      <!-- 视频列表为空 -->
+      <view wx:elif="{{!isVideoLoading}}" class="empty-video-state">
+        <text class="empty-video-text">暂无视频数据</text>
+      </view>
+      
+      <!-- 视频加载中 -->
+      <view wx:if="{{isVideoLoading}}" class="video-loading">
+        <view class="loading-spinner-small"></view>
+      </view>
+    </scroll-view>
+  </view>
+
   <!-- 文章列表滚动模块 -->
   <view class="article-scroll-section">
     <!-- 已注释掉文章列表标题区域
