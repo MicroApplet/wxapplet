@@ -71,7 +71,8 @@ Page({
         const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
         console.log('用户是否有手机号权限:', hasPhonePermission);
         
-        // 无论用户角色如何，都尝试获取手机号信息
+        // 必须调用获取手机号信息的接口，无论用户角色如何
+        console.log('调用获取手机号接口...');
         const response = await api.get('/rest/user/service/user/phone');
         console.log('获取手机号接口响应:', response);
         
@@ -84,7 +85,7 @@ Page({
           });
           console.log('手机号授权状态已设置为已授权:', response.data);
         } else {
-          // 如果没有获取到手机号但用户有手机号权限，仍标记为已授权
+          // 即使接口返回失败，只要用户有手机号权限，仍标记为已授权
           if (hasPhonePermission) {
             this.setData({
               phoneAuthorized: true,
@@ -140,21 +141,7 @@ Page({
   // 检查手机号授权状态
   async checkPhoneAuthorizedStatus() {
     try {
-      // 首先检查用户的角色权限
-      const app = getApp();
-      if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
-        const roleBit = app.globalData.userInfo.roleBit;
-        // 检查用户是否有手机号角色权限 (PHONE = 4)
-        const hasPhonePermission = (roleBit & BigInt(4)) === BigInt(4);
-        console.log('检查手机号授权状态 - 用户角色权限:', roleBit, '是否有手机号权限:', hasPhonePermission);
-        
-        // 如果用户有手机号权限，直接标记为已授权
-        if (hasPhonePermission) {
-          this.setData({ phoneAuthorized: true });
-        }
-      }
-      
-      // 然后调用getUserPhoneNumber获取实际手机号
+      // 直接调用getUserPhoneNumber方法获取手机号信息和授权状态
       await this.getUserPhoneNumber();
     } catch (error) {
       console.error('检查手机号授权状态失败:', error);
