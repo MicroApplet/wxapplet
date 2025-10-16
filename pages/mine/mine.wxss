@@ -83,6 +83,9 @@
   height: 160rpx;
   border-radius: 50%;
   overflow: hidden;
+  box-sizing: border-box;
+  min-width: 160rpx;
+  max-width: 160rpx;
 }
 
 .avatar-btn::after {
