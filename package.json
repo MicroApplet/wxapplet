@@ -8,5 +8,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@tabler/icons-png": "^3.35.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.4",
+    "svgo": "^4.0.0"
+  }
 }
