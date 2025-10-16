@@ -162,11 +162,14 @@ Page({
   showRealNameForm() {
     // 初始化证件类型列表
     const idCardTypes = IdCardType.getAllTypes();
+    const defaultIdType = IdCardType.ResidentIdentityCard.code;
+    console.log('初始化证件类型，idType:', defaultIdType);
+    console.log('默认证件名称:', IdCardType.getCnNameById(defaultIdType));
     this.setData({
       showRealNameForm: true,
       showIdTypeSelect: false,
       idCardTypes: idCardTypes,
-      idType: IdCardType.ResidentIdentityCard.code  // 确保默认选中身份证
+      idType: defaultIdType  // 确保默认选中身份证
     });
   },
   
