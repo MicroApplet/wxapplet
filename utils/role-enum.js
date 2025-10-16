@@ -1,69 +1,83 @@
 // 用户角色枚举定义
 // 用户角色枚举定义
+// 先定义基础bit值，避免对象字面量中的自引用问题
+const TOURIST_BIT = BigInt(1);
+const AUTHENTICATED_BIT = TOURIST_BIT << BigInt(1);
+const PHONE_BIT = TOURIST_BIT << BigInt(2);
+const WECHAT_USER_BIT = TOURIST_BIT << BigInt(3);
+const ID_CARD_USER_BIT = TOURIST_BIT << BigInt(4);
+const BANK_CARD_USER_BIT = TOURIST_BIT << BigInt(7);
+const EMPLOYEE_BIT = TOURIST_BIT << BigInt(50);
+const CMS_BIT = TOURIST_BIT << BigInt(51);
+const NURSE_BIT = TOURIST_BIT << BigInt(52);
+const DOCTOR_BIT = TOURIST_BIT << BigInt(53);
+const SYSTEM_BIT = TOURIST_BIT << BigInt(63);
+const ROOT_BIT = BigInt('9223372036854775807') & ~AUTHENTICATED_BIT; // 去除登录位，使用BigInt表示Java中的Long.MAX_VALUE
+
 const RoleCode = {
   // 基础用户角色
   TOURIST: {
     code: 'tourist',
-    bit: BigInt(1),
+    bit: TOURIST_BIT,
     desc: '游客'
   },
   AUTHENTICATED: {
     code: 'authenticated',
-    bit: RoleCode.TOURIST.bit << BigInt(1),
+    bit: AUTHENTICATED_BIT,
     desc: '登录用户'
   },
   PHONE: {
     code: 'phone',
-    bit: RoleCode.TOURIST.bit << BigInt(2),
+    bit: PHONE_BIT,
     desc: '手机号用户'
   },
   WECHAT_USER: {
     code: 'wechat',
-    bit: RoleCode.TOURIST.bit << BigInt(3),
+    bit: WECHAT_USER_BIT,
     desc: '微信用户'
   },
   ID_CARD_USER: {
     code: 'id-card',
-    bit: RoleCode.TOURIST.bit << BigInt(4),
+    bit: ID_CARD_USER_BIT,
     desc: '实名证件用户'
   },
   BANK_CARD_USER: {
     code: 'bank-card',
-    bit: RoleCode.TOURIST.bit << BigInt(7),
+    bit: BANK_CARD_USER_BIT,
     desc: '银行卡用户'
   },
 
   // 员工角色（50位以上）
   EMPLOYEE: {
     code: 'employee',
-    bit: RoleCode.TOURIST.bit << BigInt(50),
+    bit: EMPLOYEE_BIT,
     desc: '员工'
   },
   CMS: {
     code: 'cms:user',
-    bit: RoleCode.TOURIST.bit << BigInt(51),
+    bit: CMS_BIT,
     desc: '后管用户'
   },
   NURSE: {
     code: 'nurse',
-    bit: RoleCode.TOURIST.bit << BigInt(52),
+    bit: NURSE_BIT,
     desc: '护工'
   },
   DOCTOR: {
     code: 'doctor',
-    bit: RoleCode.TOURIST.bit << BigInt(53),
+    bit: DOCTOR_BIT,
     desc: '医师'
   },
 
   // 管理员角色
   SYSTEM: {
     code: 'system',
-    bit: RoleCode.TOURIST.bit << BigInt(63),
+    bit: SYSTEM_BIT,
     desc: '系统管理员'
   },
   ROOT: {
     code: 'root',
-    bit: BigInt('9223372036854775807') & ~RoleCode.AUTHENTICATED.bit, // 去除登录位，使用BigInt表示Java中的Long.MAX_VALUE
+    bit: ROOT_BIT,
     desc: '超级管理员'
   }
 };
