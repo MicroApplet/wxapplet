@@ -592,28 +592,25 @@ Page({
       this.setData({ isLoading: true });
 
       const { idType, idName, idNumber } = this.data;
-      // 获取环境配置中的应用信息
-      const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
 
-      // 构建请求参数
+      // 构建请求参数，严格按照接口文档要求的格式
       const requestParams = {
-        chl: 'wechat', // 渠道代码
-        chlAppId: wxAppId, // 渠道应用ID
-        chlAppType: xAppChlAppType, // 渠道应用类型
-        idType, // 证件类型代码
-        name: idName, // 姓名
-        number: idNumber // 证件号
+        idType, // 证件类型代码，必填
+        name: idName, // 姓名，必填
+        number: idNumber // 证件号，必填
       };
 
-      // 如果有人脸核身结果，添加verifyResult参数
+      // 如果有人脸核身结果，添加verifyChl和verifyParam字段
       const hasVerifyResult = verifyResultData && verifyResultData.verifyResult;
       if (hasVerifyResult) {
-        requestParams.verifyResult = verifyResultData.verifyResult;
+        requestParams.verifyChl = 'wx.startFacialRecognitionVerify'; // 认证渠道
+        requestParams.verifyParam = { 
+          verifyResult: verifyResultData.verifyResult // 人脸核身结果
+        }; // 认证参数
       }
 
       // 调用后端接口提交认证信息
-      // 注意：这里使用统一的接口，后台根据是否有verifyResult参数来处理不同的认证流程
-      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', requestParams);
+      const response = await api.post('/rest/user/service/user/id-card/authenticate', requestParams);
 
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
