@@ -369,7 +369,7 @@
 .video-thumbnail-container {
   position: relative;
   width: 180px;
-  height: 240px; /* 调整为9:16的比例（180:240=3:4），确保在video-item中完整显示 */
+  height: 320px; /* 正确的9:16比例（180:320=9:16），与小程序竖屏比例一致 */
   margin-bottom: 8px;
   border-radius: 8px;
   overflow: hidden;
