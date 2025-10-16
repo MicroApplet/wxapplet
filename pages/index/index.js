@@ -62,6 +62,8 @@ Page({
           showPrescriptionModule: false,
           isCheckingRole: false
         });
+        // 这里不强制跳转登录页，让用户可以继续使用首页其他功能
+        console.log('用户未登录或会话过期，显示首页基础内容');
       }
     } catch (error) {
       console.error('获取用户会话信息失败:', error);
@@ -69,6 +71,8 @@ Page({
         showPrescriptionModule: false,
         isCheckingRole: false
       });
+      // 捕获到错误时也不强制跳转登录页，让用户可以继续使用首页其他功能
+      console.log('获取会话信息出错，显示首页基础内容');
     }
   },
 
