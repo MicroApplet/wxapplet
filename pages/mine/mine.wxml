@@ -76,10 +76,10 @@
           <!-- 下拉选项列表 -->
           <view wx:if="{{showIdTypeSelect}}" class="select-options">
             <view wx:for="{{idCardTypes}}" wx:key="code" 
-                  class="{{item.code === idType ? 'option-item selected' : 'option-item ' + (item.code !== '01' ? 'disabled' : '')}}" 
-                  bindtap="{{item.code === '01' ? 'selectIdType' : ''}}" 
+                  class="{{item.code === idType ? 'option-item selected' : 'option-item ' + (item.available !== true ? 'disabled' : '')}}" 
+                  bindtap="{{item.available === true ? 'selectIdType' : ''}}" 
                   data-code="{{item.code}}">
-              <text class="{{item.code === '01' ? 'available-option' : 'disabled-option'}}">{{item.cnName}}</text>
+              <text class="{{item.available === true ? 'available-option' : 'disabled-option'}}">{{item.cnName}}</text>
             </view>
           </view>
         </view>
