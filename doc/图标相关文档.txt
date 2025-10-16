@@ -1,0 +1,13 @@
+当前项目所有的图标除了使用微信小程序提供的原生图标以外，
+其他的图标均使用开源图标库
+Heroicons（MIT，Tailwind 团队出品）
+仓库：https://github.com/tailwindlabs/heroicons
+图标数：~300，线性 / 实心双风格
+格式：SVG、React/Vue 组件、Figma
+预览：https://heroicons.com
+
+使用方案：
+<!-- 24×24 线性 -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <use href="https://unpkg.com/heroicons@2.1.5/24/outline/github.svg#icon"/>
+</svg>
