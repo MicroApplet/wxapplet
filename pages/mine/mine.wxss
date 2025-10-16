@@ -140,14 +140,16 @@
 
 .modal-content {
   position: relative;
-  width: 85%;
-  max-width: 600rpx;
+  width: 90%;
+  max-width: 700rpx;
+  min-height: 700rpx;
   background-color: white;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   overflow: hidden;
   z-index: 1000;
   animation: slideIn 0.3s ease;
   box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 @keyframes slideIn {
@@ -166,19 +168,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 36rpx;
-  background-color: #f8f8f8;
+  background: linear-gradient(135deg, #07c160 0%, #00a854 100%);
   border-bottom: 1px solid #eee;
 }
 
 .modal-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: white;
 }
 
 .close-btn {
   font-size: 48rpx;
-  color: #999;
+  color: white;
   width: 60rpx;
   height: 60rpx;
   display: flex;
@@ -186,15 +188,17 @@
   align-items: center;
   border-radius: 50%;
   transition: all 0.2s;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .close-btn:active {
-  background-color: #eee;
+  background-color: rgba(255, 255, 255, 0.3);
   transform: scale(0.95);
 }
 
 .form-container {
   padding: 40rpx;
+  padding-bottom: 60rpx;
 }
 
 .form-item {
@@ -203,10 +207,21 @@
   margin-bottom: 36rpx;
 }
 
+/* 上下排列的表单项样式 */
+.form-group {
+  margin-bottom: 48rpx;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
 .form-label {
-  width: 160rpx;
+  display: block;
   font-size: 32rpx;
-  color: #666;
+  color: #444;
+  margin-bottom: 16rpx;
+  font-weight: 500;
 }
 
 .form-value {
@@ -216,23 +231,26 @@
 }
 
 .form-input {
-  flex: 1;
+  width: 100%;
   font-size: 32rpx;
-  padding: 24rpx;
+  padding: 26rpx;
   border: 1px solid #ddd;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
   color: #333;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
+  background-color: white;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
   border-color: #07c160;
   outline: none;
+  box-shadow: 0 0 0 2rpx rgba(7, 193, 96, 0.2);
 }
 
 /* 下拉选择框样式 */
 .select-container {
-  flex: 1;
+  width: 100%;
   position: relative;
 }
 
@@ -240,11 +258,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24rpx;
+  padding: 26rpx;
   border: 1px solid #ddd;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
   background-color: white;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
+}
+
+.select-box:active {
+  border-color: #07c160;
+  box-shadow: 0 0 0 2rpx rgba(7, 193, 96, 0.2);
 }
 
 .select-box:active {
