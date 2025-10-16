@@ -68,14 +68,9 @@
       <view class="form-group">
         <text class="form-label">请选择证件类型</text>
         <view class="select-container">
-            <!-- 调试信息 -->
-            <view class="debug-info">
-              <text>当前idType值: {{idType}}</text>
-              <text>转换后名称: {{getCnNameById(idType)}}</text>
-            </view>
             <!-- 证件类型选择框 -->
             <view class="select-box" bindtap="toggleIdTypeSelect">
-              <text class="select-text">{{getCnNameById(idType)}}</text>
+              <text class="select-text">{{idTypeCnName}}</text>
               <view class="select-arrow">{{showIdTypeSelect ? '↑' : '↓'}}</view>
             </view>
           

@@ -14,6 +14,7 @@ Page({
     showRealNameForm: false,
     // 表单数据
     idType: IdCardType.ResidentIdentityCard.code,  // 身份证代码 01
+    idTypeCnName: IdCardType.ResidentIdentityCard.cnName, // 身份证中文名称
     idName: '',
     idNumber: '',
     showIdTypeSelect: false,
@@ -163,13 +164,15 @@ Page({
     // 初始化证件类型列表
     const idCardTypes = IdCardType.getAllTypes();
     const defaultIdType = IdCardType.ResidentIdentityCard.code;
+    const defaultIdTypeCnName = IdCardType.ResidentIdentityCard.cnName;
     console.log('初始化证件类型，idType:', defaultIdType);
-    console.log('默认证件名称:', IdCardType.getCnNameById(defaultIdType));
+    console.log('默认证件名称:', defaultIdTypeCnName);
     this.setData({
       showRealNameForm: true,
       showIdTypeSelect: false,
       idCardTypes: idCardTypes,
-      idType: defaultIdType  // 确保默认选中身份证
+      idType: defaultIdType,  // 确保默认选中身份证
+      idTypeCnName: defaultIdTypeCnName // 设置默认证件中文名称
     });
   },
   
@@ -193,8 +196,11 @@ Page({
   // 选择证件类型（只有身份证可用）
   selectIdType(e) {
     const code = e.currentTarget.dataset.code;
+    // 查找选中的证件类型对象
+    const selectedType = IdCardType.getAllTypes().find(type => type.code === code);
     this.setData({
       idType: code,
+      idTypeCnName: selectedType ? selectedType.cnName : '',
       showIdTypeSelect: false
     });
   },
