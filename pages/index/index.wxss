@@ -123,9 +123,10 @@
   align-items: center;
 }
 
-/* 滚动列表容器 - 固定高度（大约显示两条文章） */
+/* 滚动列表容器 - 高度不超过页面高度的一半 */
 .article-scroll-list {
-  height: 400px;
+  height: 50vh;
+  max-height: 50vh;
   width: 100%;
   display: flex;
   flex-direction: column;
