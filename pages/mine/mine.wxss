@@ -77,19 +77,6 @@
   box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 默认头像样式 */
-.default-avatar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* 默认头像图标样式 */
-.avatar-icon {
-  opacity: 0.9;
-}
-
 /* 未认证徽章 */
 .avatar-badge {
   position: absolute;

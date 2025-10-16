@@ -3,10 +3,8 @@
   <view class="user-info-card">
     <view class="user-header">
       <view class="avatar-section">
-        <!-- 未授权微信头像时使用图标库图标替代 -->
-        <view wx:if="{{!avatarUrl}}" class="avatar default-avatar" bindtap="onAvatarClick">
-          <icon class="avatar-icon" type="user" size="60" color="#fff"></icon>
-        </view>
+        <!-- 未授权微信头像时使用默认头像图片 -->
+        <image wx:if="{{!avatarUrl}}" class="avatar" src="/images/default_avatar.jpg" mode="aspectFill" bindtap="onAvatarClick"></image>
         <!-- 已授权头像时显示微信头像 -->
         <image wx:elif="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill" bindtap="onAvatarClick"></image>
       </view>
