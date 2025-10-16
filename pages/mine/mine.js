@@ -61,29 +61,19 @@ Page({
       const app = getApp();
       
       // 检查用户是否已登录且有用户信息
-      if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
-        const roleBit = app.globalData.userInfo.roleBit;
-        // 使用RoleUtil检查用户是否是手机号用户
-        const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
+      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+        // 无论用户角色如何，都尝试获取手机号信息
+        const response = await api.get('/rest/user/service/user/phone');
         
-        // 如果是手机号用户，调用接口获取手机号
-        if (isPhoneUser) {
-          const response = await api.get('/rest/user/service/user/phone');
-          if (response && response.code === 0 && response.data && response.data.phoneNumber) {
-            // 设置手机号信息
-            this.setData({
-              phoneAuthorized: true,
-              phoneNumber: response.data.phoneNumber
-            });
-          } else {
-            // 接口返回的手机号为空
-            this.setData({
-              phoneAuthorized: false,
-              phoneNumber: ''
-            });
-          }
+        // 修正解析逻辑：根据API返回格式，data字段直接包含手机号字符串
+        if (response && response.code === 0 && response.data) {
+          // 设置手机号信息
+          this.setData({
+            phoneAuthorized: true,
+            phoneNumber: response.data // 直接使用data字段作为手机号
+          });
         } else {
-          // 非手机号用户
+          // 接口返回的手机号为空或获取失败
           this.setData({
             phoneAuthorized: false,
             phoneNumber: ''
@@ -105,10 +95,10 @@ Page({
     }
   },
 
-  // 检查手机号授权状态（保持向后兼容）
-  checkPhoneAuthorizedStatus() {
+  // 检查手机号授权状态
+  async checkPhoneAuthorizedStatus() {
     // 直接调用getUserPhoneNumber方法
-    this.getUserPhoneNumber();
+    await this.getUserPhoneNumber();
   },
 
   // 安全获取用户会话信息
@@ -592,25 +582,28 @@ Page({
       this.setData({ isLoading: true });
 
       const { idType, idName, idNumber } = this.data;
+      // 获取环境配置中的应用信息
+      const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
 
-      // 构建请求参数，严格按照接口文档要求的格式
+      // 构建请求参数
       const requestParams = {
-        idType, // 证件类型代码，必填
-        name: idName, // 姓名，必填
-        number: idNumber // 证件号，必填
+        chl: 'wechat', // 渠道代码
+        chlAppId: wxAppId, // 渠道应用ID
+        chlAppType: xAppChlAppType, // 渠道应用类型
+        idType, // 证件类型代码
+        name: idName, // 姓名
+        number: idNumber // 证件号
       };
 
-      // 如果有人脸核身结果，添加verifyChl和verifyParam字段
+      // 如果有人脸核身结果，添加verifyResult参数
       const hasVerifyResult = verifyResultData && verifyResultData.verifyResult;
       if (hasVerifyResult) {
-        requestParams.verifyChl = 'wx.startFacialRecognitionVerify'; // 认证渠道
-        requestParams.verifyParam = { 
-          verifyResult: verifyResultData.verifyResult // 人脸核身结果
-        }; // 认证参数
+        requestParams.verifyResult = verifyResultData.verifyResult;
       }
 
       // 调用后端接口提交认证信息
-      const response = await api.post('/rest/user/service/user/id-card/authenticate', requestParams);
+      // 注意：这里使用统一的接口，后台根据是否有verifyResult参数来处理不同的认证流程
+      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', requestParams);
 
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
