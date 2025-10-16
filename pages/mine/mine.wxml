@@ -71,8 +71,7 @@
                 range="{{availableIdCardTypes}}" 
                 range-key="cnName" 
                 bindchange="onIdTypePickerChange" 
-                value="{{idTypePickerIndex}}" 
-                class="id-type-picker">
+                value="{{idTypePickerIndex}}">
           <view class="form-input">
             <text>{{idTypeCnName || '请选择证件类型'}}</text>
           </view>
