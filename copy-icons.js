@@ -4,7 +4,7 @@ const sharp = require('sharp');
 
 // 源目录和目标目录
 const sourceDir = path.join(__dirname, 'node_modules', '@tabler', 'icons-png', 'icons', 'outline');
-const targetDir = path.join(__dirname, 'icons');
+const targetDir = path.join(__dirname, 'icon');
 
 // 图标列表和对应的颜色
 const icons = [
