@@ -2,7 +2,7 @@
 
 // 导入API工具
 const api = require('../../utils/wx-api');
-const { RoleUtil } = require('../../utils/role-enum.js');
+const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
 
 Page({
   data: {
@@ -73,15 +73,33 @@ Page({
     if (!roleBit) {
       this.setData({
         showPrescriptionModule: false,
-        isCheckingRole: false
+        isCheckingRole: false,
+        showBothModules: false
       });
       return;
     }
 
-    if (RoleUtil.isNormalUser(roleBit)) {
+    // 检查是否为超管或同时拥有普通用户和专业用户权限
+    const isRootUser = RoleUtil.contains(roleBit, RoleCode.ROOT);
+    const isAdmin = RoleUtil.isAdmin(roleBit);
+    const hasBothPermissions = RoleUtil.isNormalUser(roleBit) && RoleUtil.isProfessionalUser(roleBit);
+
+    if (isRootUser || isAdmin || hasBothPermissions) {
+      // 超管、管理员或同时拥有两种权限的用户，同时显示两个模块
+      this.setData({
+        userRole: 'both',
+        showPrescriptionModule: true,
+        showBothModules: true,
+        isCheckingRole: false
+      });
+      // 同时获取用药提醒和处方台账数据
+      this.getPrescriptionReminder();
+      this.getPrescriptionLedger();
+    } else if (RoleUtil.isNormalUser(roleBit)) {
       this.setData({
         userRole: 'normal',
         showPrescriptionModule: true,
+        showBothModules: false,
         isCheckingRole: false
       });
       this.getPrescriptionReminder();
@@ -89,12 +107,14 @@ Page({
       this.setData({
         userRole: 'professional',
         showPrescriptionModule: true,
+        showBothModules: false,
         isCheckingRole: false
       });
       this.getPrescriptionLedger();
     } else {
       this.setData({
         showPrescriptionModule: false,
+        showBothModules: false,
         isCheckingRole: false
       });
     }

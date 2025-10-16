@@ -76,11 +76,24 @@
 
 /* 用药提醒/处方台账模块样式 */
 .prescription-reminder {
-  background-color: #fff;
-  border-radius: 16px;
   margin: 3px 3px 20px 3px;
   padding: 15px;
+  border-radius: 16px;
+  background-color: #f9f9f9;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.prescription-reminder-inner {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03);
+}
+
+.prescription-reminder-inner:last-child {
+  margin-bottom: 0;
 }
 
 /* 用药提醒样式 - 紧凑一行展示 */
