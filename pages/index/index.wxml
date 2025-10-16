@@ -17,7 +17,7 @@
 
   <!-- 短视频模块 -->
   <view class="video-section">
-    <view class="section-header">
+    <view class="section-header" hidden="true">
       <text class="section-title">热门视频</text>
       <text class="more-link">更多</text>
     </view>
