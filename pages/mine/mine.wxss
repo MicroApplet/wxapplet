@@ -257,6 +257,17 @@
   position: relative;
 }
 
+/* 可用选项样式 - 字体加粗加黑 */
+.available-option {
+  font-weight: bold;
+  color: #000000;
+}
+
+/* 禁用选项样式 - 置灰 */
+.disabled-option {
+  color: #999999;
+}
+
 .select-box {
   display: flex;
   justify-content: space-between;

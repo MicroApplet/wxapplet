@@ -165,7 +165,8 @@ Page({
     this.setData({
       showRealNameForm: true,
       showIdTypeSelect: false,
-      idCardTypes: idCardTypes
+      idCardTypes: idCardTypes,
+      idType: IdCardType.ResidentIdentityCard.code  // 确保默认选中身份证
     });
   },
   

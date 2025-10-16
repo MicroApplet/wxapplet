@@ -79,7 +79,7 @@
                   class="{{item.code === idType ? 'option-item selected' : 'option-item ' + (item.code !== '01' ? 'disabled' : '')}}" 
                   bindtap="{{item.code === '01' ? 'selectIdType' : ''}}" 
                   data-code="{{item.code}}">
-              <text>{{item.cnName}}</text>
+              <text class="{{item.code === '01' ? 'available-option' : 'disabled-option'}}">{{item.cnName}}</text>
             </view>
           </view>
         </view>
