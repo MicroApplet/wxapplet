@@ -25,7 +25,7 @@
       <!-- 文章列表 -->
       <block wx:if="{{articleList.length > 0}}">
         <view wx:for="{{articleList}}" wx:key="id" class="article-item" bindtap="navigateToArticleDetail" data-id="{{item.id}}">
-          <view class="article-content">
+          <view class="article-content" style="margin-right: 0;">
             <text class="article-title">{{item.title}}</text>
             <text class="article-summary">{{item.summary}}</text>
             <view class="article-meta">
@@ -34,7 +34,6 @@
               <text class="article-reads">{{item.readCount}} 阅读</text>
             </view>
           </view>
-          <image class="article-cover" src="{{item.cover}}" mode="aspectFill"></image>
         </view>
       </block>
       
