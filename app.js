@@ -6,6 +6,9 @@ const { api } = require('./utils/wx-api');
 const { xAppId, xAppChl, wxAppId, xAppChlAppType } = require('./utils/wx-env');
 
 App({
+  // 存储已注册页面的数组，用于全局数据变更时通知页面
+  registeredPages: [],
+
   onLaunch: function () {
     // 小程序启动时执行
     console.log('App Launch');
@@ -98,9 +101,13 @@ App({
           // 保存用户信息到全局
           that.globalData.userInfo = userData;
           that.globalData.isLoggedIn = true;
+
           // 缓存用户信息到本地
           wx.setStorageSync('userInfo', userData);
           console.log('获取用户会话信息成功');
+
+          // 通知所有已注册的页面，用户会话信息已更新
+          that.notifyGlobalDataChange();
         }
       })
       .catch(function(error) {
@@ -127,6 +134,39 @@ App({
     if (this.sessionTimer) {
       clearInterval(this.sessionTimer);
       this.sessionTimer = null;
+    }
+  },
+
+  // 通知所有已注册的页面，全局数据已变更
+  notifyGlobalDataChange: function() {
+    this.registeredPages.forEach(page => {
+      if (page && typeof page.onGlobalDataChange === 'function') {
+        try {
+          page.onGlobalDataChange();
+        } catch (error) {
+          console.error('通知页面全局数据变更失败:', error);
+        }
+      }
+    });
+  },
+
+  // 页面注册到全局通知系统
+  registerPage: function(page) {
+    if (page && typeof page.onGlobalDataChange === 'function') {
+      // 避免重复注册
+      if (!this.registeredPages.includes(page)) {
+        this.registeredPages.push(page);
+        console.log('页面已注册到全局通知系统');
+      }
+    }
+  },
+
+  // 从全局通知系统注销页面
+  unregisterPage: function(page) {
+    const index = this.registeredPages.indexOf(page);
+    if (index > -1) {
+      this.registeredPages.splice(index, 1);
+      console.log('页面已从全局通知系统注销');
     }
   },
 

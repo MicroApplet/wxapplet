@@ -33,6 +33,10 @@ Page({
   onLoad: function () {
     console.log('首页加载');
 
+    // 注册到全局通知系统，以便接收会话信息变更通知
+    const app = getApp();
+    app.registerPage(this);
+
     // 获取用户会话信息
     this.getUserSessionInfo();
 
@@ -490,6 +494,15 @@ Page({
   // 生命周期函数--监听页面显示
   onShow: function () {
     console.log('首页显示');
+    // 重新获取用户会话信息，确保显示最新数据
+    this.getUserSessionInfo();
+  },
+
+  // 监听全局会话信息变更
+  onGlobalDataChange: function() {
+    // 用户会话信息发生变更，重新获取数据
+    console.log('全局会话信息变更，刷新首页模块');
+    this.getUserSessionInfo();
   },
 
   // 生命周期函数--监听页面隐藏
@@ -500,6 +513,9 @@ Page({
   // 生命周期函数--监听页面卸载
   onUnload: function () {
     console.log('首页卸载');
+    // 从全局通知系统注销
+    const app = getApp();
+    app.unregisterPage(this);
   },
 
   // 页面相关事件处理函数--监听用户下拉动作
