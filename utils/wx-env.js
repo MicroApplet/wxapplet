@@ -60,7 +60,7 @@ exports.apiPrefix = currentConfig.apiPrefix;
 exports.debug = currentConfig.debug;
 // 导出应用相关配置
 exports.xAppId = currentConfig.xAppId;
-exports.xAppChl = "wechat";
+exports.xAppChl = 'wechat';
 exports.wxAppId =   wx.getAccountInfoSync().miniProgram.appId;
 exports.xAppChlAppid = wx.getAccountInfoSync().miniProgram.appId;
-exports.xAppChlAppType = "wechat:applet";
+exports.xAppChlAppType = 'wechat:applet';

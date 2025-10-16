@@ -4,7 +4,7 @@
  */
 
 // 导入环境配置
-const { baseUrl, apiPrefix, debug } = require('./wx-env');
+const { baseUrl, apiPrefix } = require('./wx-env'); // 暂时不需要debug
 
 // Token相关常量
 const X_USER_TOKEN = 'x-user-token';
@@ -19,26 +19,26 @@ function combineUrl(uri) {
   if (uri.startsWith('http://') || uri.startsWith('https://')) {
     return uri;
   }
-  
+
   // 合并基础URL和API前缀
   let fullUrl = baseUrl;
-  
+
   // 确保baseUrl末尾没有斜杠
   if (fullUrl.endsWith('/')) {
     fullUrl = fullUrl.slice(0, -1);
   }
-  
+
   // 确保apiPrefix开头有斜杠
   let prefix = apiPrefix;
   if (!prefix.startsWith('/')) {
     prefix = `/${prefix}`;
   }
-  
+
   // 确保uri开头有斜杠
   if (!uri.startsWith('/')) {
     uri = `/${uri}`;
   }
-  
+
   return `${fullUrl}${prefix}${uri}`;
 }
 
@@ -62,7 +62,7 @@ function getCookie(name) {
  * @param {string} value - Cookie值
  * @param {number} days - 有效期天数
  */
-function setCookie(name, value, days = 365) {
+function setCookie(name, value) {
   try {
     wx.setStorageSync(name, value);
   } catch (e) {
@@ -104,15 +104,15 @@ function requestInterceptor(config, headers = {}, isFileUpload = false) {
   // 判断是否为文件上传请求 - 对于文件上传请求，不需要设置默认的Content-Type
   if (['POST', 'PUT'].includes(config.method) && (!config.header || !config.header['Content-Type']) && !isFileUpload) {
     defaultHeaders['Content-Type'] = 'application/json';
-  } 
-  
+  }
+
   // 如果存在token，添加到请求头
   const token = userToken();
   if (token) {
     defaultHeaders[X_USER_TOKEN] = token;
     defaultHeaders['Authorization'] = token;
   }
-  
+
   // 合并请求配置
   return {
     ...config,
@@ -129,8 +129,8 @@ function requestInterceptor(config, headers = {}, isFileUpload = false) {
  * @returns {Promise<any>} 处理后的响应数据
  */
 async function responseInterceptor(response) {
-  const { statusCode, data, header } = response;
-  
+  const { statusCode, data } = response; // 暂时不需要header
+
   // 处理HTTP状态码
   if (statusCode >= 200 && statusCode < 300) {
     return data;
@@ -141,7 +141,7 @@ async function responseInterceptor(response) {
       response,
       statusCode
     };
-    
+
     throw error;
   }
 }
@@ -160,7 +160,7 @@ function handleRequestError(error) {
     });
     throw new Error('网络错误');
   }
-  
+
   // 处理认证失败或过期
   if (error.statusCode === 401 || (error.message && (error.message.includes('401') || error.message.includes('未授权')))) {
     wx.showToast({
@@ -175,7 +175,7 @@ function handleRequestError(error) {
     });
     throw new Error('认证失败');
   }
-  
+
   // 处理权限不足
   if (error.statusCode === 403 || (error.message && (error.message.includes('403') || error.message.includes('禁止访问')))) {
     wx.showToast({
@@ -184,7 +184,7 @@ function handleRequestError(error) {
     });
     throw new Error('权限不足');
   }
-  
+
   // 处理状态码为400且thr为true的错误
   if (error.statusCode === 400 && error.response && error.response.data && error.response.data.thr === true) {
     wx.showToast({
@@ -193,7 +193,7 @@ function handleRequestError(error) {
     });
     throw new Error(error.response.data.msg || '请求错误');
   }
-  
+
   // 显示其他错误信息
   if (error.message) {
     wx.showToast({
@@ -206,7 +206,7 @@ function handleRequestError(error) {
       icon: 'none'
     });
   }
-  
+
   // 其他错误保持原样抛出
   throw error;
 }
@@ -236,17 +236,17 @@ const request = async (uri, options = {}) => {
         queryString = `${separator}${paramsString}`;
       }
     }
-    
+
     // 构建完整URL
     const url = combineUrl(uri) + queryString;
-    
+
     // 构建请求配置
     const requestConfig = {
       url,
       method: options.method || 'GET',
       ...options
     };
-    
+
     // 检查是否需要文件上传
     if (options.file || options.files) {
       // 移除options中不属于wx.uploadFile的属性
@@ -256,10 +256,10 @@ const request = async (uri, options = {}) => {
       delete requestConfig.file;
       delete requestConfig.files;
       delete requestConfig.name;
-      
+
       // 应用请求拦截器
       const config = requestInterceptor(requestConfig, options.headers, true);
-      
+
       // 使用wx.uploadFile处理文件上传
       return new Promise((resolve, reject) => {
         // 单文件上传
@@ -273,7 +273,7 @@ const request = async (uri, options = {}) => {
               // 解析响应数据
               try {
                 response.data = JSON.parse(response.data);
-              } catch (e) {
+              } catch {
                 // 如果不是JSON格式，保持原样
               }
               // 应用响应拦截器
@@ -296,7 +296,7 @@ const request = async (uri, options = {}) => {
                   // 解析响应数据
                   try {
                     response.data = JSON.parse(response.data);
-                  } catch (e) {
+                  } catch {
                     // 如果不是JSON格式，保持原样
                   }
                   fileResolve(response);
@@ -307,7 +307,7 @@ const request = async (uri, options = {}) => {
               });
             });
           });
-          
+
           // 等待所有文件上传完成
           Promise.all(uploadPromises)
             .then((responses) => {
@@ -333,14 +333,14 @@ const request = async (uri, options = {}) => {
           };
         }
       }
-      
+
       // 移除options中不属于wx.request的属性
       delete requestConfig.queries;
       delete requestConfig.headers;
-      
+
       // 应用请求拦截器
       const config = requestInterceptor(requestConfig, options.headers);
-      
+
       // 发送请求（使用Promise包装wx.request）
       return new Promise((resolve, reject) => {
         wx.request({
@@ -438,19 +438,19 @@ const login = async (uri, credentials, customHeaders) => {
     'Content-Type': 'application/json',
     ...customHeaders
   };
-  
+
   // 发送请求
   const response = await request(uri, {
     method: 'POST',
     headers,
     data: credentials
   });
-  
+
   // 存储token
   if (response.data) {
     setCookie(X_USER_TOKEN, response.data, 365);
   }
-  
+
   return response;
 };
 

@@ -84,17 +84,17 @@ const IdCardType = {
     cnName: '护照',
     available: false
   },
-  
+
   // 获取所有证件类型列表
   getAllTypes: function() {
     return Object.values(this).filter(item => typeof item === 'object');
   },
-  
+
   // 根据代码获取证件类型
   getById: function(code) {
     return this.getAllTypes().find(item => item.code === code);
   },
-  
+
   // 根据代码获取证件类型中文名
   getCnNameById: function(code) {
     const type = this.getById(code);
