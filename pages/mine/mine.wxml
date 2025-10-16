@@ -66,7 +66,7 @@
     <view class="form-container">
       <!-- 证件类型 -->
       <view class="form-group">
-        <text class="form-label">（请选择证件类型）</text>
+        <text class="form-label">请选择证件类型</text>
         <view class="select-container">
           <view class="select-box" bindtap="toggleIdTypeSelect">
             <text class="select-text">{{getCnNameById(idType)}}</text>
@@ -87,13 +87,13 @@
       
       <!-- 证件姓名 -->
       <view class="form-group">
-        <text class="form-label">证件姓名</text>
+        <text class="form-label">请输入证件姓名</text>
         <input class="form-input" placeholder="请输入证件姓名" value="{{idName}}" data-field="idName" bindinput="onInput" />
       </view>
       
       <!-- 证件号码 -->
       <view class="form-group">
-        <text class="form-label">证件号码</text>
+        <text class="form-label">请输入证件号码</text>
         <input class="form-input" placeholder="请输入证件号码" value="{{idNumber}}" data-field="idNumber" bindinput="onInput" />
       </view>
     </view>

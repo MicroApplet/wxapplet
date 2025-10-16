@@ -233,13 +233,16 @@
 .form-input {
   width: 100%;
   font-size: 32rpx;
-  padding: 26rpx;
+  padding: 32rpx 26rpx;
   border: 1px solid #ddd;
   border-radius: 12rpx;
   color: #333;
   transition: all 0.3s;
   background-color: white;
   box-sizing: border-box;
+  min-height: 96rpx;
+  display: flex;
+  align-items: center;
 }
 
 .form-input:focus {
