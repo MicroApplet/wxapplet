@@ -356,14 +356,14 @@
 
 .video-scroll-list {
   display: flex;
-  height: 325;
+  height: 325px;
   white-space: nowrap;
   padding-bottom: 10px;
 }
 
 .video-item {
   width: 180px;
-  height: 325;
+  height: 325px;
   margin-right: 12px;
   display: inline-block;
   cursor: pointer;
