@@ -222,53 +222,38 @@ Page({
   // 处理头像点击事件
   onAvatarClick() {
     try {
-      // 检查用户是否已授权获取头像
-      wx.getSetting({
+      // 无论用户是否已授权，都提示用户授权微信头像信息
+      wx.getUserProfile({
+        desc: '用于获取用户头像',
         success: (res) => {
-          // 检查用户是否已经授权 scope.userInfo
-          if (res.authSetting['scope.userInfo']) {
-            // 用户已授权，不做任何操作
-            console.log('用户已授权头像');
-          } else {
-            // 用户未授权，要求用户授权
-            wx.getUserProfile({
-              desc: '用于获取用户头像',
-              success: (res) => {
-                const userInfo = res.userInfo;
-                console.log('用户授权头像成功:', userInfo.avatarUrl);
-                
-                // 保存头像信息到本地存储
-                wx.setStorageSync('userInfo', userInfo);
-                
-                // 更新页面头像状态
-                this.setData({
-                  avatarUrl: userInfo.avatarUrl,
-                  nickname: userInfo.nickName
-                });
-                
-                // 更新app的globalData
-                const app = getApp();
-                if (app.globalData.userInfo) {
-                  app.globalData.userInfo.avatarUrl = userInfo.avatarUrl;
-                  app.globalData.userInfo.nickname = userInfo.nickName;
-                }
-                
-                // 保存头像信息到服务器
-                this.updateUserAvatar(userInfo.avatarUrl);
-                this.updateUserNickname(userInfo.nickName);
-                
-                wx.showToast({ title: '头像授权成功' });
-              },
-              fail: (error) => {
-                console.error('用户拒绝授权头像:', error);
-                wx.showToast({ title: '头像授权失败', icon: 'none' });
-              }
-            });
+          const userInfo = res.userInfo;
+          console.log('用户授权头像成功:', userInfo.avatarUrl);
+          
+          // 保存头像信息到本地存储
+          wx.setStorageSync('userInfo', userInfo);
+          
+          // 更新页面头像状态
+          this.setData({
+            avatarUrl: userInfo.avatarUrl,
+            nickname: userInfo.nickName
+          });
+          
+          // 更新app的globalData
+          const app = getApp();
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.avatarUrl = userInfo.avatarUrl;
+            app.globalData.userInfo.nickname = userInfo.nickName;
           }
+          
+          // 保存头像信息到服务器
+          this.updateUserAvatar(userInfo.avatarUrl);
+          this.updateUserNickname(userInfo.nickName);
+          
+          wx.showToast({ title: '头像授权成功' });
         },
         fail: (error) => {
-          console.error('获取授权设置失败:', error);
-          wx.showToast({ title: '操作失败', icon: 'none' });
+          console.error('用户拒绝授权头像:', error);
+          wx.showToast({ title: '头像授权失败', icon: 'none' });
         }
       });
     } catch (error) {

@@ -12,35 +12,26 @@
       <view class="info-section">
         <!-- 1. 微信昵称 -->
         <view class="info-item">
-          <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
-          <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
-          <text wx:else class="loading">加载中...</text>
-          <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
+          <text wx:if="{{nickname}}" class="user-info-text">{{nickname}}</text>
+          <button wx:else class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo" size="mini">
             授权获取昵称
           </button>
         </view>
         
         <!-- 2. 授权手机号 -->
         <view class="info-item">
-          <text wx:if="{{phoneAuthorized && phoneNumber}}" class="phone-number">{{phoneNumber}}</text>
-          <button wx:if="{{!phoneAuthorized && isLoggedIn}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
+          <text wx:if="{{phoneAuthorized && phoneNumber}}" class="user-info-text">{{phoneNumber}}</text>
+          <button wx:else open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="authorize-btn" size="mini">
             授权手机号
           </button>
         </view>
         
-        <!-- 3. 实名姓名信息 -->
-        <view class="info-item" wx:if="{{isRealNameVerified && realNameInfo && realNameInfo.name}}">
-          <text class="real-name">姓名: {{realNameInfo.name}}</text>
-        </view>
-        
-        <!-- 4. 实名证件号信息 -->
-        <view class="info-item" wx:if="{{isRealNameVerified && realNameInfo && realNameInfo.number}}">
-          <text class="id-number">证件号: {{realNameInfo.number}}</text>
-        </view>
-        
-        <!-- 去实名认证按钮（如果用户未认证） -->
-        <view class="info-item" wx:if="{{!isRealNameVerified && isLoggedIn}}">
-          <button class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
+        <!-- 3. 实名信息 -->
+        <view class="info-item">
+          <text wx:if="{{isRealNameVerified && realNameInfo && realNameInfo.name}}" class="user-info-text">
+            {{realNameInfo.name}} ({{getCnNameById(realNameInfo.type)}}: {{realNameInfo.number}})
+          </text>
+          <button wx:else class="authorize-btn" bindtap="showRealNameForm" type="primary" size="mini">
             去实名认证
           </button>
         </view>
@@ -127,12 +118,6 @@
     </view>
   </view>
   
-  <!-- 未授权状态 -->
-  <view wx:if="{{!isLoading && !nickname}}" class="empty-state">
-    <image class="empty-image" src="/images/empty-auth.png" mode="aspectFit"></image>
-    <text class="empty-text">请点击上方按钮授权获取您的昵称信息</text>
-  </view>
-
 <!-- 实名认证表单弹窗 -->
 <view wx:if="{{showRealNameForm}}" class="form-modal">
   <view class="modal-backdrop" bindtap="hideRealNameForm"></view>
@@ -175,10 +160,7 @@
       <button class="face-btn" bindtap="performFaceVerification" type="primary">
         {{isLoading ? '处理中...' : '去认证'}}
       </button>
-      <!-- 功能状态提示 -->
-      <text class="feature-status-tip">
-        系统会自动检测权限并选择合适的认证方式
-      </text>
+
     </view>
     
     <!-- 表单未填写完整提示 -->
