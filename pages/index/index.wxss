@@ -156,6 +156,7 @@
 .article-item {
   display: flex;
   padding: 15px;
+  margin-top: 5px;
   margin-bottom: 10px;
   background: #fff;
   border-radius: 8px;
@@ -201,13 +202,14 @@
   padding: 0;
   box-sizing: border-box;
 }
-/* 文章摘要样式 - 平铺显示 */
+/* 文章摘要样式 - 确保与标题宽度一致 */
 .article-summary {
   font-size: 14px;
   color: #666;
   line-height: 1.4;
   margin-bottom: 10px;
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   width: 100%;
   padding: 0;
   box-sizing: border-box;
