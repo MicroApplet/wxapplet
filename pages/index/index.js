@@ -1,7 +1,8 @@
 //index.js
 
 // 导入API工具
-const { api } = require('../../utils/wx-api');
+const api = require('../../utils/wx-api');
+const { RoleUtil } = require('../../utils/role-enum.js');
 
 Page({
   data: {
@@ -69,7 +70,6 @@ Page({
 
   // 检查用户角色
   checkUserRole(roleBit) {
-    // 如果没有roleBit字段，隐藏整个功能
     if (!roleBit) {
       this.setData({
         showPrescriptionModule: false,
@@ -78,33 +78,21 @@ Page({
       return;
     }
 
-    // 检查用户角色
-    const isNormalUser = (roleBit & (1 << 2)) === (1 << 2); // 手机号用户
-    const isIdCardUser = (roleBit & (1 << 4)) === (1 << 4); // 证件用户
-    const isNurse = (roleBit & (1 << 52)) === (1 << 52); // 护工
-    const isDoctor = (roleBit & (1 << 53)) === (1 << 53); // 医师
-
-    // 设置用户角色并显示相应模块
-    if (isNurse || isDoctor) {
-      // 护工或医师角色
+    if (RoleUtil.isNormalUser(roleBit)) {
       this.setData({
-        userRole: isNurse ? 'nurse' : 'doctor',
+        userRole: 'normal',
         showPrescriptionModule: true,
         isCheckingRole: false
       });
-      // 获取处方台账
-      this.getPrescriptionLedger();
-    } else if (isNormalUser || isIdCardUser) {
-      // 手机号用户或证件用户角色
-      this.setData({
-        userRole: isNormalUser ? 'normal' : 'idCard',
-        showPrescriptionModule: true,
-        isCheckingRole: false
-      });
-      // 获取用药提醒
       this.getPrescriptionReminder();
+    } else if (RoleUtil.isProfessionalUser(roleBit)) {
+      this.setData({
+        userRole: 'professional',
+        showPrescriptionModule: true,
+        isCheckingRole: false
+      });
+      this.getPrescriptionLedger();
     } else {
-      // 其他角色，隐藏整个功能
       this.setData({
         showPrescriptionModule: false,
         isCheckingRole: false
