@@ -1,21 +1,34 @@
 <view class="container">
   <view class="user-info-container">
-    <view class="avatar-section">
-      <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
+  <view class="avatar-section">
+    <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
+  </view>
+  
+  <view class="info-section">
+    <view class="nickname-container">
+      <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
+      <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
+      <text wx:else class="loading">加载中...</text>
     </view>
     
-    <view class="info-section">
-      <view class="nickname-container">
-        <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
-        <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
-        <text wx:else class="loading">加载中...</text>
-      </view>
-      
-      <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
-        授权获取昵称
+    <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
+      授权获取昵称
+    </button>
+    
+    <!-- 手机号授权状态 -->
+    <view class="phone-auth-status">
+      {{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}
+      <button wx:if="!phoneAuthorized" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
+        授权手机号
       </button>
     </view>
   </view>
+</view>
+
+<!-- 错误信息显示 -->
+<view wx:if="{{errorMsg}}" class="error-message">
+  <text>{{errorMsg}}</text>
+</view>
   
   <view wx:if="{{!isLoading && nickname}}" class="user-details">
     <view class="detail-item">

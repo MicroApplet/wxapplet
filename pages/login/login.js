@@ -11,8 +11,7 @@ Page({
    */
   data: {
     loading: false, // 登录中状态
-    errorMsg: '', // 错误信息
-    phoneAuthorized: false // 用户是否已授权手机号
+    errorMsg: '' // 错误信息
   },
 
   /**
@@ -33,12 +32,6 @@ Page({
             url: '/pages/index/index'
           });
         }
-      });
-    } else {
-      // 用户未登录，检查是否已授权手机号（用于后续登录状态恢复）
-      const phoneAuthorized = wx.getStorageSync('phoneAuthorized') || false;
-      this.setData({
-        phoneAuthorized: phoneAuthorized
       });
     }
   },
@@ -150,98 +143,5 @@ Page({
           errorMsg: error.message || '登录失败，请重试'
         });
       });
-  },
-
-  /**
-   * 处理用户授权手机号
-   */
-  onGetPhoneNumber: function(e) {
-    const that = this;
-
-    // 设置加载状态
-    this.setData({
-      loading: true,
-      errorMsg: ''
-    });
-
-    // 检查用户是否授权
-    if (e.detail.errMsg === 'getPhoneNumber:fail user deny') {
-      this.setData({
-        loading: false,
-        errorMsg: '请授权手机号以完成注册'
-      });
-      return;
-    }
-
-    // 用户授权成功，获取手机号信息
-    if (e.detail.errMsg === 'getPhoneNumber:ok') {
-      // 获取到手机号信息，准备调用注册接口
-      const phoneInfo = e.detail;
-      console.log('获取到的手机号信息:', phoneInfo);
-
-      // 构建注册请求参数
-      const registerData = {
-        id: '', // 忽略
-        userid: '', // 忽略
-        appid: xAppId, // 取xAppid
-        chlType: xAppChl, // 取xAppChl
-        chlAppId: wxAppId, // 取wxAppId
-        chlAppType: 'WX-PHONE', // 微信手机号
-        chlUserId: phoneInfo.encryptedData, // 取手机号
-        chlUnionId: '',
-        roleBit: 0,
-        chlUserCode: phoneInfo.code,
-        chlUserToken: phoneInfo.iv
-      };
-
-      // 构建请求头
-      const headers = {
-        'x-app-id': xAppId,
-        'x-app-chl': xAppChl,
-        'x-app-chl-appid': wxAppId
-      };
-
-      // 调用后台注册接口
-      api.post('/rest/user/service/user/registrar/register', registerData, null, headers)
-        .then(function(response) {
-          console.log('注册成功:', response);
-
-          // 注册成功后，保存用户已授权手机号的状态
-          wx.setStorageSync('phoneAuthorized', true);
-          that.setData({
-            phoneAuthorized: true
-          });
-
-          // 重置加载状态
-          that.setData({
-            loading: false
-          });
-
-          // 注册成功后跳转到首页
-          wx.switchTab({
-            url: '/pages/index/index',
-            fail: (err) => {
-              console.error('跳转到首页失败:', err);
-              // 如果switchTab失败，尝试使用redirectTo
-              wx.redirectTo({
-                url: '/pages/index/index'
-              });
-            }
-          });
-        })
-        .catch(function(error) {
-          console.error('注册失败:', error);
-          that.setData({
-            loading: false,
-            errorMsg: error.message || '注册失败，请重试'
-          });
-        });
-    } else {
-      // 授权失败的其他情况
-      this.setData({
-        loading: false,
-        errorMsg: '获取手机号失败，请重试'
-      });
-    }
   }
 });

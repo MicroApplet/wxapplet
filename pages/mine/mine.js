@@ -3,6 +3,8 @@
 const { api } = require('../../utils/wx-api');
 // 导入证件类型枚举
 const IdCardType = require('../../utils/id-card-type');
+// 导入环境配置
+const { wxAppId, xAppId, xAppChl } = require('../../utils/wx-env');
 
 Page({
   data: {
@@ -18,7 +20,10 @@ Page({
     idName: '',
     idNumber: '',
     availableIdCardTypes: [], // 可用的证件类型列表
-    idTypePickerIndex: 0 // picker组件当前选中的索引
+    idTypePickerIndex: 0, // picker组件当前选中的索引
+    // 手机号授权状态
+    phoneAuthorized: false,
+    errorMsg: ''
   },
 
   onLoad() {
@@ -35,10 +40,20 @@ Page({
     try {
       // 每次显示页面时刷新用户信息
       this.getUserSessionInfo();
+      // 检查手机号授权状态
+      this.checkPhoneAuthorizedStatus();
     } catch (error) {
       console.error('页面显示异常:', error);
       this.setData({ isLoading: false });
     }
+  },
+
+  // 检查手机号授权状态
+  checkPhoneAuthorizedStatus() {
+    const phoneAuthorized = wx.getStorageSync('phoneAuthorized');
+    this.setData({
+      phoneAuthorized: !!phoneAuthorized
+    });
   },
 
   // 安全获取用户会话信息
@@ -102,6 +117,91 @@ Page({
     } catch (error) {
       console.error('授权操作异常:', error);
       wx.showToast({ title: '授权操作异常', icon: 'none' });
+    }
+  },
+
+  // 获取手机号授权
+  onGetPhoneNumber: function(e) {
+    // 设置加载状态
+    this.setData({
+      isLoading: true,
+      errorMsg: ''
+    });
+
+    // 检查用户是否授权
+    if (e.detail.errMsg === 'getPhoneNumber:fail user deny') {
+      this.setData({
+        isLoading: false,
+        errorMsg: '请授权手机号以完成注册'
+      });
+      return;
+    }
+
+    // 用户授权成功，获取手机号信息
+    if (e.detail.errMsg === 'getPhoneNumber:ok') {
+      // 获取到手机号信息，准备调用注册接口
+      const phoneInfo = e.detail;
+      console.log('获取到的手机号信息:', phoneInfo);
+
+      // 构建注册请求参数
+      const registerData = {
+        id: '', // 忽略
+        userid: '', // 忽略
+        appid: xAppId, // 取xAppid
+        chlType: xAppChl, // 取xAppChl
+        chlAppId: wxAppId, // 取wxAppId
+        chlAppType: 'WX-PHONE', // 微信手机号
+        chlUserId: phoneInfo.encryptedData, // 取手机号
+        chlUnionId: '',
+        roleBit: 0,
+        chlUserCode: phoneInfo.code,
+        chlUserToken: phoneInfo.iv
+      };
+
+      // 构建请求头
+      const headers = {
+        'x-app-id': xAppId,
+        'x-app-chl': xAppChl,
+        'x-app-chl-appid': wxAppId
+      };
+
+      // 调用后台注册接口
+      api.post('/rest/user/service/user/registrar/register', registerData, null, headers)
+        .then((response) => {
+          console.log('手机号授权成功:', response);
+
+          // 授权成功后，保存用户已授权手机号的状态
+          wx.setStorageSync('phoneAuthorized', true);
+          this.setData({
+            phoneAuthorized: true
+          });
+
+          // 重置加载状态
+          this.setData({
+            isLoading: false
+          });
+
+          wx.showToast({
+            title: '手机号授权成功',
+            icon: 'success'
+          });
+
+          // 授权成功后重新获取用户信息
+          this.getUserSessionInfo();
+        })
+        .catch((error) => {
+          console.error('手机号授权失败:', error);
+          this.setData({
+            isLoading: false,
+            errorMsg: error.message || '手机号授权失败，请重试'
+          });
+        });
+    } else {
+      // 授权失败的其他情况
+      this.setData({
+        isLoading: false,
+        errorMsg: '获取手机号失败，请重试'
+      });
     }
   },
 

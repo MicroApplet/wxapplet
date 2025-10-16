@@ -22,16 +22,5 @@
     >
       微信一键登录
     </button>
-    
-    <!-- 授权手机号按钮 -->
-    <button 
-      class="phone-auth-btn"
-      open-type="getPhoneNumber"
-      bindgetphonenumber="onGetPhoneNumber"
-      loading="{{phoneAuthorized}}"
-      disabled="{{phoneAuthorized}}"
-    >
-      授权手机号
-    </button>
   </view>
 </view>
