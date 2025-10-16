@@ -3,10 +3,13 @@
   <view class="user-info-card">
     <view class="user-header">
       <view class="avatar-section">
-        <!-- 未授权微信头像时使用默认头像图片 -->
-        <image wx:if="{{!avatarUrl}}" class="avatar" src="/images/default_avatar.jpg" mode="aspectFill" bindtap="onAvatarClick"></image>
-        <!-- 已授权头像时显示微信头像 -->
-        <image wx:elif="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill" bindtap="onAvatarClick"></image>
+        <!-- 使用button组件的chooseAvatar能力让用户选择头像 -->
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <!-- 未授权微信头像时使用默认头像图片 -->
+          <image wx:if="{{!avatarUrl}}" class="avatar" src="/images/default_avatar.jpg" mode="aspectFill"></image>
+          <!-- 已授权头像时显示微信头像 -->
+          <image wx:elif="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+        </button>
       </view>
       
       <view class="info-section">

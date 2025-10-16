@@ -68,13 +68,29 @@
   position: relative;
 }
 
-.avatar {
+.avatar {  width: 160rpx;  height: 160rpx;  border-radius: 50%;  background-color: white;  border: 4rpx solid rgba(255, 255, 255, 0.3);  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);}
+
+/* 头像按钮样式，移除按钮默认样式，使其看起来像普通头像区域 */
+.avatar-btn {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background-color: white;
-  border: 4rpx solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar-btn:active {
+  opacity: 0.8;
 }
 
 /* 未认证徽章 */

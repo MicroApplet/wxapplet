@@ -219,45 +219,38 @@ Page({
     }
   },
   
-  // 处理头像点击事件
-  onAvatarClick() {
+  // 处理用户选择头像事件
+  onChooseAvatar(e) {
     try {
-      // 无论用户是否已授权，都提示用户授权微信头像信息
-      wx.getUserProfile({
-        desc: '用于获取用户头像',
-        success: (res) => {
-          const userInfo = res.userInfo;
-          console.log('用户授权头像成功:', userInfo.avatarUrl);
-          
-          // 保存头像信息到本地存储
-          wx.setStorageSync('userInfo', userInfo);
-          
-          // 更新页面头像状态
-          this.setData({
-            avatarUrl: userInfo.avatarUrl,
-            nickname: userInfo.nickName
-          });
-          
-          // 更新app的globalData
-          const app = getApp();
-          if (app.globalData.userInfo) {
-            app.globalData.userInfo.avatarUrl = userInfo.avatarUrl;
-            app.globalData.userInfo.nickname = userInfo.nickName;
-          }
-          
-          // 保存头像信息到服务器
-          this.updateUserAvatar(userInfo.avatarUrl);
-          this.updateUserNickname(userInfo.nickName);
-          
-          wx.showToast({ title: '头像授权成功' });
-        },
-        fail: (error) => {
-          console.error('用户拒绝授权头像:', error);
-          wx.showToast({ title: '头像授权失败', icon: 'none' });
-        }
+      // 获取用户选择的头像临时路径
+      const { avatarUrl } = e.detail;
+      console.log('用户选择的头像:', avatarUrl);
+      
+      // 创建用户信息对象，只包含头像
+      const userInfo = {
+        avatarUrl: avatarUrl
+      };
+      
+      // 保存头像信息到本地存储
+      wx.setStorageSync('userInfo', userInfo);
+      
+      // 更新页面头像状态
+      this.setData({
+        avatarUrl: avatarUrl
       });
+      
+      // 更新app的globalData
+      const app = getApp();
+      if (app.globalData.userInfo) {
+        app.globalData.userInfo.avatarUrl = avatarUrl;
+      }
+      
+      // 保存头像信息到服务器
+      this.updateUserAvatar(avatarUrl);
+      
+      wx.showToast({ title: '头像更新成功' });
     } catch (error) {
-      console.error('头像点击事件异常:', error);
+      console.error('选择头像事件异常:', error);
       wx.showToast({ title: '操作异常', icon: 'none' });
     }
   },
