@@ -18,7 +18,9 @@ Page({
     idName: '',
     idNumber: '',
     showIdTypeSelect: false,
-    idCardTypes: [] // 证件类型列表
+    idCardTypes: [], // 证件类型列表
+    availableIdCardTypes: [], // 可用的证件类型列表（用于picker组件）
+    idTypePickerIndex: 0 // picker组件当前选中的索引
   },
 
   onLoad() {
@@ -165,12 +167,19 @@ Page({
     const idCardTypes = IdCardType.getAllTypes();
     const defaultIdType = IdCardType.ResidentIdentityCard.code;
     const defaultIdTypeCnName = IdCardType.ResidentIdentityCard.cnName;
+    // 筛选出可用的证件类型（用于picker组件）
+    const availableIdCardTypes = idCardTypes.filter(type => type.available === true);
+    // 找到默认证件在可用列表中的索引
+    const idTypePickerIndex = availableIdCardTypes.findIndex(type => type.code === defaultIdType);
+    
     console.log('初始化证件类型，idType:', defaultIdType);
     console.log('默认证件名称:', defaultIdTypeCnName);
     this.setData({
       showRealNameForm: true,
       showIdTypeSelect: false,
       idCardTypes: idCardTypes,
+      availableIdCardTypes: availableIdCardTypes,
+      idTypePickerIndex: idTypePickerIndex >= 0 ? idTypePickerIndex : 0,
       idType: defaultIdType,  // 确保默认选中身份证
       idTypeCnName: defaultIdTypeCnName // 设置默认证件中文名称
     });
@@ -198,11 +207,27 @@ Page({
     const code = e.currentTarget.dataset.code;
     // 查找选中的证件类型对象
     const selectedType = IdCardType.getAllTypes().find(type => type.code === code);
+    // 在availableIdCardTypes中找到对应的索引
+    const idTypePickerIndex = this.data.availableIdCardTypes.findIndex(type => type.code === code);
     this.setData({
       idType: code,
       idTypeCnName: selectedType ? selectedType.cnName : '',
+      idTypePickerIndex: idTypePickerIndex >= 0 ? idTypePickerIndex : 0,
       showIdTypeSelect: false
     });
+  },
+  
+  // 处理picker组件选择证件类型的事件
+  onIdTypePickerChange(e) {
+    const index = e.detail.value;
+    const selectedType = this.data.availableIdCardTypes[index];
+    if (selectedType) {
+      this.setData({
+        idType: selectedType.code,
+        idTypeCnName: selectedType.cnName,
+        idTypePickerIndex: index
+      });
+    }
   },
   
   // 处理表单输入

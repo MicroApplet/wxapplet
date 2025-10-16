@@ -73,6 +73,16 @@
               <text class="select-text">{{idTypeCnName}}</text>
               <view class="select-arrow">{{showIdTypeSelect ? '↑' : '↓'}}</view>
             </view>
+            
+            <!-- 额外添加的picker组件选择器 -->
+            <picker mode="selector" 
+                    range="{{availableIdCardTypes}}" 
+                    range-key="cnName" 
+                    bindchange="onIdTypePickerChange" 
+                    value="{{idTypePickerIndex}}" 
+                    class="id-type-picker">
+              <view class="picker-hint">点击此处使用系统选择器</view>
+            </picker>
           
           <!-- 下拉选项列表 -->
           <view wx:if="{{showIdTypeSelect}}" class="select-options">
