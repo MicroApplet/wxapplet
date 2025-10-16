@@ -63,8 +63,17 @@ Page({
       
       // 检查用户是否已登录且有用户信息
       if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+        // 获取用户角色信息
+        const roleBit = app.globalData.userInfo.roleBit;
+        console.log('用户角色权限值:', roleBit);
+        
+        // 检查用户是否有手机号角色权限 (PHONE = 4)
+        const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
+        console.log('用户是否有手机号权限:', hasPhonePermission);
+        
         // 无论用户角色如何，都尝试获取手机号信息
         const response = await api.get('/rest/user/service/user/phone');
+        console.log('获取手机号接口响应:', response);
         
         // 修正解析逻辑：根据API返回格式，data字段直接包含手机号字符串
         if (response && response.code === 0 && response.data) {
@@ -73,12 +82,22 @@ Page({
             phoneAuthorized: true,
             phoneNumber: response.data // 直接使用data字段作为手机号
           });
+          console.log('手机号授权状态已设置为已授权:', response.data);
         } else {
-          // 接口返回的手机号为空或获取失败
-          this.setData({
-            phoneAuthorized: false,
-            phoneNumber: ''
-          });
+          // 如果没有获取到手机号但用户有手机号权限，仍标记为已授权
+          if (hasPhonePermission) {
+            this.setData({
+              phoneAuthorized: true,
+              phoneNumber: '' // 有权限但暂时未获取到具体手机号
+            });
+            console.log('用户有手机号权限但未获取到具体手机号');
+          } else {
+            this.setData({
+              phoneAuthorized: false,
+              phoneNumber: ''
+            });
+            console.log('未授权手机号或无手机号权限');
+          }
         }
       } else {
         // 未登录或无用户信息
@@ -86,39 +105,73 @@ Page({
           phoneAuthorized: false,
           phoneNumber: ''
         });
+        console.log('用户未登录，无法获取手机号');
       }
     } catch (error) {
       console.error('获取用户手机号失败:', error);
-      this.setData({
-        phoneAuthorized: false,
-        phoneNumber: ''
-      });
+      
+      // 出错时，检查用户是否有手机号权限
+      const app = getApp();
+      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+        const roleBit = app.globalData.userInfo.roleBit;
+        const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
+        
+        if (hasPhonePermission) {
+          this.setData({
+            phoneAuthorized: true,
+            phoneNumber: ''
+          });
+          console.log('发生错误，但用户有手机号权限，仍标记为已授权');
+        } else {
+          this.setData({
+            phoneAuthorized: false,
+            phoneNumber: ''
+          });
+        }
+      } else {
+        this.setData({
+          phoneAuthorized: false,
+          phoneNumber: ''
+        });
+      }
     }
   },
 
   // 检查手机号授权状态
   async checkPhoneAuthorizedStatus() {
-    // 直接调用getUserPhoneNumber方法
-    await this.getUserPhoneNumber();
+    try {
+      // 首先检查用户的角色权限
+      const app = getApp();
+      if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
+        const roleBit = app.globalData.userInfo.roleBit;
+        // 检查用户是否有手机号角色权限 (PHONE = 4)
+        const hasPhonePermission = (roleBit & BigInt(4)) === BigInt(4);
+        console.log('检查手机号授权状态 - 用户角色权限:', roleBit, '是否有手机号权限:', hasPhonePermission);
+        
+        // 如果用户有手机号权限，直接标记为已授权
+        if (hasPhonePermission) {
+          this.setData({ phoneAuthorized: true });
+        }
+      }
+      
+      // 然后调用getUserPhoneNumber获取实际手机号
+      await this.getUserPhoneNumber();
+    } catch (error) {
+      console.error('检查手机号授权状态失败:', error);
+    }
   },
 
   // 安全获取用户会话信息
   async getUserSessionInfo() {
     try {
-      // 检查实名认证状态
-      this.checkRealNameStatus();
-    } catch (error) {
-      console.error('检查实名认证状态失败:', error);
-    }
+      // 双重检查确保页面实例有效
+      if (!this || typeof this.setData !== 'function') {
+        console.error('页面实例无效，无法设置数据');
+        return;
+      }
 
-    // 双重检查确保页面实例有效
-    if (!this || typeof this.setData !== 'function') {
-      console.error('页面实例无效，无法设置数据');
-      return;
-    }
-
-    this.setData({ isLoading: true });
-    try {
+      this.setData({ isLoading: true });
+      
       // 获取app实例
       const app = getApp();
 
@@ -137,11 +190,16 @@ Page({
         this.setData({
           nickname: userInfo.nickname || '',
           avatarUrl: avatarUrl,
-          isLoading: false,
           isLoggedIn: true
         });
-        // 获取手机号信息
-        this.getUserPhoneNumber();
+        
+        // 获取手机号信息（使用await确保异步操作完成）
+        await this.getUserPhoneNumber();
+        
+        // 检查实名认证状态（使用await确保异步操作完成）
+        await this.checkRealNameStatus();
+        
+        this.setData({ isLoading: false });
         return;
       }
 
@@ -162,11 +220,16 @@ Page({
         this.setData({
           nickname: userInfo.nickname || '',
           avatarUrl: avatarUrl,
-          isLoading: false,
           isLoggedIn: true
         });
-        // 获取手机号信息
-        this.getUserPhoneNumber();
+        
+        // 获取手机号信息（使用await确保异步操作完成）
+        await this.getUserPhoneNumber();
+        
+        // 检查实名认证状态（使用await确保异步操作完成）
+        await this.checkRealNameStatus();
+        
+        this.setData({ isLoading: false });
       } else {
         wx.showToast({ title: '获取用户信息失败', icon: 'none' });
         this.setData({
