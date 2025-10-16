@@ -16,12 +16,12 @@
     </button>
     
     <!-- 手机号授权状态 -->
-    <view class="phone-auth-status">
-      {{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}
-      <button wx:if="!phoneAuthorized" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
-        授权手机号
-      </button>
-    </view>
+      <view class="phone-auth-status">
+        {{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}
+        <button wx:if="!phoneAuthorized && isLoggedIn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
+          授权手机号
+        </button>
+      </view>
   </view>
 </view>
 

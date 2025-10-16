@@ -5,6 +5,8 @@ const { api } = require('../../utils/wx-api');
 const IdCardType = require('../../utils/id-card-type');
 // 导入环境配置
 const { wxAppId, xAppId, xAppChl } = require('../../utils/wx-env');
+// 导入角色枚举和工具类
+const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
 
 Page({
   data: {
@@ -23,7 +25,9 @@ Page({
     idTypePickerIndex: 0, // picker组件当前选中的索引
     // 手机号授权状态
     phoneAuthorized: false,
-    errorMsg: ''
+    errorMsg: '',
+    // 用户登录状态
+    isLoggedIn: false
   },
 
   onLoad() {
@@ -50,10 +54,23 @@ Page({
 
   // 检查手机号授权状态
   checkPhoneAuthorizedStatus() {
-    const phoneAuthorized = wx.getStorageSync('phoneAuthorized');
-    this.setData({
-      phoneAuthorized: !!phoneAuthorized
-    });
+    // 获取app实例
+    const app = getApp();
+
+    // 检查用户是否已登录且有用户信息
+    if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
+      const roleBit = app.globalData.userInfo.roleBit;
+      // 使用RoleUtil检查用户是否是手机号用户
+      const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
+      this.setData({
+        phoneAuthorized: isPhoneUser
+      });
+    } else {
+      // 如果没有用户信息，默认设置为未授权
+      this.setData({
+        phoneAuthorized: false
+      });
+    }
   },
 
   // 安全获取用户会话信息
@@ -65,7 +82,6 @@ Page({
       console.error('检查实名认证状态失败:', error);
     }
 
-    // 继续原有逻辑
     // 双重检查确保页面实例有效
     if (!this || typeof this.setData !== 'function') {
       console.error('页面实例无效，无法设置数据');
@@ -74,24 +90,45 @@ Page({
 
     this.setData({ isLoading: true });
     try {
-      // 直接使用api.get，无需手动获取token，wx-api.js会自动处理
+      // 获取app实例
+      const app = getApp();
+
+      // 检查app的globalData中是否已有用户信息
+      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+        const userInfo = app.globalData.userInfo;
+        this.setData({
+          nickname: userInfo.nickname || '',
+          isLoading: false,
+          isLoggedIn: true
+        });
+        return;
+      }
+
+      // 如果globalData中没有用户信息，则重新获取
       const response = await api.get('/rest/user/service/user/session');
 
       if (response && response.data) {
         const userInfo = response.data;
         this.setData({
           nickname: userInfo.nickname || '',
-          isLoading: false
+          isLoading: false,
+          isLoggedIn: true
         });
       } else {
         wx.showToast({ title: '获取用户信息失败', icon: 'none' });
-        this.setData({ isLoading: false });
+        this.setData({
+          isLoading: false,
+          isLoggedIn: false
+        });
       }
     } catch (error) {
       console.error('获取用户会话信息失败:', error);
       // 确保在任何错误情况下都能重置加载状态
       if (this && typeof this.setData === 'function') {
-        this.setData({ isLoading: false });
+        this.setData({
+          isLoading: false,
+          isLoggedIn: false
+        });
       }
     }
   },
@@ -170,11 +207,8 @@ Page({
         .then((response) => {
           console.log('手机号授权成功:', response);
 
-          // 授权成功后，保存用户已授权手机号的状态
-          wx.setStorageSync('phoneAuthorized', true);
-          this.setData({
-            phoneAuthorized: true
-          });
+          // 授权成功后重新获取用户信息，更新全局用户状态
+          this.getUserSessionInfo();
 
           // 重置加载状态
           this.setData({
