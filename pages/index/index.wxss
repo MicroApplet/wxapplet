@@ -109,8 +109,8 @@
 .article-scroll-section {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 20px;
+  right: 20px;
   background: #fff;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -119,8 +119,12 @@
 }
 
 .article-scroll-header {
-  padding: 15px 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid #f0f0f0;
+  height: auto;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 /* 滚动列表容器 - 固定高度（大约显示两条文章） */
