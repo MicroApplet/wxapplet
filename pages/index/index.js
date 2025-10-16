@@ -1,7 +1,7 @@
 //index.js
 
 // 导入API工具
-// const { api } = require('../../utils/wx-api'); // 暂时未使用
+const { api } = require('../../utils/wx-api');
 
 Page({
   data: {
@@ -14,38 +14,247 @@ Page({
     currentPage: 1,
     hasMoreData: true,
     videoList: [],
-    isVideoLoading: false
+    isVideoLoading: false,
+    // 用药提醒/处方台账模块相关数据
+    isCheckingRole: true,
+    showPrescriptionModule: false,
+    userRole: '', // normal, idCard, nurse, doctor
+    prescriptionInfo: {
+      lastDate: '',
+      lastDays: 0,
+      nextDate: ''
+    },
+    daysRemaining: -1,
+    ledgerList: []
   },
 
   // 生命周期函数--监听页面加载
   onLoad: function () {
     console.log('首页加载');
 
-    // 如果已经授权，可以直接获取用户信息
-    if (wx.getStorageSync('userInfo')) {
-      this.setData({
-        userInfo: wx.getStorageSync('userInfo'),
-        hasUserInfo: true
-      });
-    } else if (this.data.canIUse) {
-      // 可以使用开放能力获取用户信息
-      console.log('可以使用开放能力获取用户信息');
-    } else {
-      // 不支持开放能力，使用传统方式获取用户信息
-      wx.getUserInfo({
-        success: res => {
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          });
-          wx.setStorageSync('userInfo', res.userInfo);
-        }
-      });
-    }
+    // 获取用户会话信息
+    this.getUserSessionInfo();
 
     // 加载文章列表和视频列表
     this.loadArticleList();
     this.loadVideoList();
+  },
+
+  // 获取用户会话信息
+  async getUserSessionInfo() {
+    try {
+      this.setData({ isCheckingRole: true });
+      // 调用获取用户会话接口
+      const response = await api.get('/rest/user/service/user/session');
+
+      if (response && response.code === '0' && response.data) {
+        const userData = response.data;
+        // 检查用户角色
+        this.checkUserRole(userData.roleBit);
+      } else {
+        // 没有data或roleBit字段，隐藏整个功能
+        this.setData({
+          showPrescriptionModule: false,
+          isCheckingRole: false
+        });
+      }
+    } catch (error) {
+      console.error('获取用户会话信息失败:', error);
+      this.setData({
+        showPrescriptionModule: false,
+        isCheckingRole: false
+      });
+    }
+  },
+
+  // 检查用户角色
+  checkUserRole(roleBit) {
+    // 如果没有roleBit字段，隐藏整个功能
+    if (!roleBit) {
+      this.setData({
+        showPrescriptionModule: false,
+        isCheckingRole: false
+      });
+      return;
+    }
+
+    // 检查用户角色
+    const isNormalUser = (roleBit & (1 << 2)) === (1 << 2); // 手机号用户
+    const isIdCardUser = (roleBit & (1 << 4)) === (1 << 4); // 证件用户
+    const isNurse = (roleBit & (1 << 52)) === (1 << 52); // 护工
+    const isDoctor = (roleBit & (1 << 53)) === (1 << 53); // 医师
+
+    // 设置用户角色并显示相应模块
+    if (isNurse || isDoctor) {
+      // 护工或医师角色
+      this.setData({
+        userRole: isNurse ? 'nurse' : 'doctor',
+        showPrescriptionModule: true,
+        isCheckingRole: false
+      });
+      // 获取处方台账
+      this.getPrescriptionLedger();
+    } else if (isNormalUser || isIdCardUser) {
+      // 手机号用户或证件用户角色
+      this.setData({
+        userRole: isNormalUser ? 'normal' : 'idCard',
+        showPrescriptionModule: true,
+        isCheckingRole: false
+      });
+      // 获取用药提醒
+      this.getPrescriptionReminder();
+    } else {
+      // 其他角色，隐藏整个功能
+      this.setData({
+        showPrescriptionModule: false,
+        isCheckingRole: false
+      });
+    }
+  },
+
+  // 获取用药提醒信息
+  async getPrescriptionReminder() {
+    try {
+      // 在实际环境中调用接口
+      // const response = await api.get('/rest/clinc/prescription/reminder/user/status');
+
+      // 使用mock数据进行测试
+      const mockResponse = this.getMockPrescriptionReminder();
+
+      if (mockResponse.code === '0' && mockResponse.data) {
+        const prescriptionInfo = mockResponse.data;
+        // 计算剩余天数
+        const daysRemaining = this.calculateDaysRemaining(prescriptionInfo.nextDate);
+
+        this.setData({
+          prescriptionInfo: prescriptionInfo,
+          daysRemaining: daysRemaining
+        });
+      }
+    } catch (error) {
+      console.error('获取用药提醒失败:', error);
+    }
+  },
+
+  // 获取处方台账信息
+  async getPrescriptionLedger() {
+    try {
+      // 在实际环境中调用接口
+      // const response = await api.get('/rest/clinc/prescription/ledger', { page: 1, size: 5 });
+
+      // 使用mock数据进行测试
+      const mockResponse = this.getMockPrescriptionLedger();
+
+      if (mockResponse.code === '0' && mockResponse.data) {
+        this.setData({
+          ledgerList: mockResponse.data
+        });
+      }
+    } catch (error) {
+      console.error('获取处方台账失败:', error);
+    }
+  },
+
+  // 计算距离下次开药的剩余天数
+  calculateDaysRemaining(nextDateStr) {
+    if (!nextDateStr) return -1;
+
+    try {
+      const nextDate = new Date(nextDateStr);
+      const currentDate = new Date();
+
+      // 只比较年月日，忽略时间
+      nextDate.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+
+      const diffTime = nextDate - currentDate;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      return diffDays;
+    } catch (error) {
+      console.error('计算剩余天数失败:', error);
+      return -1;
+    }
+  },
+
+  // 获取模拟用药提醒数据
+  getMockPrescriptionReminder() {
+    // 生成一些模拟数据
+    const today = new Date();
+    const lastDate = new Date(today);
+    lastDate.setDate(today.getDate() - 30);
+
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + 2); // 设置为2天后，测试少于3天的情况
+
+    return {
+      'status': 200,
+      'thr': false,
+      'pageable': false,
+      'code': '0',
+      'msg': '成功',
+      'data': {
+        'lastDate': this.formatDate(lastDate),
+        'lastDays': 30,
+        'nextDate': this.formatDate(nextDate)
+      },
+      'errs': [],
+      'page': 1,
+      'size': 1,
+      'pages': 1,
+      'total': 1
+    };
+  },
+
+  // 获取模拟处方台账数据
+  getMockPrescriptionLedger() {
+    return {
+      'status': 200,
+      'thr': false,
+      'pageable': false,
+      'code': '0',
+      'msg': '成功',
+      'data': [
+        {
+          'patientName': '张三',
+          'prescriptionDate': '2024-10-10',
+          'status': '已完成'
+        },
+        {
+          'patientName': '李四',
+          'prescriptionDate': '2024-10-08',
+          'status': '处理中'
+        },
+        {
+          'patientName': '王五',
+          'prescriptionDate': '2024-10-05',
+          'status': '已完成'
+        },
+        {
+          'patientName': '赵六',
+          'prescriptionDate': '2024-10-01',
+          'status': '已完成'
+        },
+        {
+          'patientName': '孙七',
+          'prescriptionDate': '2024-09-28',
+          'status': '已取消'
+        }
+      ],
+      'errs': [],
+      'page': 1,
+      'size': 5,
+      'pages': 2,
+      'total': 10
+    };
+  },
+
+  // 格式化日期为yyyy-MM-dd格式
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   // 加载视频列表

@@ -3,16 +3,59 @@
   <!-- 隐藏的视频播放组件，用于实际播放视频 -->
   <video id="myVideo" style="width: 1px; height: 1px; opacity: 0;"></video>
   
-  <!-- 用户信息模块 -->
-  <view class="userinfo">
-    <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo">
-      获取头像昵称
-    </button>
-    <block wx:else>
-      <image wx:if="{{hasUserInfo}}" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <text class="userinfo-nickname">{{hasUserInfo ? userInfo.nickName : '未登录'}}</text>
-      <button wx:if="{{hasUserInfo}}" class="logout-btn" bindtap="logout">退出登录</button>
-    </block>
+  <!-- 用药提醒/处方台账模块 -->
+  <view class="prescription-reminder" wx:if="{{showPrescriptionModule}}">
+    <!-- 普通用户用药提醒 -->
+    <view wx:if="{{userRole === 'normal' || userRole === 'idCard'}}">
+      <view class="reminder-header">
+        <text class="reminder-title">用药提醒</text>
+        <text class="reminder-subtitle">即将到用药时间</text>
+      </view>
+      <view class="reminder-content">
+        <view class="reminder-item">
+          <text class="reminder-label">上次开药:</text>
+          <text class="reminder-value">{{prescriptionInfo.lastDate}}</text>
+        </view>
+        <view class="reminder-item">
+          <text class="reminder-label">用药天数:</text>
+          <text class="reminder-value">{{prescriptionInfo.lastDays}}天</text>
+        </view>
+        <view class="reminder-item">
+          <text class="reminder-label">下次开药:</text>
+          <text class="reminder-value" style="color: {{daysRemaining < 3 ? '#e64340' : ''}}">{{prescriptionInfo.nextDate}}</text>
+        </view>
+        <view class="reminder-item" wx:if="{{daysRemaining >= 0}}">
+          <text class="reminder-label">剩余天数:</text>
+          <text class="reminder-value" style="color: {{daysRemaining < 3 ? '#e64340' : ''}}">{{daysRemaining}}天</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 护工/医师处方台账 -->
+    <view wx:elif="{{userRole === 'nurse' || userRole === 'doctor'}}">
+      <view class="ledger-header">
+        <text class="ledger-title">处方台账</text>
+        <text class="ledger-subtitle">最近处方记录</text>
+      </view>
+      <scroll-view class="ledger-list" scroll-y>
+        <block wx:if="{{ledgerList.length > 0}}">
+          <view wx:for="{{ledgerList}}" wx:key="index" class="ledger-item">
+            <text class="ledger-patient">{{item.patientName}}</text>
+            <text class="ledger-date">{{item.prescriptionDate}}</text>
+            <text class="ledger-status">{{item.status}}</text>
+          </view>
+        </block>
+        <view wx:else class="empty-ledger">
+          <text class="empty-text">暂无处方记录</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+  
+  <!-- 加载中状态 -->
+  <view class="role-loading" wx:if="{{isCheckingRole}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
   <!-- 短视频模块 -->
