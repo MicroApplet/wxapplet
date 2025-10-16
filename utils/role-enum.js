@@ -4,66 +4,66 @@ const RoleCode = {
   // 基础用户角色
   TOURIST: {
     code: 'tourist',
-    bit: BigInt(1) << BigInt(0),
+    bit: BigInt(1),
     desc: '游客'
   },
   AUTHENTICATED: {
     code: 'authenticated',
-    bit: BigInt(1) << BigInt(1),
+    bit: RoleCode.TOURIST.bit << BigInt(1),
     desc: '登录用户'
   },
   PHONE: {
     code: 'phone',
-    bit: BigInt(1) << BigInt(2),
+    bit: RoleCode.TOURIST.bit << BigInt(2),
     desc: '手机号用户'
   },
   WECHAT_USER: {
     code: 'wechat',
-    bit: BigInt(1) << BigInt(3),
+    bit: RoleCode.TOURIST.bit << BigInt(3),
     desc: '微信用户'
   },
   ID_CARD_USER: {
     code: 'id-card',
-    bit: BigInt(1) << BigInt(4),
+    bit: RoleCode.TOURIST.bit << BigInt(4),
     desc: '实名证件用户'
   },
   BANK_CARD_USER: {
     code: 'bank-card',
-    bit: BigInt(1) << BigInt(7),
+    bit: RoleCode.TOURIST.bit << BigInt(7),
     desc: '银行卡用户'
   },
 
   // 员工角色（50位以上）
   EMPLOYEE: {
     code: 'employee',
-    bit: BigInt(1) << BigInt(50),
+    bit: RoleCode.TOURIST.bit << BigInt(50),
     desc: '员工'
   },
   CMS: {
     code: 'cms:user',
-    bit: BigInt(1) << BigInt(51),
+    bit: RoleCode.TOURIST.bit << BigInt(51),
     desc: '后管用户'
   },
   NURSE: {
     code: 'nurse',
-    bit: BigInt(1) << BigInt(52),
+    bit: RoleCode.TOURIST.bit << BigInt(52),
     desc: '护工'
   },
   DOCTOR: {
     code: 'doctor',
-    bit: BigInt(1) << BigInt(53),
+    bit: RoleCode.TOURIST.bit << BigInt(53),
     desc: '医师'
   },
 
   // 管理员角色
   SYSTEM: {
     code: 'system',
-    bit: BigInt(1) << BigInt(63),
+    bit: RoleCode.TOURIST.bit << BigInt(63),
     desc: '系统管理员'
   },
   ROOT: {
     code: 'root',
-    bit: BigInt('9223372036854775807') & ~(BigInt(1) << BigInt(1)), // 去除登录位，使用BigInt表示Java中的Long.MAX_VALUE
+    bit: BigInt('9223372036854775807') & ~RoleCode.AUTHENTICATED.bit, // 去除登录位，使用BigInt表示Java中的Long.MAX_VALUE
     desc: '超级管理员'
   }
 };
