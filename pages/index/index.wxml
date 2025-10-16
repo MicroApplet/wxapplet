@@ -12,10 +12,6 @@
   </view>
 
   
-  <view class="footer">
-    <text class="footer-text">© 2024 微信小程序</text>
-  </view>
-
   <!-- 文章列表滚动模块 -->
   <view class="article-scroll-section">
     <view class="article-scroll-header">

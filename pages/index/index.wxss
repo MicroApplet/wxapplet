@@ -108,7 +108,7 @@
 /* 文章滚动模块样式 */
 .article-scroll-section {
   position: fixed;
-  bottom: 60px; /* footer高度 */
+  bottom: 0;
   left: 0;
   right: 0;
   background: #fff;
@@ -119,7 +119,7 @@
 }
 
 .article-scroll-header {
-  padding: 15px;
+  padding: 15px 20px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -129,7 +129,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0 10px;
+  padding: 0 20px;
 }
 
 /* 单条文章样式调整 */
@@ -147,6 +147,7 @@
   padding: 0 5px;
 }
 
+/* 文章项样式 - 自适应高度 */
 .article-item {
   display: flex;
   padding: 15px;
@@ -155,10 +156,20 @@
   border-radius: 8px;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
+  height: auto;
+}
+
+/* 交替颜色区分相邻文章 */
+.article-item:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.article-item:nth-child(even) {
+  background-color: #ffffff;
 }
 
 .article-item:active {
-  background-color: #f8f8f8;
+  background-color: #f0f0f0;
   transform: scale(0.99);
 }
 
@@ -167,7 +178,6 @@
   margin-right: 15px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .article-title {
@@ -188,11 +198,8 @@
   color: #666;
   line-height: 1.4;
   margin-bottom: 10px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
 }
 
 .article-meta {
