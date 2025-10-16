@@ -42,12 +42,13 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
     try {
+      this.setData({ isLoading: true });
       // 每次显示页面时刷新用户信息
-      this.getUserSessionInfo();
+      await this.getUserSessionInfo();
       // 检查手机号授权状态
-      this.checkPhoneAuthorizedStatus();
+      await this.checkPhoneAuthorizedStatus();
     } catch (error) {
       console.error('页面显示异常:', error);
       this.setData({ isLoading: false });
@@ -245,25 +246,21 @@ Page({
     }
   },
   
-  // 检查手机号授权状态
-  checkPhoneAuthorizedStatus() {
+  // 检查用户角色权限
+  checkUserRolePermission() {
     // 获取app实例
     const app = getApp();
 
     // 检查用户是否已登录且有用户信息
     if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
       const roleBit = app.globalData.userInfo.roleBit;
-      // 使用RoleUtil检查用户是否是手机号用户
-      const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
-      this.setData({
-        phoneAuthorized: isPhoneUser
-      });
-    } else {
-      // 如果没有用户信息，默认设置为未授权
-      this.setData({
-        phoneAuthorized: false
-      });
+      return {
+        hasPhoneRole: RoleUtil.contains(roleBit, RoleCode.PHONE)
+      };
     }
+    return {
+      hasPhoneRole: false
+    };
   },
 
   // 获取手机号授权
