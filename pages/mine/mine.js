@@ -17,9 +17,7 @@ Page({
     idTypeCnName: IdCardType.ResidentIdentityCard.cnName, // 身份证中文名称
     idName: '',
     idNumber: '',
-    showIdTypeSelect: false,
-    idCardTypes: [], // 证件类型列表
-    availableIdCardTypes: [], // 可用的证件类型列表（用于picker组件）
+    availableIdCardTypes: [], // 可用的证件类型列表
     idTypePickerIndex: 0 // picker组件当前选中的索引
   },
 
@@ -163,21 +161,16 @@ Page({
   
   // 显示实名认证表单
   showRealNameForm() {
-    // 初始化证件类型列表
-    const idCardTypes = IdCardType.getAllTypes();
+    // 初始化证件类型
     const defaultIdType = IdCardType.ResidentIdentityCard.code;
     const defaultIdTypeCnName = IdCardType.ResidentIdentityCard.cnName;
-    // 筛选出可用的证件类型（用于picker组件）
-    const availableIdCardTypes = idCardTypes.filter(type => type.available === true);
+    // 筛选出可用的证件类型
+    const availableIdCardTypes = IdCardType.getAllTypes().filter(type => type.available === true);
     // 找到默认证件在可用列表中的索引
     const idTypePickerIndex = availableIdCardTypes.findIndex(type => type.code === defaultIdType);
     
-    console.log('初始化证件类型，idType:', defaultIdType);
-    console.log('默认证件名称:', defaultIdTypeCnName);
     this.setData({
       showRealNameForm: true,
-      showIdTypeSelect: false,
-      idCardTypes: idCardTypes,
       availableIdCardTypes: availableIdCardTypes,
       idTypePickerIndex: idTypePickerIndex >= 0 ? idTypePickerIndex : 0,
       idType: defaultIdType,  // 确保默认选中身份证
@@ -190,30 +183,7 @@ Page({
     this.setData({
       showRealNameForm: false,
       idName: '',
-      idNumber: '',
-      showIdTypeSelect: false 
-    });
-  },
-  
-  // 切换证件类型下拉列表显示
-  toggleIdTypeSelect() {
-    this.setData({
-      showIdTypeSelect: !this.data.showIdTypeSelect
-    });
-  },
-  
-  // 选择证件类型（只有身份证可用）
-  selectIdType(e) {
-    const code = e.currentTarget.dataset.code;
-    // 查找选中的证件类型对象
-    const selectedType = IdCardType.getAllTypes().find(type => type.code === code);
-    // 在availableIdCardTypes中找到对应的索引
-    const idTypePickerIndex = this.data.availableIdCardTypes.findIndex(type => type.code === code);
-    this.setData({
-      idType: code,
-      idTypeCnName: selectedType ? selectedType.cnName : '',
-      idTypePickerIndex: idTypePickerIndex >= 0 ? idTypePickerIndex : 0,
-      showIdTypeSelect: false
+      idNumber: ''
     });
   },
   

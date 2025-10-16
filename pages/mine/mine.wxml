@@ -67,33 +67,16 @@
       <!-- 证件类型 -->
       <view class="form-group">
         <text class="form-label">请选择证件类型</text>
-        <view class="select-container">
-            <!-- 证件类型选择框 -->
-            <view class="select-box" bindtap="toggleIdTypeSelect">
-              <text class="select-text">{{idTypeCnName}}</text>
-              <view class="select-arrow">{{showIdTypeSelect ? '↑' : '↓'}}</view>
-            </view>
-            
-            <!-- 额外添加的picker组件选择器 -->
-            <picker mode="selector" 
-                    range="{{availableIdCardTypes}}" 
-                    range-key="cnName" 
-                    bindchange="onIdTypePickerChange" 
-                    value="{{idTypePickerIndex}}" 
-                    class="id-type-picker">
-              <view class="picker-hint">点击此处使用系统选择器</view>
-            </picker>
-          
-          <!-- 下拉选项列表 -->
-          <view wx:if="{{showIdTypeSelect}}" class="select-options">
-            <view wx:for="{{idCardTypes}}" wx:key="code" 
-                  class="{{item.code === idType ? 'option-item selected' : 'option-item ' + (item.available !== true ? 'disabled' : '')}}" 
-                  bindtap="{{item.available === true ? 'selectIdType' : ''}}" 
-                  data-code="{{item.code}}">
-              <text class="{{item.available === true ? 'available-option' : 'disabled-option'}}">{{item.cnName}}</text>
-            </view>
+        <picker mode="selector" 
+                range="{{availableIdCardTypes}}" 
+                range-key="cnName" 
+                bindchange="onIdTypePickerChange" 
+                value="{{idTypePickerIndex}}" 
+                class="id-type-picker">
+          <view class="form-input">
+            <text>{{idTypeCnName || '请选择证件类型'}}</text>
           </view>
-        </view>
+        </picker>
       </view>
       
       <!-- 证件姓名 -->
