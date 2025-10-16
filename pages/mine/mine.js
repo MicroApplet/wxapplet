@@ -185,138 +185,110 @@ Page({
     try {
       this.setData({ isLoading: true });
       
-      // 1. 检查是否支持人脸核身功能
-      if (!wx.startFacialRecognitionVerify) {
-        throw new Error('当前设备不支持人脸核身功能，请升级微信至最新版本（读数字：Android 6.5.4+ / iOS 6.5.6+；屏幕闪烁：Android 6.7.2+ / iOS 6.7.2+）');
-      }
-      
-      // 2. 获取用户输入的姓名和身份证号
+      // 1. 获取用户输入的姓名和身份证号
       const { idName, idNumber } = this.data;
       if (!idName || !idNumber) {
         throw new Error('请先填写姓名和身份证号');
       }
       
-      // 3. 根据文档要求，先检查设备是否支持人脸检测
-      await this.checkDeviceSupportFacialRecognition();
+      // 2. 检查是否支持人脸核身功能
+      if (!wx.startFacialRecognitionVerify) {
+        // 设备不支持人脸核身，直接调用后台接口（不负载verifyResult）
+        console.log('设备不支持人脸核身，直接调用后台认证接口');
+        await this.submitRealNameInfo();
+        return;
+      }
       
-      // 4. 调用微信生物识别人脸核身接口
-      const verifyResult = await new Promise((resolve, reject) => {
-        try {
-          wx.startFacialRecognitionVerify({
-            name: idName,          // 姓名
-            idCardNumber: idNumber, // 身份证号
-            checkAliveType: 0,     // 人脸核验的交互方式，0表示读数字（默认）
-            success: (res) => {
+      // 3. 探测是否具有人脸核身的权限
+      const hasFaceRecognitionPermission = await this.checkDeviceSupportFacialRecognition();
+      
+      if (hasFaceRecognitionPermission) {
+        // 3.1 有权限，调用微信生物识别人脸核身接口
+        wx.startFacialRecognitionVerify({
+          name: idName,          // 姓名
+          idCardNumber: idNumber, // 身份证号
+          checkAliveType: 0,     // 人脸核验的交互方式，0表示读数字（默认）
+          success: async (res) => {
+            try {
               console.log('人脸核身成功', res);
-              // 根据文档要求，直接使用返回的verifyResult字符串
-              resolve({
-                verifyResult: res.verifyResult, // 人脸核验凭证，用于后端校验
+              // 在成功回调函数中调用后台接口，并且将verifyResult负载到请求体中
+              const verifyResultData = {
+                verifyResult: res.verifyResult,
                 timestamp: Date.now()
+              };
+              await this.submitRealNameInfo(verifyResultData);
+            } catch (error) {
+              console.error('提交认证信息失败:', error);
+              wx.showToast({ 
+                title: error.message || '认证失败，请重试', 
+                icon: 'none' 
               });
-            },
-            fail: (err) => {
-              console.error('人脸核身失败', err);
-              // 根据错误码提供更具体的提示
-              let errorMsg = '人脸验证失败，请重试';
-              // 处理权限相关错误
-              if (err.errMsg && (err.errMsg.includes('permission denied') || err.errMsg.includes('未授权') || err.errMsg.includes('not authorized'))) {
-                errorMsg = '当前小程序未获得人脸核身接口权限。请注意：该功能仅在小程序获得官方权限后可用，保留此功能以支持未来商业化场景。';
-              } else {
-                switch(err.errCode) {
-                  case -1:
-                    errorMsg = '系统错误';
-                    break;
-                  case 10001:
-                    errorMsg = '用户取消验证';
-                    break;
-                  case 10002:
-                    errorMsg = '验证未通过';
-                    break;
-                  case 10003:
-                    errorMsg = '验证超时';
-                    break;
-                  case 10004:
-                    errorMsg = '未检测到人脸';
-                    break;
-                  case 10005:
-                    errorMsg = '设备不支持';
-                    break;
-                  case 10006:
-                    errorMsg = '微信版本过低，请升级';
-                    break;
-                }
-              }
-              reject(new Error(errorMsg));
+              this.setData({ isLoading: false });
             }
-          });
-        } catch (e) {
-          console.error('调用人脸核身接口异常', e);
-          // 捕获调用接口时可能出现的权限异常
-          reject(new Error('当前小程序未获得人脸核身接口权限。请注意：该功能仅在小程序获得官方权限后可用，保留此功能以支持未来商业化场景。'));
-        }
-      });
-      
-      // 5. 提交认证信息到后端
-      await this.submitRealNameInfo(verifyResult);
-      
+          },
+          fail: async (err) => {
+            // 在失败回调函数中，在控制台打印人脸核身失败，然后再调用后台接口（不负载verifyResult参数）
+            console.error('人脸核身失败，继续提交认证信息:', err);
+            try {
+              await this.submitRealNameInfo();
+            } catch (error) {
+              console.error('提交认证信息失败:', error);
+              wx.showToast({ 
+                title: error.message || '认证失败，请重试', 
+                icon: 'none' 
+              });
+              this.setData({ isLoading: false });
+            }
+          }
+        });
+      } else {
+        // 3.2 没有权限，直接调用后台接口（不负载verifyResult参数）
+        console.log('没有人脸核身权限，直接调用后台认证接口');
+        await this.submitRealNameInfo();
+      }
     } catch (error) {
-      console.error('人脸验证失败:', error);
+      console.error('认证失败:', error);
       wx.showToast({ 
-        title: error.message || '人脸验证失败', 
+        title: error.message || '认证失败，请重试', 
         icon: 'none' 
       });
-    } finally {
       this.setData({ isLoading: false });
     }
   },
   
-  // 根据文档要求，检查设备是否支持人脸检测
+  // 探测是否具有人脸核身的权限
   async checkDeviceSupportFacialRecognition() {
-    try {
+    return new Promise((resolve) => {
       if (!wx.checkIsSupportFacialRecognition) {
-        console.warn('当前微信版本不支持设备人脸检测检查');
+        console.warn('当前微信版本不支持检查人脸核身权限');
+        resolve(false);
         return;
       }
       
-      await new Promise((resolve, reject) => {
+      try {
         wx.checkIsSupportFacialRecognition({
-          checkAliveType: 2, // 先检查是否可以屏幕闪烁，不可以则自动为读数字
+          checkAliveType: 0, // 读数字模式
           success: (res) => {
             // Android设备会返回errCode，0表示支持
             // iOS设备不返回errCode
-            if (res.errCode !== undefined && res.errCode !== 0) {
-              // 仅对Android设备的错误进行处理
-              if (res.errCode === 10001) {
-                reject(new Error('设备没有前置摄像头，不支持人脸采集'));
-              } else if (res.errCode === 10002) {
-                reject(new Error('没有下载到必要模型，不支持人脸采集'));
-              } else if (res.errCode === 10003) {
-                reject(new Error('后台控制不支持人脸采集'));
-              } else {
-                reject(new Error('设备不支持人脸采集'));
-              }
-            } else {
-              resolve();
-            }
+            const isSupported = res.errCode === undefined || res.errCode === 0;
+            console.log('人脸核身权限检查结果:', isSupported);
+            resolve(isSupported);
           },
           fail: (err) => {
-            console.error('检查设备支持失败:', err);
-            // iOS设备调用此接口可能会进入fail回调，但实际可能支持人脸核身
-            // 因此仅记录错误，不阻止后续流程
-            resolve();
-          },
-          complete: () => {
-            // 无论成功失败都会调用
+            console.error('检查人脸核身权限失败:', err);
+            // 调用失败，认为没有权限
+            resolve(false);
           }
         });
-      });
-    } catch (error) {
-      console.error('设备检查异常:', error);
-      throw error;
-    }
+      } catch (e) {
+        console.error('检查人脸核身权限异常:', e);
+        resolve(false);
+      }
+    });
   },
   
-  // 提交实名认证信息（使用微信生物识别人脸核身结果）
+  // 提交实名认证信息（支持带或不带人脸核身结果）
   async submitRealNameInfo(verifyResultData) {
     try {
       this.setData({ isLoading: true });
@@ -325,25 +297,37 @@ Page({
       // 获取环境配置中的应用信息
       const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
       
-      // 1. 调用后端接口提交认证信息
-      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', {
+      // 构建请求参数
+      const requestParams = {
         chl: 'wechat', // 渠道代码
         chlAppId: wxAppId, // 渠道应用ID
         chlAppType: xAppChlAppType, // 渠道应用类型
         idType, // 证件类型代码
         name: idName, // 姓名
-        number: idNumber, // 证件号
-        verifyResult: verifyResultData.verifyResult // 根据文档要求，直接使用verifyResult字符串
-      });
+        number: idNumber // 证件号
+      };
+      
+      // 如果有人脸核身结果，添加verifyResult参数
+      const hasVerifyResult = verifyResultData && verifyResultData.verifyResult;
+      if (hasVerifyResult) {
+        requestParams.verifyResult = verifyResultData.verifyResult;
+      }
+      
+      // 调用后端接口提交认证信息
+      // 注意：这里使用统一的接口，后台根据是否有verifyResult参数来处理不同的认证流程
+      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', requestParams);
       
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
         
-        // 2. 再次获取核验结果（提高安全性）
-        const finalResult = await this.getVerificationResult(verifyResultData.verifyResult);
+        // 如果有人脸核身结果，再次获取核验结果（提高安全性）
+        let finalResult = null;
+        if (hasVerifyResult) {
+          finalResult = await this.getVerificationResult(verifyResultData.verifyResult);
+        }
         
         if ((isVerified || (finalResult && finalResult.isVerified)) && realNameInfo) {
-          // 3. 缓存认证结果
+          // 缓存认证结果
           wx.setStorageSync('isRealNameVerified', true);
           wx.setStorageSync('realNameInfo', realNameInfo);
           
