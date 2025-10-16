@@ -69,7 +69,7 @@
         <text class="form-label">请选择证件类型</text>
         <view class="select-container">
           <view class="select-box" bindtap="toggleIdTypeSelect">
-            <text class="select-text">{{idType.cnName}}</text>
+            <text class="select-text">{{getCnNameById(idType)}}</text>
             <view class="select-arrow">{{showIdTypeSelect ? '↑' : '↓'}}</view>
           </view>
           
