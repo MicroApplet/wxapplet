@@ -63,7 +63,7 @@ const RoleCode = {
   },
   ROOT: {
     code: 'root',
-    bit: BigInt('9007199254740991') & ~(BigInt(1) << BigInt(1)), // 去除登录位，使用BigInt表示MAX_SAFE_INTEGER
+    bit: BigInt('9223372036854775807') & ~(BigInt(1) << BigInt(1)), // 去除登录位，使用BigInt表示Java中的Long.MAX_VALUE
     desc: '超级管理员'
   }
 };
