@@ -253,6 +253,26 @@
   border-radius: 30rpx;
 }
 
+/* 实名认证状态样式 */
+.real-name-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.real-name-status .verify-btn {
+  font-size: 24rpx;
+  padding: 0 20rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  background-color: #07c160;
+  color: #fff;
+  border-radius: 30rpx;
+}
+
 /* 错误信息样式 */
 .error-message {
   padding: 20rpx;

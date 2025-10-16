@@ -3,8 +3,7 @@
   <view class="user-info-card">
     <view class="user-header">
       <view class="avatar-section">
-        <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
-        <view class="avatar-badge" wx:if="{{!phoneAuthorized && isLoggedIn}}">未认证</view>
+        <image class="avatar" src="/images/user-avatar.png" mode="aspectFill" bindtap="onAvatarClick"></image>
       </view>
       
       <view class="info-section">
@@ -14,18 +13,26 @@
           <text wx:else class="loading">加载中...</text>
         </view>
         
+        <!-- 手机号授权状态 -->
+        <view class="phone-auth-status">
+          <text class="auth-text">{{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}</text>
+          <button wx:if="!phoneAuthorized && isLoggedIn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
+            授权手机号
+          </button>
+        </view>
+        
+        <!-- 实名认证状态 -->
+        <view class="real-name-status">
+          <text class="auth-text">实名状态: {{isRealNameVerified ? '已认证' : '未认证'}}</text>
+          <button wx:if="!isRealNameVerified && isLoggedIn" class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
+            去实名认证
+          </button>
+        </view>
+        
         <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
           授权获取昵称
         </button>
       </view>
-    </view>
-    
-    <!-- 手机号授权状态 -->
-    <view class="phone-auth-status">
-      <text class="auth-text">{{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}</text>
-      <button wx:if="!phoneAuthorized && isLoggedIn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
-        授权手机号
-      </button>
     </view>
   </view>
 

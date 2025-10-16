@@ -156,6 +156,66 @@ Page({
       wx.showToast({ title: '授权操作异常', icon: 'none' });
     }
   },
+  
+  // 处理头像点击事件
+  onAvatarClick() {
+    try {
+      // 检查用户是否已授权获取头像
+      wx.getSetting({
+        success: (res) => {
+          // 检查用户是否已经授权 scope.userInfo
+          if (res.authSetting['scope.userInfo']) {
+            // 用户已授权，不做任何操作
+            console.log('用户已授权头像');
+          } else {
+            // 用户未授权，要求用户授权
+            wx.getUserProfile({
+              desc: '用于获取用户头像',
+              success: (res) => {
+                const userInfo = res.userInfo;
+                console.log('用户授权头像成功:', userInfo.avatarUrl);
+                // 这里可以保存头像信息到服务器
+                // 由于当前代码中没有头像的状态管理，暂时不做额外处理
+                wx.showToast({ title: '头像授权成功' });
+              },
+              fail: (error) => {
+                console.error('用户拒绝授权头像:', error);
+                wx.showToast({ title: '头像授权失败', icon: 'none' });
+              }
+            });
+          }
+        },
+        fail: (error) => {
+          console.error('获取授权设置失败:', error);
+          wx.showToast({ title: '操作失败', icon: 'none' });
+        }
+      });
+    } catch (error) {
+      console.error('头像点击事件异常:', error);
+      wx.showToast({ title: '操作异常', icon: 'none' });
+    }
+  },
+  
+  // 检查手机号授权状态
+  checkPhoneAuthorizedStatus() {
+    // 获取app实例
+    const app = getApp();
+
+    // 检查用户是否已登录且有用户信息
+    if (app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.userInfo.roleBit) {
+      const roleBit = app.globalData.userInfo.roleBit;
+      // 使用RoleUtil检查用户是否是手机号用户
+      const isPhoneUser = RoleUtil.contains(roleBit, RoleCode.PHONE);
+      this.setData({
+        phoneAuthorized: isPhoneUser
+      });
+    } else {
+      // 如果没有用户信息，默认设置为未授权
+      this.setData({
+        phoneAuthorized: false
+      });
+    }
+  },
 
   // 获取手机号授权
   onGetPhoneNumber: function(e) {
