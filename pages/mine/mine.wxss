@@ -1,14 +1,16 @@
 /* mine.wxss */
 .container {
-  padding: 30rpx;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: #f5f5f5;
+  min-height: 100vh;
 }
 
 /* 实名认证相关样式 */
 .verified {
-  color: #1aad19;
+  color: #07c160;
   font-weight: bold;
 }
 
@@ -17,80 +19,205 @@
   padding: 8rpx 20rpx;
 }
 
-.user-info-container {
+/* 用户信息卡片 */
+.user-info-card {
   width: 100%;
-  padding: 40rpx 0;
+  background: linear-gradient(135deg, #07c160 0%, #00a854 100%);
+  color: white;
+  padding: 40rpx;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 装饰元素 */
+.user-info-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400rpx;
+  height: 400rpx;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
+}
+
+.user-info-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 300rpx;
+  height: 300rpx;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.user-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  border-bottom: 1px solid #eee;
   margin-bottom: 30rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .avatar-section {
-  margin-bottom: 20rpx;
+  margin-right: 30rpx;
+  position: relative;
 }
 
 .avatar {
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: white;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 未认证徽章 */
+.avatar-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #ff6700;
+  color: white;
+  font-size: 20rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .info-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  flex: 1;
 }
 
 .nickname-container {
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
 }
 
 .nickname {
   font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .no-nickname {
   font-size: 32rpx;
-  color: #999;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .loading {
   font-size: 32rpx;
-  color: #999;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .authorize-btn {
-  background-color: #1aad19;
-  color: white;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #07c160;
   font-size: 28rpx;
   padding: 10rpx 40rpx;
   border-radius: 40rpx;
+  font-weight: 500;
+  transition: all 0.3s;
 }
 
-.user-details {
+.authorize-btn:active {
+  background-color: white;
+  transform: scale(0.98);
+}
+
+/* 功能模块列表 */
+.feature-list {
   width: 100%;
+  padding: 30rpx;
+  box-sizing: border-box;
 }
 
-.detail-item {
+/* 功能区块 */
+.feature-section {
+  background-color: white;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 区块标题 */
+.section-title {
+  font-size: 28rpx;
+  color: #999;
+  padding: 24rpx 30rpx;
+  border-bottom: 1px solid #f5f5f5;
+  background-color: #fafafa;
+}
+
+/* 功能项 */
+.feature-item {
   display: flex;
   justify-content: space-between;
-  padding: 30rpx 0;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 32rpx 30rpx;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
 }
 
-.label {
-  font-size: 32rpx;
-  color: #666;
+.feature-item:last-child {
+  border-bottom: none;
 }
 
-.value {
+.feature-item:active {
+  background-color: #f8f8f8;
+}
+
+/* 功能项左侧内容 */
+.item-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* 功能项图标 */
+.item-icon {
+  margin-right: 24rpx;
+  opacity: 0.7;
+}
+
+/* 功能项标签 */
+.item-label {
   font-size: 32rpx;
   color: #333;
+}
+
+/* 功能项值 */
+.item-value {
+  font-size: 32rpx;
+  color: #666;
+  text-align: right;
+}
+
+/* 功能项右侧内容 */
+.item-right {
+  display: flex;
+  align-items: center;
+}
+
+/* 箭头图标 */
+.arrow-icon {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 10rpx;
+}
+
+/* 退出登录文本 */
+.logout-text {
+  color: #f5222d;
 }
 
 .empty-state {

@@ -1,71 +1,118 @@
 <view class="container">
-  <view class="user-info-container">
-  <view class="avatar-section">
-    <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
-  </view>
-  
-  <view class="info-section">
-    <view class="nickname-container">
-      <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
-      <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
-      <text wx:else class="loading">加载中...</text>
-    </view>
-    
-    <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
-      授权获取昵称
-    </button>
-    
-    <!-- 手机号授权状态 -->
-      <view class="phone-auth-status">
-        {{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}
-        <button wx:if="!phoneAuthorized && isLoggedIn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
-          授权手机号
+  <!-- 用户信息卡片 -->
+  <view class="user-info-card">
+    <view class="user-header">
+      <view class="avatar-section">
+        <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
+        <view class="avatar-badge" wx:if="{{!phoneAuthorized && isLoggedIn}}">未认证</view>
+      </view>
+      
+      <view class="info-section">
+        <view class="nickname-container">
+          <text wx:if="{{!isLoading && nickname}}" class="nickname">{{nickname}}</text>
+          <text wx:elif="{{!isLoading && !nickname}}" class="no-nickname">未设置昵称</text>
+          <text wx:else class="loading">加载中...</text>
+        </view>
+        
+        <button wx:if="{{!isLoading && !nickname}}" class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo">
+          授权获取昵称
         </button>
       </view>
+    </view>
+    
+    <!-- 手机号授权状态 -->
+    <view class="phone-auth-status">
+      <text class="auth-text">{{phoneAuthorized ? '手机号已授权' : '手机号未授权'}}</text>
+      <button wx:if="!phoneAuthorized && isLoggedIn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="phone-auth-btn">
+        授权手机号
+      </button>
+    </view>
   </view>
-</view>
 
 <!-- 错误信息显示 -->
 <view wx:if="{{errorMsg}}" class="error-message">
   <text>{{errorMsg}}</text>
 </view>
   
-  <view wx:if="{{!isLoading && nickname}}" class="user-details">
-    <view class="detail-item">
-      <text class="label">昵称</text>
-      <text class="value">{{nickname}}</text>
-    </view>
-    
-    <!-- 实名认证信息 -->
-    <view class="detail-item">
-      <text class="label">实名认证</text>
-      <text wx:if="{{isRealNameVerified}}" class="value verified">已认证</text>
-      <button wx:elif="{{!isRealNameVerified}}" class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
-        去实名认证
-      </button>
+  <!-- 功能模块列表 -->
+  <view class="feature-list" wx:if="{{!isLoading && nickname}}">
+    <!-- 用户基本信息 -->
+    <view class="feature-section">
+      <view class="section-title">账户信息</view>
+      <view class="feature-item">
+        <view class="item-left">
+          <icon class="item-icon" type="user" size="24"></icon>
+          <text class="item-label">昵称</text>
+        </view>
+        <text class="item-value">{{nickname}}</text>
+      </view>
+      
+      <!-- 实名认证信息 -->
+      <view class="feature-item">
+        <view class="item-left">
+          <icon class="item-icon" type="success" size="24" color="{{isRealNameVerified ? '#07c160' : '#666'}}"></icon>
+          <text class="item-label">实名认证</text>
+        </view>
+        <view class="item-right">
+          <text wx:if="{{isRealNameVerified}}" class="value verified">已认证</text>
+          <button wx:elif="{{!isRealNameVerified}}" class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
+            去实名认证
+          </button>
+        </view>
+      </view>
     </view>
     
     <!-- 已实名认证时显示脱敏信息 -->
-    <view wx:if="{{isRealNameVerified && realNameInfo}}" class="real-name-info">
-      <view class="detail-item">
-        <text class="label">姓名</text>
-        <text class="value">{{realNameInfo.name}}</text>
+    <view class="feature-section" wx:if="{{isRealNameVerified && realNameInfo}}">
+      <view class="section-title">认证详情</view>
+      <view class="feature-item">
+        <view class="item-left">
+          <icon class="item-icon" type="info" size="24"></icon>
+          <text class="item-label">姓名</text>
+        </view>
+        <text class="item-value">{{realNameInfo.name}}</text>
       </view>
-      <view class="detail-item">
-        <text class="label">证件类型</text>
-        <text class="value">{{getCnNameById(realNameInfo.type)}}</text>
+      <view class="feature-item">
+        <view class="item-left">
+          <icon class="item-icon" type="info" size="24"></icon>
+          <text class="item-label">证件类型</text>
+        </view>
+        <text class="item-value">{{getCnNameById(realNameInfo.type)}}</text>
       </view>
-      <view class="detail-item">
-        <text class="label">证件号码</text>
-        <text class="value">{{realNameInfo.number}}</text>
+      <view class="feature-item">
+        <view class="item-left">
+          <icon class="item-icon" type="info" size="24"></icon>
+          <text class="item-label">证件号码</text>
+        </view>
+        <text class="item-value">{{realNameInfo.number}}</text>
+      </view>
+    </view>
+  
+    <!-- 其他功能 -->
+    <view class="feature-section">
+      <view class="section-title">其他功能</view>
+      <view class="feature-item" bindtap="goToLogs">
+        <view class="item-left">
+          <icon class="item-icon" type="success_no_circle" size="24"></icon>
+          <text class="item-label">日志记录</text>
+        </view>
+        <view class="arrow-icon">→</view>
+      </view>
+      <view class="feature-item" bindtap="logout">
+        <view class="item-left">
+          <icon class="item-icon" type="clear" size="24" color="#f5222d"></icon>
+          <text class="item-label logout-text">退出登录</text>
+        </view>
+        <view class="arrow-icon">→</view>
       </view>
     </view>
   </view>
   
+  <!-- 未授权状态 -->
   <view wx:if="{{!isLoading && !nickname}}" class="empty-state">
+    <image class="empty-image" src="/images/empty-auth.png" mode="aspectFit"></image>
     <text class="empty-text">请点击上方按钮授权获取您的昵称信息</text>
   </view>
-</view>
 
 <!-- 实名认证表单弹窗 -->
 <view wx:if="{{showRealNameForm}}" class="form-modal">
