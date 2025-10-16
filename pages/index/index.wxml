@@ -11,22 +11,47 @@
     </block>
   </view>
 
-  <view class="content">
-    <text class="title">{{message}}</text>
+  <!-- 文章列表区域 -->
+  <view class="article-list">
+    <view class="section-title">文章列表</view>
     
-    <view class="features">
-      <view class="feature-item">
-        <text class="feature-title">微信小程序示例</text>
-        <text class="feature-desc">这是一个基础的微信小程序项目结构</text>
+    <!-- 文章列表 -->
+    <block wx:if="{{articleList.length > 0}}">
+      <view wx:for="{{articleList}}" wx:key="id" class="article-item" bindtap="navigateToArticleDetail" data-id="{{item.id}}">
+        <view class="article-content">
+          <text class="article-title">{{item.title}}</text>
+          <text class="article-summary">{{item.summary}}</text>
+          <view class="article-meta">
+            <text class="article-author">{{item.author}}</text>
+            <text class="article-time">{{item.publishTime}}</text>
+            <text class="article-reads">{{item.readCount}} 阅读</text>
+          </view>
+        </view>
+        <image class="article-cover" src="{{item.cover}}" mode="aspectFill"></image>
       </view>
-      
-      <view class="feature-item">
-        <text class="feature-title">主要功能</text>
-        <text class="feature-desc">用户登录、页面跳转、数据存储</text>
-      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view wx:elif="{{!isLoading}}" class="empty-state">
+      <text class="empty-text">暂无文章数据</text>
     </view>
     
-    <button class="btn btn-primary" bindtap="goToLogs">跳转到日志页面</button>
+    <!-- 加载中 -->
+    <view wx:if="{{isLoading && articleList.length === 0}}" class="loading-state">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- 加载更多 -->
+    <view wx:if="{{isLoading && articleList.length > 0}}" class="loading-more">
+      <view class="loading-spinner-small"></view>
+      <text class="loading-more-text">加载更多...</text>
+    </view>
+    
+    <!-- 没有更多数据 -->
+    <view wx:if="{{!hasMoreData && articleList.length > 0}}" class="no-more-data">
+      <text class="no-more-text">没有更多了</text>
+    </view>
   </view>
 
   <view class="footer">

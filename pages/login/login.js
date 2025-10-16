@@ -21,7 +21,7 @@ Page({
   onLoad: function () {
     // 检查用户是否已经登录，如果已登录则跳转到首页
     const token = api.userToken();
-    
+
     if (token) {
       // 用户已登录，直接跳转到首页
       wx.switchTab({
@@ -76,13 +76,13 @@ Page({
    */
   doWechatLogin: function() {
     const that = this;
-    
+
     // 设置登录中状态
     this.setData({
       loading: true,
       errorMsg: ''
     });
-    
+
     // 调用wx.login获取用户授权码
     wx.login({
       success: function(res) {
@@ -112,7 +112,7 @@ Page({
    */
   loginWithCode: function(code) {
     const that = this;
-    
+
     // 构建请求头 - 从环境配置中获取
     const headers = {
       'x-app-id': xAppId,
@@ -120,17 +120,17 @@ Page({
       'x-app-chl-appid': wxAppId,
       'x-app-chl-app-type': xAppChlAppType
     };
-    
+
     // 构建请求数据
     const credentials = {
       code: code
     };
-    
+
     // 调用登录接口
     api.login('/open/user/auth/login', credentials, headers)
       .then(function(response) {
         console.log('登录成功:', response);
-       
+
         // 登录成功后跳转到首页
         wx.switchTab({
           url: '/pages/index/index',
@@ -151,19 +151,19 @@ Page({
         });
       });
   },
-  
+
   /**
    * 处理用户授权手机号
    */
   onGetPhoneNumber: function(e) {
     const that = this;
-    
+
     // 设置加载状态
     this.setData({
       loading: true,
       errorMsg: ''
     });
-    
+
     // 检查用户是否授权
     if (e.detail.errMsg === 'getPhoneNumber:fail user deny') {
       this.setData({
@@ -172,13 +172,13 @@ Page({
       });
       return;
     }
-    
+
     // 用户授权成功，获取手机号信息
     if (e.detail.errMsg === 'getPhoneNumber:ok') {
       // 获取到手机号信息，准备调用注册接口
       const phoneInfo = e.detail;
       console.log('获取到的手机号信息:', phoneInfo);
-      
+
       // 构建注册请求参数
       const registerData = {
         id: '', // 忽略
@@ -193,30 +193,30 @@ Page({
         chlUserCode: phoneInfo.code,
         chlUserToken: phoneInfo.iv
       };
-      
+
       // 构建请求头
       const headers = {
         'x-app-id': xAppId,
         'x-app-chl': xAppChl,
         'x-app-chl-appid': wxAppId
       };
-      
+
       // 调用后台注册接口
       api.post('/rest/user/service/user/registrar/register', registerData, null, headers)
         .then(function(response) {
           console.log('注册成功:', response);
-          
+
           // 注册成功后，保存用户已授权手机号的状态
           wx.setStorageSync('phoneAuthorized', true);
           that.setData({
             phoneAuthorized: true
           });
-          
+
           // 重置加载状态
           that.setData({
             loading: false
           });
-          
+
           // 注册成功后跳转到首页
           wx.switchTab({
             url: '/pages/index/index',
