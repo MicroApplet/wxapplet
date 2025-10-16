@@ -197,8 +197,11 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
-
+/* 文章摘要样式 - 平铺显示 */
 .article-summary {
   font-size: 14px;
   color: #666;
@@ -206,6 +209,8 @@
   margin-bottom: 10px;
   display: block;
   width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .article-meta {

@@ -14,9 +14,11 @@
   
   <!-- 文章列表滚动模块 -->
   <view class="article-scroll-section">
+    <!-- 已注释掉文章列表标题区域
     <view class="article-scroll-header">
       <view class="section-title">文章列表</view>
     </view>
+    -->
     
     <!-- 滚动式文章列表 -->
     <scroll-view class="article-scroll-list" scroll-y enable-flex>
