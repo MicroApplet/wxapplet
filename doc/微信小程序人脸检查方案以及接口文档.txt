@@ -1,0 +1,224 @@
+三、接口文档：
+名称: wx.startFacialRecognitionVerify(OBJECT)
+功能：请求进行基于生物识别的人脸核身
+验证方式：在线验证
+兼容版本：
+读数字：android 微信 6.5.4 及以上版本, iOS 微信 6.5.6 及以上版本
+屏幕闪烁：android 微信 6.7.2 及以上版本, iOS 微信 6.7.2 及以上版本
+开放状态：未开放
+开放范围：白名单
+
+(二)参数说明
+参数 类型 必填 说明
+name String 是 姓名
+idCardNumber String 是 身份证号码
+success Function 否 调用成功回调
+fail Function 否 调用失败回调
+complete Function 是 调用完成回调（成功或失败都会回调）
+checkAliveType Number 否 人脸核验的交互方式，默认读数字（见表 1）
+
+
+2、CALLBACK返回参数
+参数 类型 说明
+errMsg String 错误信息
+errCode Number 错误码
+verifyResult String 本次认证结果凭据，第三方可以选择根据这个凭据获取相关信息
+
+注 1：传递用户姓名和身份证有两种方式
+
+业务方没有用户实名信息，用户需要在前端填写身份证和姓名，那么前端直接通过jsapi 调用传递 name 和 idCardNumber。
+业务方已经有用户实名信息，后台通过微信提供的 api（详情见文档后面“上传姓名身份证后台 api”）上传用户身份证姓名和身份证，api 返回 user_id_key 作为凭证传给前端，前端再调用 jsapi，用户姓名、身份证信息不需要经过前端，参数只需要传递 userIdKey。Tips：使用该功能需要小程序基础库版本号>=1.9.3。
+3、回调结果说明
+
+回调结果请参考以下释义：
+
+ 
+
+ 
+
+ 
+
+4、示例代码
+
+
+
+
+
+(三)上传用户姓名身份证的后台api
+
+1、API说明
+
+1.1说明
+业务方上传用户姓名和身份证，获取用户凭证，把凭证给到前端通过 jsapi 调用。
+Tips ：使用该功能需要小程序基础库版本号>=1.9.3。
+
+1.2请求URL
+https://api.weixin.qq.com/cityservice/face/identify/getuseridkey?access_token={ac cess_token}
+
+1.3请求方式
+POST
+
+2、请求数据格式
+
+Json
+{
+"name" : “张三”,
+"id_card_number" : "452122xxxxxxx43215"
+}
+请求示例
+
+#!/bin/bash TOKEN='xxxxxxxxxxxx'
+ 
+URL='https://api.weixin.qq.com/cityservice/face/identify/getuseridkey' JSON='{ "name": "张三", "id_card_number": "452344xxxxxxxxxxxxx234"}' curl "${URL}?access_token=${TOKEN}" -d "${JSON}"
+
+参数说明
+
+json 字段	中文显示	是否必传
+name	姓名	是
+id_card_number	身份证号码	是
+out_seq_no	业务方唯一流水号	否
+3、返回数据
+
+参数	类 型	说明
+errcode	int	错误码
+errmsg	string	错误信息
+user_id_key	string	用于后台交互表示用户姓名、身份证的凭证
+expires_in	uint32	user_id_key 有效期，过期需重新获取
+{
+"errcode" : 0, "errmsg" : "ok",
+"user_id_key" : "id_key_xxxx", "expires_in": 3600
+} 
+4、后台消息推送
+如果业务方传入out_seq_no，核身完成后会通过消息推送回调给业务方的服务器，如果回调业务方失败，会在5s尽力推送，超过5s不再推送。
+
+参数说明
+
+参数	类 型	说明
+ToUserName	string	小程序原始ID
+FromUserName	string	事件消息openid
+CreateTime	uint32	消息推送时间
+MsgType	string	消息类型
+Event	string	事件类型
+openid	string	核身用户的openid
+out_seq_no	string	业务方唯一流水号
+verify_result	string	核身返回的加密key（凭据）
+返回示例
+
+{
+	"ToUserName": "gh_81fxxxxxxxx",
+	"FromUserName": "oRRn15NUibBxxxxxxxxx",
+	"CreateTime": 1703657835,
+	"MsgType": "event",
+	"Event": "face_identify",
+	"openid": "oRRn15NUibBxxxxxxxxx",
+	"out_seq_no": "test1234",
+	"verify_result": "XXIzTtMqCxwOaawoE91-VNGAC3v1j9MP-5fZJxv0fYT4aGezzvYlUb-n6RWQa7XeJpQo0teKj8mGE4ZcRe1JI3GqzADBYORBu613rKjKAFfEXTXw_bu1bs7MnmPOpguS"
+}
+四、再次获取核验结果api
+
+此接口是前端完成人脸核身后，基于前端返回的凭据，通过后台api再次进行核验结果和身份信息的校验，有助于提高安全性，请务必接入！
+前端获取结果不可信，存在被篡改的风险，为了保障请求结果安全性，请务必对identify_ret、id_card_number_md5、name_utf8_md5字段进行校验！
+
+(一)API说明
+
+1、说明
+
+人脸核身之后，开发者可以根据jsapi返回的verify_result向后台拉取当次认证的结果信息。
+
+2、请求URL
+
+https://api.weixin.qq.com/cityservice/face/identify/getinfo?access_token={access_token}
+
+3、请求方式
+
+POST
+
+4、请求格式
+
+json
+
+(二)请求数据说明
+
+1、请求
+
+参数	类型	是否必填	描述
+verify_result	String	是	jsapi返回的加密key（凭据）
+2、数据返回 HTTP 头如下
+
+Date: Mon, 06 Feb 2017 08:12:58 GMT
+Content-Type: application/json; encoding=utf-8
+Content-Length: 85
+Connection: close
+
+json示例
+
+{
+"errcode" : 0,
+"errmsg" : "ok", "identify_ret" : 0,
+"identify_time" : 1486350357
+"validate_data": "8593"
+ 
+
+(三)返回参数说明
+
+1、返回参数
+
+注：errcode和identify_ret同时为0，代表本次认证成功。
+
+参数	类型	描述
+errcode	int	错误码, 0表示本次api调用成功
+errmsg	string	本次api调用的错误信息
+identify_ret	int	人脸核身最终认证结果
+identify_time	uint32	认证时间
+validate_data	string	用户读的数字（如是读数字）
+openid	string	用户openid
+user_id_key	string	用于后台交互表示用户姓名、身份证的凭证
+finish_time	uint32	认证结束时间
+id_card_number_md5	string	身份证号的md5（最后一位X为大写）
+name_utf8_md5	string	姓名MD5
+2、错误码对应信息
+
+errcode	备注
+84001	非法identity_id
+84002	用户信息过期
+84003	用户信息不存在
+五、小程序辅助接口：检查设备是否支持人脸检测
+
+1、接口名称
+
+接 口 ：wx.checkIsSupportFacialRecognition(OBJECT)
+功能：检查设备是否支持人脸检测
+2、接口说明和使用
+
+小程序调用该接口，可以检测当前手机设备是否具备支持人脸检测的能力，可与以上接口分开使用，为了用户体验，建议调用后对手机设备不支持的用户做对应功能处理。
+
+3、接口说明和使用
+
+01 OBJECT 参数说明：
+
+参数	类型	是否必填	描述
+success	Function	否	调用成功回调
+fail	Function	否	调用失败回调
+complete	Function	是	调用完成回调（成功或失败都会回调）
+checkAliveType	Number	否	人脸核验的交互方式，默认读数字（见表 2）
+表 2：checkAliveType 的值和对应的解释：
+
+参数	解释
+2	先检查是否可以屏幕闪烁，不可以则自动为读数字
+02 CALLBACK 返回参数
+
+参数	类型	说明
+errMsg	Boolean	错误信息
+errCode	Number	错误码
+03 回调结果说明
+
+回调类型	ErrCode	说明
+sucess	0	支持人脸采集
+fail	10001	不支持人脸采集：设备没有前置摄像头
+fail	10002	不支持人脸采集：没有下载到必要模型
+fail	10003	不支持人脸采集：后台控制不支持
+回调结果说明仅对Android生效，iOS不返回errcode。
+
+04 示例代码
+
+ 

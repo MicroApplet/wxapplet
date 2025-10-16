@@ -15,7 +15,9 @@ Page({
     // 表单数据
     idType: IdCardType.ResidentIdentityCard.code,  // 身份证代码 01
     idName: '',
-    idNumber: ''
+    idNumber: '',
+    showIdTypeSelect: false,
+    idCardTypes: [] // 证件类型列表
   },
 
   onLoad() {
@@ -158,7 +160,13 @@ Page({
   
   // 显示实名认证表单
   showRealNameForm() {
-    this.setData({ showRealNameForm: true });
+    // 初始化证件类型列表
+    const idCardTypes = IdCardType.getAllTypes();
+    this.setData({
+      showRealNameForm: true,
+      showIdTypeSelect: false,
+      idCardTypes: idCardTypes
+    });
   },
   
   // 隐藏实名认证表单
@@ -166,7 +174,24 @@ Page({
     this.setData({
       showRealNameForm: false,
       idName: '',
-      idNumber: ''
+      idNumber: '',
+      showIdTypeSelect: false 
+    });
+  },
+  
+  // 切换证件类型下拉列表显示
+  toggleIdTypeSelect() {
+    this.setData({
+      showIdTypeSelect: !this.data.showIdTypeSelect
+    });
+  },
+  
+  // 选择证件类型（只有身份证可用）
+  selectIdType(e) {
+    const code = e.currentTarget.dataset.code;
+    this.setData({
+      idType: code,
+      showIdTypeSelect: false
     });
   },
   

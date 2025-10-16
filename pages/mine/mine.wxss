@@ -126,23 +126,47 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
   position: relative;
-  width: 80%;
-  max-width: 500rpx;
+  width: 85%;
+  max-width: 600rpx;
   background-color: white;
   border-radius: 20rpx;
   overflow: hidden;
   z-index: 1000;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30rpx;
+  padding: 36rpx;
+  background-color: #f8f8f8;
   border-bottom: 1px solid #eee;
 }
 
@@ -160,16 +184,23 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:active {
+  background-color: #eee;
+  transform: scale(0.95);
 }
 
 .form-container {
-  padding: 30rpx;
+  padding: 40rpx;
 }
 
 .form-item {
   display: flex;
   align-items: center;
-  margin-bottom: 30rpx;
+  margin-bottom: 36rpx;
 }
 
 .form-label {
@@ -187,10 +218,106 @@
 .form-input {
   flex: 1;
   font-size: 32rpx;
-  padding: 20rpx;
+  padding: 24rpx;
   border: 1px solid #ddd;
-  border-radius: 8rpx;
+  border-radius: 10rpx;
   color: #333;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: #07c160;
+  outline: none;
+}
+
+/* 下拉选择框样式 */
+.select-container {
+  flex: 1;
+  position: relative;
+}
+
+.select-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  border: 1px solid #ddd;
+  border-radius: 10rpx;
+  background-color: white;
+  transition: border-color 0.3s;
+}
+
+.select-box:active {
+  border-color: #07c160;
+}
+
+.select-text {
+  font-size: 32rpx;
+  color: #333;
+}
+
+.select-arrow {
+  font-size: 24rpx;
+  color: #999;
+  transition: transform 0.2s;
+}
+
+/* 下拉选项列表样式 */
+.select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 400rpx;
+  margin-top: 8rpx;
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 10rpx;
+  overflow-y: auto;
+  z-index: 1001;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  animation: expandDown 0.2s ease;
+}
+
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.option-item {
+  padding: 28rpx 30rpx;
+  font-size: 30rpx;
+  color: #333;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
+.option-item:active {
+  background-color: #f8f8f8;
+}
+
+.option-item.selected {
+  background-color: #f0f9f4;
+  color: #07c160;
+}
+
+.option-item.disabled {
+  color: #999;
+  background-color: #f5f5f5;
+}
+
+.option-item.disabled:active {
+  background-color: #f5f5f5;
 }
 
 .btn-container {

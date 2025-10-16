@@ -67,7 +67,22 @@
       <!-- 证件类型 -->
       <view class="form-item">
         <text class="form-label">证件类型</text>
-        <view class="form-value">{{getCnNameById(idType)}}</view>
+        <view class="select-container">
+          <view class="select-box" bindtap="toggleIdTypeSelect">
+            <text class="select-text">{{getCnNameById(idType)}}</text>
+            <view class="select-arrow">{{showIdTypeSelect ? '↑' : '↓'}}</view>
+          </view>
+          
+          <!-- 下拉选项列表 -->
+          <view wx:if="{{showIdTypeSelect}}" class="select-options">
+            <view wx:for="{{idCardTypes}}" wx:key="code" 
+                  class="{{item.code === idType ? 'option-item selected' : 'option-item ' + (item.code !== '01' ? 'disabled' : '')}}" 
+                  bindtap="{{item.code === '01' ? 'selectIdType' : ''}}" 
+                  data-code="{{item.code}}">
+              <text>{{item.cnName}}</text>
+            </view>
+          </view>
+        </view>
       </view>
       
       <!-- 姓名 -->
