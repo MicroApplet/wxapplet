@@ -1,7 +1,7 @@
 <view class="container">
   <view class="user-info-container">
     <view class="avatar-section">
-      <image class="avatar" src="/icons/user-outline.svg" mode="aspectFill"></image>
+      <image class="avatar" src="/images/user-avatar.png" mode="aspectFill"></image>
     </view>
     
     <view class="info-section">
@@ -60,7 +60,7 @@
   <view class="modal-content">
     <view class="modal-header">
       <text class="modal-title">实名认证</text>
-      <image class="close-btn" src="/icons/x-mark-outline.svg" bindtap="hideRealNameForm"></image>
+      <view class="close-btn" bindtap="hideRealNameForm">×</view>
     </view>
     
     <view class="form-container">

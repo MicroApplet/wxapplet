@@ -5,7 +5,7 @@
       获取头像昵称
     </button>
     <block wx:else>
-      <image wx:if="{{hasUserInfo}}" class="userinfo-avatar" src="{{userInfo.avatarUrl || '/icons/user-outline.svg'}}" mode="aspectFill"></image>
+      <image wx:if="{{hasUserInfo}}" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
       <text class="userinfo-nickname">{{hasUserInfo ? userInfo.nickName : '未登录'}}</text>
       <button wx:if="{{hasUserInfo}}" class="logout-btn" bindtap="logout">退出登录</button>
     </block>
