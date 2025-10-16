@@ -22,7 +22,7 @@ const IdCardType = {
     code: '04',
     enName: 'SocialSecurityCard',
     cnName: '社会保障卡',
-    available: false
+    available: true
   },
   MilitaryID: {
     code: '05',

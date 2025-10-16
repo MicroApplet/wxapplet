@@ -102,7 +102,7 @@
     <!-- 人脸认证按钮 -->
     <view wx:if="{{idName && idNumber}}" class="btn-container">
       <button class="face-btn" bindtap="performFaceVerification" type="primary">
-        {{isLoading ? '处理中...' : '人脸认证'}}
+        {{isLoading ? '处理中...' : '去认证'}}
       </button>
       <!-- 功能状态提示 -->
       <text class="feature-status-tip">
