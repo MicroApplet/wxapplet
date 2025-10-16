@@ -19,18 +19,6 @@ Page({
   onLoad: function () {
     console.log('首页加载');
 
-    // 检查用户是否已登录
-    const token = wx.getStorageSync('userToken');
-    const userInfo = wx.getStorageSync('userInfo');
-
-    if (!token || !userInfo) {
-      console.log('用户未登录，跳转到登录页面');
-      wx.redirectTo({
-        url: '/pages/login/login'
-      });
-      return;
-    }
-
     // 如果已经授权，可以直接获取用户信息
     if (wx.getStorageSync('userInfo')) {
       this.setData({
@@ -87,7 +75,7 @@ Page({
       const mockArticleList = this.getMockArticleList();
 
       // 模拟分页加载
-      const pageSize = 10;
+      const pageSize = 5;
       const start = (this.data.currentPage - 1) * pageSize;
       const end = start + pageSize;
       const newArticles = mockArticleList.slice(start, end);

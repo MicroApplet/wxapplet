@@ -1,7 +1,7 @@
 //app.js
 
-// 导入userToken函数
-const { userToken } = require('./utils/wx-api');
+// 导入userToken函数（暂时未使用）
+// const { userToken } = require('./utils/wx-api');
 
 App({
   onLaunch: function () {
@@ -32,25 +32,14 @@ App({
 
   // 检查用户登录状态
   checkLoginStatus: function() {
-    // 从wx-api.js获取token
-    const token = userToken();
+    // 从wx-api.js获取token并获取用户信息
     const userInfo = wx.getStorageSync('userInfo');
 
     // 保存到全局数据
     this.globalData.userInfo = userInfo;
 
-    // 如果没有token或用户信息，并且当前不是登录页面，则跳转到登录页面
-    if (!token || !userInfo) {
-      // eslint-disable-next-line no-undef
-      const pages = getCurrentPages();
-      // 检查当前是否已经在登录页面
-      const isLoginPage = pages.length > 0 && pages[pages.length - 1].route === 'pages/login/login';
-      if (!isLoginPage) {
-        wx.redirectTo({
-          url: '/pages/login/login'
-        });
-      }
-    }
+    // 对于首页和文章详情页面，允许未登录访问
+    // 只有在访问需要登录的功能时才进行登录验证
   },
 
   globalData: {
