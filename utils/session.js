@@ -120,17 +120,18 @@ function refresh() {
     try {
       console.log('【session.js】调用接口获取用户会话信息');
       // 使用api.js中的http工具调用会话接口
-      const { api } = require('./api');
+      const { get } = require('./api');
 
       // 由于api.js中的get方法是异步的，我们需要使用Promise或同步方法
       // 这里我们使用try-catch包装同步调用
-      const responseData = api.get('/user/service/user/session');
-
-      if (responseData) {
-        // 解析为 UserSession 对象
-        userSession = UserSession.fromObject(responseData);
-        console.log('【session.js】成功获取并解析用户会话信息');
-
+      const promise = get('/rest/user/service/user/session');
+      promise.then(res => {
+        userSession = UserSession.fromObject(res);
+        // 更新到全局数据
+        if (appInstance) {
+          appInstance.globalData.userSession = userSession;
+          console.log('【session.js】用户会话信息已更新到全局数据');
+        }
         // 更新到本地存储
         try {
           wx.setStorageSync('userSession', userSession.toObject());
@@ -138,19 +139,14 @@ function refresh() {
         } catch (storageError) {
           console.error('【session.js】保存会话信息到本地存储失败:', storageError);
         }
+      }, err => {
+        console.error('【session.js】调用会话接口异常:', err);
+        userSession =  null;
+      });
 
-        // 更新到全局数据
-        if (appInstance) {
-          appInstance.globalData.userSession = userSession;
-          console.log('【session.js】用户会话信息已更新到全局数据');
-        }
-      } else {
-        console.warn('【session.js】接口返回数据为空');
-        userSession = new UserSession();
-      }
     } catch (apiError) {
       console.error('【session.js】调用会话接口异常:', apiError);
-      userSession = new UserSession();
+      userSession =  null;
     }
   }
 
