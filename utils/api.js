@@ -471,6 +471,7 @@ function doLogin(code, success, fail) {
   // 使用Promise处理post请求
   post('/open/user/auth/login', body, null, headers, 0, 10000, true)
     .then(response => {
+      console.log('===========  ' + response);
       // 成功函数业务逻辑
       if (response && response.code === '0' && response.data) {
         // 从响应体中提取令牌
