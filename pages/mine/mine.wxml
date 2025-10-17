@@ -17,7 +17,6 @@
         <view class="info-list">
           <!-- 1. 微信昵称 -->
           <view class="info-list-item">
-            <view class="info-label">昵称</view>
             <view class="info-value">
               <text wx:if="{{nickname}}" class="user-info-text">{{nickname}}</text>
               <button wx:else class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo" size="mini">
@@ -28,7 +27,6 @@
           
           <!-- 2. 授权手机号 -->
           <view class="info-list-item">
-            <view class="info-label">手机号</view>
             <view class="info-value">
               <text wx:if="{{phoneAuthorized && phoneNumber}}" class="user-info-text">{{phoneNumber}}</text>
               <button wx:else open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="authorize-btn" size="mini">
@@ -39,7 +37,6 @@
           
           <!-- 3. 实名信息 -->
           <view class="info-list-item">
-            <view class="info-label">实名信息</view>
             <view class="info-value">
               <text wx:if="{{isRealNameVerified && realNameInfo && realNameInfo.name}}" class="user-info-text">
                 {{realNameInfo.name}} ({{getCnNameById(realNameInfo.type)}}: {{realNameInfo.number}})
