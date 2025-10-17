@@ -91,57 +91,45 @@ class UserSession {
 function refresh() {
   return new Promise((resolve, reject) => {
     // 调用 api.get 函数获取用户会话信息，使用回调函数方式
+    console.log('【session.js】调用 /rest/user/service/user/session 接口获取用户会话信息');
     api.get('/rest/user/service/user/session', {
       // 成功回调函数
       success: function(response) {
-        // 成功回调函数处理逻辑
-        if (response && response.code === '0' && response.data) {
-          // 从响应体中提取用户会话信息
-          const sessionInfo = response.data;
+        const sessionInfo = response;
+        // 从响应体中提取用户会话信息
 
-          // 更新应用实例的全局数据（如果应用实例存在）
-          const appInstance = getApp();
-          if (appInstance) {
-            // 使用 UserSession.fromObject 转换并设置 userSession 字段
-            // 注意：不更新 userInfo 字段，该字段有其他用处
-            appInstance.globalData.userSession = UserSession.fromObject(sessionInfo);
+        // 更新应用实例的全局数据（如果应用实例存在）
+        const appInstance = getApp();
+        if (appInstance) {
+          // 使用 UserSession.fromObject 转换并设置 userSession 字段
+          // 注意：不更新 userInfo 字段，该字段有其他用处
+          appInstance.globalData.userSession = UserSession.fromObject(sessionInfo);
 
-            // 缓存用户会话信息到本地存储
-            wx.setStorageSync('userSession', sessionInfo);
+          // 缓存用户会话信息到本地存储
+          wx.setStorageSync('userSession', sessionInfo);
 
-            console.log('用户会话信息已更新:', sessionInfo);
-          }
-
-          // 发布用户会话信息更新事件
-          console.log('使用事件总线发布用户会话信息更新事件');
-          wx.$emit('userSessionUpdated', { sessionInfo });
-
-          // 激活一个延时任务，在4分钟后重新调用该函数，获取新的会话令牌
-          // 清除之前可能存在的定时器
-          if (global.sessionRefreshTimer) {
-            clearTimeout(global.sessionRefreshTimer);
-          }
-
-          // 设置4分钟(240000毫秒)后的定时器
-          global.sessionRefreshTimer = setTimeout(() => {
-            console.log('定时刷新用户会话令牌');
-            refresh().catch(error => {
-              console.error('定时刷新会话失败:', error);
-            });
-          }, 4 * 60 * 1000);
-
-          resolve(sessionInfo);
-        } else {
-          // 业务逻辑失败
-          const errorMsg = response?.msg || '获取用户会话失败';
-          console.error('获取用户会话失败:', errorMsg);
-
-          // 发布用户会话获取失败事件
-          console.log('使用事件总线发布用户会话获取失败事件');
-          wx.$emit('userSessionFailed', { error: errorMsg });
-
-          reject(new Error(errorMsg));
+          console.log('用户会话信息已更新:', sessionInfo);
         }
+
+        // 发布用户会话信息更新事件
+        console.log('使用事件总线发布用户会话信息更新事件');
+        wx.$emit('userSessionUpdated', { sessionInfo });
+
+        // 激活一个延时任务，在4分钟后重新调用该函数，获取新的会话令牌
+        // 清除之前可能存在的定时器
+        if (global.sessionRefreshTimer) {
+          clearTimeout(global.sessionRefreshTimer);
+        }
+
+        // 设置4分钟(240000毫秒)后的定时器
+        global.sessionRefreshTimer = setTimeout(() => {
+          console.log('定时刷新用户会话令牌');
+          refresh().catch(error => {
+            console.error('定时刷新会话失败:', error);
+          });
+        }, 4 * 60 * 1000);
+
+        resolve(sessionInfo);
       },
 
       // 失败回调函数

@@ -50,6 +50,7 @@ Page({
     try {
       this.setData({ isCheckingRole: true });
       // 调用获取用户会话接口
+      console.log('【index.js】调用 /rest/user/service/user/session 接口获取用户会话信息');
       const response = await api.get('/rest/user/service/user/session');
 
       if (response && response.code === '0' && response.data) {
