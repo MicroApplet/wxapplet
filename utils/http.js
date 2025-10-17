@@ -9,14 +9,10 @@
  * @param {Object} [quires] - 查询参数，Map<String,String>
  * @param {Object} [headers] - 请求头，Map<String,String>
  * @param {any} [data] - 请求体数据
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间，默认10秒
- * @param {Function} [success] - 成功回调函数
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调函数
  * @returns {Promise} 返回Promise对象
  */
-function request(method, baseUrl, context, uri, quires, headers, data, retries = 0, timeout = 10000, success, retryWhen, fail) {
+function request(method, baseUrl, context, uri, quires, headers, data, timeout = 10000) {
   // 验证必需参数
   if (!method || !uri) {
     throw new Error('必需参数缺失：method 和 uri 是必需的');
@@ -90,12 +86,9 @@ function request(method, baseUrl, context, uri, quires, headers, data, retries =
 
   // 执行普通HTTP请求
   return new Promise((resolve, reject) => {
-    const makeRequest = (currentRetries = 0) => {
+    const makeRequest = () => {
       const timer = setTimeout(() => {
         const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
-        if (fail && typeof fail === 'function') {
-          fail(timeoutError);
-        }
         reject(timeoutError);
       }, timeout);
 
@@ -104,35 +97,21 @@ function request(method, baseUrl, context, uri, quires, headers, data, retries =
         success: (res) => {
           clearTimeout(timer);
 
-          // 检查是否需要重试
-          if (currentRetries < retries && retryWhen && typeof retryWhen === 'function' && retryWhen(res)) {
-            console.log(`请求失败，正在进行第 ${currentRetries + 1} 次重试...`);
-            setTimeout(() => {
-              makeRequest(currentRetries + 1);
-            }, 1000 * (currentRetries + 1)); // 指数退避策略
-            return;
+          // 检查响应状态码，如果是错误状态码（4xx或5xx），则reject
+          if (res.statusCode && (res.statusCode >= 400)) {
+            // 创建错误对象，包含状态码信息
+            const error = {
+              statusCode: res.statusCode,
+              errMsg: `HTTP请求失败: ${res.statusCode}`,
+              response: res
+            };
+            reject(error);
+          } else {
+            resolve(res);
           }
-
-          if (success && typeof success === 'function') {
-            success(res);
-          }
-          resolve(res);
         },
         fail: (error) => {
           clearTimeout(timer);
-
-          // 检查是否需要重试
-          if (currentRetries < retries && retryWhen && typeof retryWhen === 'function' && retryWhen(error)) {
-            console.log(`请求失败，正在进行第 ${currentRetries + 1} 次重试...`);
-            setTimeout(() => {
-              makeRequest(currentRetries + 1);
-            }, 1000 * (currentRetries + 1)); // 指数退避策略
-            return;
-          }
-
-          if (fail && typeof fail === 'function') {
-            fail(error);
-          }
           reject(error);
         },
         complete: () => {
@@ -153,15 +132,11 @@ function request(method, baseUrl, context, uri, quires, headers, data, retries =
  * @param {string} uri - 请求路径
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function get(baseUrl, context, uri, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
-  return request('GET', baseUrl, context, uri, quires, headers, null, retries, timeout, success, retryWhen, fail);
+function get(baseUrl, context, uri, quires, headers, timeout = 10000) {
+  return request('GET', baseUrl, context, uri, quires, headers, null, timeout);
 }
 
 /**
@@ -172,14 +147,10 @@ function get(baseUrl, context, uri, quires, headers, retries = 0, timeout = 1000
  * @param {Object} [data] - 请求体数据
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function post(baseUrl, context, uri, data, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
+function post(baseUrl, context, uri, data, quires, headers, timeout = 10000) {
   // 如果没有提供headers，使用默认的POST请求头
   const defaultHeaders = { ...headers };
 
@@ -187,7 +158,7 @@ function post(baseUrl, context, uri, data, quires, headers, retries = 0, timeout
   if (!defaultHeaders['Content-Type']) {
     defaultHeaders['Content-Type'] = 'application/json';
   }
-  return request('POST', baseUrl, context, uri, quires, defaultHeaders, data, retries, timeout, success, retryWhen, fail);
+  return request('POST', baseUrl, context, uri, quires, defaultHeaders, data, timeout);
 }
 
 /**
@@ -198,14 +169,10 @@ function post(baseUrl, context, uri, data, quires, headers, retries = 0, timeout
  * @param {Object} [data] - 请求体数据
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function put(baseUrl, context, uri, data, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
+function put(baseUrl, context, uri, data, quires, headers, timeout = 10000) {
   // 如果没有提供headers，使用默认的PUT请求头
   const defaultHeaders = { ...headers };
 
@@ -213,7 +180,7 @@ function put(baseUrl, context, uri, data, quires, headers, retries = 0, timeout 
   if (!defaultHeaders['Content-Type']) {
     defaultHeaders['Content-Type'] = 'application/json';
   }
-  return request('PUT', baseUrl, context, uri, quires, defaultHeaders, data, retries, timeout, success, retryWhen, fail);
+  return request('PUT', baseUrl, context, uri, quires, defaultHeaders, data, timeout);
 }
 
 /**
@@ -224,15 +191,11 @@ function put(baseUrl, context, uri, data, quires, headers, retries = 0, timeout 
  * @param {Object} [data] - 请求体数据（可选）
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function del(baseUrl, context, uri, data, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
-  return request('DELETE', baseUrl, context, uri, quires, headers, data, retries, timeout, success, retryWhen, fail);
+function del(baseUrl, context, uri, data, quires, headers, timeout = 10000) {
+  return request('DELETE', baseUrl, context, uri, quires, headers, data, timeout);
 }
 
 /**
@@ -242,15 +205,11 @@ function del(baseUrl, context, uri, data, quires, headers, retries = 0, timeout 
  * @param {string} uri - 请求路径
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function head(baseUrl, context, uri, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
-  return request('HEAD', baseUrl, context, uri, quires, headers, null, retries, timeout, success, retryWhen, fail);
+function head(baseUrl, context, uri, quires, headers, timeout = 10000) {
+  return request('HEAD', baseUrl, context, uri, quires, headers, null, timeout);
 }
 
 /**
@@ -260,15 +219,11 @@ function head(baseUrl, context, uri, quires, headers, retries = 0, timeout = 100
  * @param {string} uri - 请求路径
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=10000] - 超时时间
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function option(baseUrl, context, uri, quires, headers, retries = 0, timeout = 10000, success, retryWhen, fail) {
-  return request('OPTIONS', baseUrl, context, uri, quires, headers, null, retries, timeout, success, retryWhen, fail);
+function option(baseUrl, context, uri, quires, headers, timeout = 10000) {
+  return request('OPTIONS', baseUrl, context, uri, quires, headers, null, timeout);
 }
 
 /**
@@ -282,14 +237,10 @@ function option(baseUrl, context, uri, quires, headers, retries = 0, timeout = 1
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
  * @param {Function} [onProgressUpdate] - 进度更新回调
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=30000] - 超时时间，默认30秒
- * @param {Function} [success] - 成功回调
- * @param {Function} [retryWhen] - 重试条件函数
- * @param {Function} [fail] - 失败回调
  * @returns {Promise} 返回Promise对象
  */
-function upload(baseUrl, context, uri, filePath, name = 'file', formData = {}, quires, headers, onProgressUpdate, retries = 0, timeout = 30000, success, retryWhen, fail) {
+function upload(baseUrl, context, uri, filePath, name = 'file', formData = {}, quires, headers, onProgressUpdate, timeout = 30000) {
   // 验证必需参数
   if (!uri || !filePath) {
     throw new Error('必需参数缺失：uri 和 filePath 是必需的');
@@ -366,13 +317,10 @@ function upload(baseUrl, context, uri, filePath, name = 'file', formData = {}, q
   delete uploadConfig.header['Content-Type'];
 
   // 实现重试逻辑的上传函数
-  const makeUpload = (currentRetries = 0) => {
+  const makeUpload = () => {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         const timeoutError = { errMsg: `文件上传超时：${url}`, timeout: true };
-        if (fail && typeof fail === 'function') {
-          fail(timeoutError);
-        }
         reject(timeoutError);
       }, timeout);
 
@@ -389,39 +337,11 @@ function upload(baseUrl, context, uri, filePath, name = 'file', formData = {}, q
             console.log('JSON parse failed, keeping original data', error);
           }
 
-          // 检查是否需要重试
-          if (currentRetries < retries && retryWhen && typeof retryWhen === 'function' && retryWhen(res)) {
-            console.log(`文件上传失败，正在进行第 ${currentRetries + 1} 次重试...`);
-            setTimeout(() => {
-              makeUpload(currentRetries + 1)
-                .then(resolve)
-                .catch(reject);
-            }, 1000 * (currentRetries + 1)); // 指数退避策略
-            return;
-          }
-
-          if (success && typeof success === 'function') {
-            success(res);
-          }
           resolve(res);
         },
         fail: (error) => {
           clearTimeout(timer);
 
-          // 检查是否需要重试
-          if (currentRetries < retries && retryWhen && typeof retryWhen === 'function' && retryWhen(error)) {
-            console.log(`文件上传失败，正在进行第 ${currentRetries + 1} 次重试...`);
-            setTimeout(() => {
-              makeUpload(currentRetries + 1)
-                .then(resolve)
-                .catch(reject);
-            }, 1000 * (currentRetries + 1)); // 指数退避策略
-            return;
-          }
-
-          if (fail && typeof fail === 'function') {
-            fail(error);
-          }
           reject(error);
         },
         complete: () => {
