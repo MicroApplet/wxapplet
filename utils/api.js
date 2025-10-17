@@ -94,8 +94,8 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
       console.log('[API] 错误对象完整信息:', JSON.stringify(error));
     }
 
-    // 首先检查是否有401状态码
-    if (!isLogin && error && (error.statusCode === 401 || (error.response && error.response.statusCode === 401))) {
+    // 首先检查是否有401状态码或is401Error标记
+    if (!isLogin && error && (error.statusCode === 401 || (error.response && error.response.statusCode === 401) || error.is401Error)) {
       if (debug) {
         console.log('[API] 检测到401错误，尝试重新登录获取令牌，请求URL:', fullUrl);
       }

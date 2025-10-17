@@ -87,14 +87,19 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
   // 执行普通HTTP请求
   return new Promise((resolve, reject) => {
     const makeRequest = () => {
+      let requestCompleted = false;
       const timer = setTimeout(() => {
-        const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
-        reject(timeoutError);
+        if (!requestCompleted) {
+          const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
+          // 保留原有的URL信息以便调试
+          reject(timeoutError);
+        }
       }, timeout);
 
       wx.request({
         ...requestConfig,
         success: (res) => {
+          requestCompleted = true;
           clearTimeout(timer);
 
           // 检查响应状态码，如果是错误状态码（4xx或5xx），则reject
@@ -103,7 +108,9 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
             const error = {
               statusCode: res.statusCode,
               errMsg: `HTTP请求失败: ${res.statusCode}`,
-              response: res
+              response: res,
+              // 对于401错误特别标记
+              is401Error: res.statusCode === 401
             };
             reject(error);
           } else {
@@ -111,10 +118,12 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
           }
         },
         fail: (error) => {
+          requestCompleted = true;
           clearTimeout(timer);
           reject(error);
         },
         complete: () => {
+          requestCompleted = true;
           clearTimeout(timer);
         }
       });
