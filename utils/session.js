@@ -1,5 +1,4 @@
 // userSession 结构体定义
-const api = require('./api');
 
 class UserSession {
   constructor() {
@@ -83,93 +82,50 @@ class UserSession {
   }
 }
 
-// 用于存储正在执行的refresh Promise，防止重复调用
-let refreshPromise = null;
+// 刷新用户会话功能已改为同步实现
 
 /**
- * 刷新用户会话信息
- * 实现与 api.js 中 userSession 函数相同的功能
- * @returns {Promise<Object>} 用户会话信息
+ * 同步获取用户会话信息
+ * @returns {UserSession} 用户会话信息对象
  */
 function refresh() {
-  // 如果已有refresh请求正在进行，直接返回该Promise
-  if (refreshPromise) {
-    console.log('【session.js】refresh请求已在进行中，返回同一Promise');
-    return refreshPromise;
+  // 从全局数据获取会话信息
+  const appInstance = getApp();
+  let userSession = null;
+
+  if (appInstance && appInstance.globalData && appInstance.globalData.userSession) {
+    userSession = appInstance.globalData.userSession;
+    console.log('【session.js】从全局数据获取用户会话信息');
+  } else {
+    // 尝试从本地存储获取
+    try {
+      const sessionInfo = wx.getStorageSync('userSession');
+      if (sessionInfo) {
+        userSession = UserSession.fromObject(sessionInfo);
+        console.log('【session.js】从本地存储获取用户会话信息');
+
+        // 更新到全局数据
+        if (appInstance) {
+          appInstance.globalData.userSession = userSession;
+        }
+      }
+    } catch (error) {
+      console.error('【session.js】从本地存储获取会话信息失败:', error);
+    }
   }
 
-  // 创建新的Promise并保存引用
-  refreshPromise = new Promise((resolve, reject) => {
-    // 调用 api.get 函数获取用户会话信息，使用回调函数方式
-    console.log('【session.js】调用 /rest/user/service/user/session 接口获取用户会话信息');
-    api.get('/rest/user/service/user/session', {
-      // 成功回调函数
-      success: function(response) {
-        console.log('【session.js】refresh 调用结果', response);
-        const sessionInfo = response;
-        // 从响应体中提取用户会话信息
+  // 如果没有会话信息或会话已过期，创建一个空的会话对象
+  if (!userSession || userSession.isExpired()) {
+    userSession = new UserSession();
+    console.log('【session.js】创建新的空用户会话对象');
 
-        // 更新应用实例的全局数据（如果应用实例存在）
-        const appInstance = getApp();
-        if (appInstance) {
-          // 使用 UserSession.fromObject 转换并设置 userSession 字段
-          // 注意：不更新 userInfo 字段，该字段有其他用处
-          appInstance.globalData.userSession = UserSession.fromObject(sessionInfo);
+    // 更新到全局数据
+    if (appInstance) {
+      appInstance.globalData.userSession = userSession;
+    }
+  }
 
-          // 缓存用户会话信息到本地存储
-          wx.setStorageSync('userSession', sessionInfo);
-
-          console.log('【session.js】用户会话信息已更新:', sessionInfo);
-        }
-
-        // 发布用户会话信息更新事件
-        console.log('【session.js】使用事件总线发布用户会话信息更新事件');
-        wx.$emit('userSessionUpdated', { sessionInfo });
-
-        // 激活一个延时任务，在4分钟后重新调用该函数，获取新的会话令牌
-        // 清除之前可能存在的定时器
-        if (global.sessionRefreshTimer) {
-          clearTimeout(global.sessionRefreshTimer);
-        }
-
-        // 设置4分钟(240000毫秒)后的定时器
-        global.sessionRefreshTimer = setTimeout(() => {
-          console.log('【session.js】定时刷新用户会话令牌');
-          refresh().catch(error => {
-            console.error('【session.js】定时刷新会话失败:', error);
-          });
-        }, 4 * 60 * 1000);
-
-        resolve(sessionInfo);
-      },
-
-      // 失败回调函数
-      fail: function(error) {
-        // 失败回调函数处理逻辑
-        console.error('【session.js】获取用户会话失败:', error);
-
-        // 发布用户会话获取失败事件
-        console.log('【session.js】使用事件总线发布用户会话获取失败事件');
-        wx.$emit('userSessionFailed', { error: error.message || String(error) });
-
-        // 清除定时器，避免在失败状态下继续尝试刷新
-        if (global.sessionRefreshTimer) {
-          clearTimeout(global.sessionRefreshTimer);
-          global.sessionRefreshTimer = null;
-        }
-
-        reject(error);
-      }
-    });
-  });
-
-  // 无论成功失败，最终都清除Promise引用
-  refreshPromise.finally(() => {
-    console.log('【session.js】refresh Promise执行完成，清除引用');
-    refreshPromise = null;
-  });
-
-  return refreshPromise;
+  return userSession;
 }
 
 module.exports = {
