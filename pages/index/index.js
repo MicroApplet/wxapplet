@@ -2,24 +2,36 @@
 
 // 导入工具和会话管理
 const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
-const { refresh } = require('../../utils/session.js');
+const { refresh, UserSession } = require('../../utils/session.js');
 
+/**
+ * 首页页面组件
+ * 负责展示文章列表、视频列表、用药提醒和处方台账等功能
+ */
 Page({
+  /**
+   * 页面初始数据
+   */
   data: {
+    // 欢迎信息
     message: 'Hello 微信小程序!',
+    // 用户信息
     userInfo: {},
     hasUserInfo: false,
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
+    // 文章列表相关
     articleList: [],
     isLoading: false,
     currentPage: 1,
     hasMoreData: true,
+    // 视频列表相关
     videoList: [],
     isVideoLoading: false,
     // 用药提醒/处方台账模块相关数据
     isCheckingRole: true,
     showPrescriptionModule: false,
-    userRole: '', // normal, idCard, nurse, doctor
+    showBothModules: false,
+    userRole: '', // normal, professional, both
     prescriptionInfo: {
       lastDate: '',
       lastDays: 0,
@@ -29,15 +41,47 @@ Page({
     ledgerList: []
   },
 
-  // 生命周期函数--监听页面加载
+  /**
+   * 生命周期函数--监听页面加载
+   */
   onLoad: function () {
     console.log('首页加载');
+
+    // 从本地存储恢复用户信息
+    this._restoreUserInfo();
 
     // 注册到全局通知系统，以便接收会话信息变更通知
     const app = getApp();
     app.registerPage(this);
 
-    // 从session.js获取用户会话信息
+    // 初始化页面数据
+    this._initPageData();
+  },
+
+  /**
+   * 从本地存储恢复用户信息
+   * @private
+   */
+  _restoreUserInfo: function() {
+    try {
+      const userInfo = wx.getStorageSync('userInfo');
+      if (userInfo) {
+        this.setData({
+          userInfo: userInfo,
+          hasUserInfo: true
+        });
+      }
+    } catch (error) {
+      console.error('恢复用户信息失败:', error);
+    }
+  },
+
+  /**
+   * 初始化页面数据
+   * @private
+   */
+  _initPageData: function() {
+    // 更新用户会话信息
     this.updateUserSessionInfo();
 
     // 加载文章列表和视频列表
@@ -45,53 +89,62 @@ Page({
     this.loadVideoList();
   },
 
-  // 从全局数据更新用户会话信息
-  updateUserSessionInfo() {
+  /**
+   * 从全局数据更新用户会话信息
+   */
+  updateUserSessionInfo: function() {
     try {
       this.setData({ isCheckingRole: true });
+
       // 从全局数据获取会话信息
       const app = getApp();
       const userSession = app.globalData.userSession;
-      if (userSession && userSession.roleBit !== undefined) {
-        // 检查用户角色
+
+      // 验证会话信息的有效性
+      if (userSession && userSession instanceof UserSession && userSession.roleBit !== undefined && !userSession.isExpired()) {
+        // 会话有效，检查用户角色
         this.checkUserRole(userSession.roleBit);
       } else {
-        // 没有会话信息，尝试从session.js刷新
+        // 会话无效或不存在，尝试刷新
+        console.log('会话信息无效或不存在，尝试刷新');
         refresh().then(() => {
           // 刷新后再次获取并检查
           const updatedSession = getApp().globalData.userSession;
-          if (updatedSession && updatedSession.roleBit !== undefined) {
+          if (updatedSession && updatedSession instanceof UserSession && updatedSession.roleBit !== undefined) {
             this.checkUserRole(updatedSession.roleBit);
           } else {
-            this.setData({
-              showPrescriptionModule: false,
-              isCheckingRole: false
-            });
+            this._handleSessionError();
           }
-        }).catch(() => {
-          this.setData({
-            showPrescriptionModule: false,
-            isCheckingRole: false
-          });
+        }).catch(error => {
+          console.error('刷新会话失败:', error);
+          this._handleSessionError();
         });
       }
     } catch (error) {
       console.error('更新用户会话信息失败:', error);
-      this.setData({
-        showPrescriptionModule: false,
-        isCheckingRole: false
-      });
+      this._handleSessionError();
     }
   },
 
-  // 检查用户角色
-  checkUserRole(roleBit) {
+  /**
+   * 处理会话错误的通用逻辑
+   * @private
+   */
+  _handleSessionError: function() {
+    this.setData({
+      showPrescriptionModule: false,
+      isCheckingRole: false,
+      showBothModules: false
+    });
+  },
+
+  /**
+   * 检查用户角色并设置对应的数据展示
+   * @param {BigInt|number} roleBit - 用户角色位图
+   */
+  checkUserRole: function(roleBit) {
     if (!roleBit) {
-      this.setData({
-        showPrescriptionModule: false,
-        isCheckingRole: false,
-        showBothModules: false
-      });
+      this._handleSessionError();
       return;
     }
 
@@ -128,16 +181,15 @@ Page({
       });
       this.getPrescriptionLedger();
     } else {
-      this.setData({
-        showPrescriptionModule: false,
-        showBothModules: false,
-        isCheckingRole: false
-      });
+      this._handleSessionError();
     }
   },
 
-  // 获取用药提醒信息
-  async getPrescriptionReminder() {
+  /**
+   * 获取用药提醒信息
+   * 在实际环境中，这里会调用真实接口获取数据
+   */
+  getPrescriptionReminder: async function() {
     try {
       // 在实际环境中调用接口
       // const response = await api.get('/rest/clinc/prescription/reminder/user/status');
@@ -157,11 +209,18 @@ Page({
       }
     } catch (error) {
       console.error('获取用药提醒失败:', error);
+      wx.showToast({
+        title: '获取用药提醒失败',
+        icon: 'none'
+      });
     }
   },
 
-  // 获取处方台账信息
-  async getPrescriptionLedger() {
+  /**
+   * 获取处方台账信息
+   * 在实际环境中，这里会调用真实接口获取数据
+   */
+  getPrescriptionLedger: async function() {
     try {
       // 在实际环境中调用接口
       // const response = await api.get('/rest/clinc/prescription/ledger', { page: 1, size: 5 });
@@ -176,11 +235,19 @@ Page({
       }
     } catch (error) {
       console.error('获取处方台账失败:', error);
+      wx.showToast({
+        title: '获取处方台账失败',
+        icon: 'none'
+      });
     }
   },
 
-  // 计算距离下次开药的剩余天数
-  calculateDaysRemaining(nextDateStr) {
+  /**
+   * 计算距离下次开药的剩余天数
+   * @param {string} nextDateStr - 下次开药日期字符串
+   * @returns {number} 剩余天数
+   */
+  calculateDaysRemaining: function(nextDateStr) {
     if (!nextDateStr) return -1;
 
     try {
@@ -201,8 +268,11 @@ Page({
     }
   },
 
-  // 获取模拟用药提醒数据
-  getMockPrescriptionReminder() {
+  /**
+   * 获取模拟用药提醒数据
+   * @returns {Object} 模拟的用药提醒响应数据
+   */
+  getMockPrescriptionReminder: function() {
     // 生成一些模拟数据
     const today = new Date();
     const lastDate = new Date(today);
@@ -230,8 +300,11 @@ Page({
     };
   },
 
-  // 获取模拟处方台账数据
-  getMockPrescriptionLedger() {
+  /**
+   * 获取模拟处方台账数据
+   * @returns {Object} 模拟的处方台账响应数据
+   */
+  getMockPrescriptionLedger: function() {
     return {
       'status': 200,
       'thr': false,
@@ -273,16 +346,22 @@ Page({
     };
   },
 
-  // 格式化日期为yyyy-MM-dd格式
-  formatDate(date) {
+  /**
+   * 格式化日期为yyyy-MM-dd格式
+   * @param {Date} date - 日期对象
+   * @returns {string} 格式化后的日期字符串
+   */
+  formatDate: function(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   },
 
-  // 加载视频列表
-  loadVideoList: function () {
+  /**
+   * 加载视频列表
+   */
+  loadVideoList: function() {
     if (this.data.isVideoLoading) {
       return;
     }
@@ -293,17 +372,31 @@ Page({
 
     // 模拟API请求获取视频列表
     setTimeout(() => {
-      const mockVideoList = this.getMockVideoList();
+      try {
+        const mockVideoList = this.getMockVideoList();
 
-      this.setData({
-        videoList: mockVideoList,
-        isVideoLoading: false
-      });
+        this.setData({
+          videoList: mockVideoList,
+          isVideoLoading: false
+        });
+      } catch (error) {
+        console.error('加载视频列表失败:', error);
+        this.setData({
+          isVideoLoading: false
+        });
+        wx.showToast({
+          title: '加载视频列表失败',
+          icon: 'none'
+        });
+      }
     }, 800);
   },
 
-  // 获取模拟视频列表数据
-  getMockVideoList: function () {
+  /**
+   * 获取模拟视频列表数据
+   * @returns {Array} 视频列表数据
+   */
+  getMockVideoList: function() {
     return [
       {
         id: '101',
@@ -356,8 +449,11 @@ Page({
     ];
   },
 
-  // 播放视频
-  playVideo: function (e) {
+  /**
+   * 播放视频
+   * @param {Object} e - 事件对象
+   */
+  playVideo: function(e) {
     const videoId = e.currentTarget.dataset.id;
     const videoUrl = e.currentTarget.dataset.url;
 
@@ -370,7 +466,10 @@ Page({
       success: (res) => {
         if (res.confirm) {
           // 使用微信小程序的视频组件播放
-          wx.createVideoContext('myVideo').play();
+          const videoContext = wx.createVideoContext('myVideo');
+          if (videoContext && typeof videoContext.play === 'function') {
+            videoContext.play();
+          }
 
           // 记录播放历史（实际项目中）
           console.log('播放视频:', videoId, videoUrl);
@@ -379,8 +478,11 @@ Page({
     });
   },
 
-  // 加载文章列表
-  loadArticleList: function (refresh = false) {
+  /**
+   * 加载文章列表
+   * @param {boolean} refresh - 是否为刷新操作
+   */
+  loadArticleList: function(refresh = false) {
     if (this.data.isLoading) {
       return;
     }
@@ -404,38 +506,51 @@ Page({
     });
 
     // 模拟API请求获取文章列表
-    // 由于没有实际的文章服务，这里使用mock数据
     setTimeout(() => {
-      const mockArticleList = this.getMockArticleList();
+      try {
+        const mockArticleList = this.getMockArticleList();
 
-      // 模拟分页加载
-      const pageSize = 5;
-      const start = (this.data.currentPage - 1) * pageSize;
-      const end = start + pageSize;
-      const newArticles = mockArticleList.slice(start, end);
+        // 模拟分页加载
+        const pageSize = 5;
+        const start = (this.data.currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const newArticles = mockArticleList.slice(start, end);
 
-      // 将新数据添加到现有列表
-      const updatedArticleList = refresh ? newArticles : [...this.data.articleList, ...newArticles];
+        // 将新数据添加到现有列表
+        const updatedArticleList = refresh ? newArticles : [...this.data.articleList, ...newArticles];
 
-      // 判断是否还有更多数据
-      const hasMoreData = end < mockArticleList.length;
+        // 判断是否还有更多数据
+        const hasMoreData = end < mockArticleList.length;
 
-      this.setData({
-        articleList: updatedArticleList,
-        isLoading: false,
-        hasMoreData: hasMoreData,
-        currentPage: this.data.currentPage + 1
-      });
-
-      // 停止下拉刷新动画
-      if (refresh) {
-        wx.stopPullDownRefresh();
+        this.setData({
+          articleList: updatedArticleList,
+          isLoading: false,
+          hasMoreData: hasMoreData,
+          currentPage: this.data.currentPage + 1
+        });
+      } catch (error) {
+        console.error('加载文章列表失败:', error);
+        this.setData({
+          isLoading: false
+        });
+        wx.showToast({
+          title: '加载文章列表失败',
+          icon: 'none'
+        });
+      } finally {
+        // 停止下拉刷新动画
+        if (refresh) {
+          wx.stopPullDownRefresh();
+        }
       }
     }, 1000);
   },
 
-  // 获取模拟文章列表数据
-  getMockArticleList: function () {
+  /**
+   * 获取模拟文章列表数据
+   * @returns {Array} 文章列表数据
+   */
+  getMockArticleList: function() {
     return [
       {
         id: '1',
@@ -490,82 +605,118 @@ Page({
     ];
   },
 
-  // 跳转到文章详情页
-  navigateToArticleDetail: function (e) {
+  /**
+   * 跳转到文章详情页
+   * @param {Object} e - 事件对象
+   */
+  navigateToArticleDetail: function(e) {
     const articleId = e.currentTarget.dataset.id;
+    if (!articleId) {
+      console.error('文章ID不存在');
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/article-detail/article-detail?id=${articleId}`
     });
   },
 
-  // 生命周期函数--监听页面初次渲染完成
-  onReady: function () {
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function() {
     console.log('首页渲染完成');
   },
 
-  // 生命周期函数--监听页面显示
-  onShow: function () {
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function() {
     console.log('首页显示');
     // 重新从全局数据更新用户会话信息，确保显示最新数据
     this.updateUserSessionInfo();
   },
 
-  // 监听全局会话信息变更
+  /**
+   * 监听全局会话信息变更
+   */
   onGlobalDataChange: function() {
     // 用户会话信息发生变更，重新更新数据
     console.log('全局会话信息变更，刷新首页模块');
     this.updateUserSessionInfo();
   },
 
-  // 生命周期函数--监听页面隐藏
-  onHide: function () {
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function() {
     console.log('首页隐藏');
   },
 
-  // 生命周期函数--监听页面卸载
-  onUnload: function () {
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function() {
     console.log('首页卸载');
     // 从全局通知系统注销
     const app = getApp();
-    app.unregisterPage(this);
+    if (app && typeof app.unregisterPage === 'function') {
+      app.unregisterPage(this);
+    }
   },
 
-  // 页面相关事件处理函数--监听用户下拉动作
-  onPullDownRefresh: function () {
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function() {
     console.log('下拉刷新');
     // 重新加载文章列表
     this.loadArticleList(true);
   },
 
-  // 页面上拉触底事件的处理函数
-  onReachBottom: function () {
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function() {
     console.log('上拉触底');
     // 加载更多文章
     this.loadArticleList(false);
   },
 
-  // 监听用户点击页面内转发按钮
-  onShareAppMessage: function () {
+  /**
+   * 监听用户点击页面内转发按钮
+   * @returns {Object} 转发配置
+   */
+  onShareAppMessage: function() {
     return {
       title: '微信小程序示例',
       path: '/pages/index/index'
     };
   },
 
-  // 获取用户信息
-  getUserInfo: function (e) {
+  /**
+   * 获取用户信息
+   * @param {Object} e - 事件对象
+   */
+  getUserInfo: function(e) {
     console.log('获取用户信息', e);
-    if (e.detail.userInfo) {
+    if (e.detail && e.detail.userInfo) {
       this.setData({
         userInfo: e.detail.userInfo,
         hasUserInfo: true
       });
-      wx.setStorageSync('userInfo', e.detail.userInfo);
+      try {
+        wx.setStorageSync('userInfo', e.detail.userInfo);
+      } catch (error) {
+        console.error('保存用户信息失败:', error);
+      }
     }
   },
 
-  // 登出功能
-  logout: function () {
+  /**
+   * 登出功能
+   */
+  logout: function() {
     wx.showModal({
       title: '确认登出',
       content: '确定要退出登录吗？',
@@ -579,11 +730,13 @@ Page({
 
             // 清除全局数据
             const app = getApp();
-            app.globalData.userInfo = null;
-            app.globalData.userSession = null;
+            if (app && app.globalData) {
+              app.globalData.userInfo = null;
+              app.globalData.userSession = new UserSession();
+            }
 
             // 清除定时器
-            if (global.sessionRefreshTimer) {
+            if (global && global.sessionRefreshTimer) {
               clearTimeout(global.sessionRefreshTimer);
               global.sessionRefreshTimer = null;
             }
@@ -606,8 +759,10 @@ Page({
     });
   },
 
-  // 跳转到日志页面
-  goToLogs: function () {
+  /**
+   * 跳转到日志页面
+   */
+  goToLogs: function() {
     wx.navigateTo({
       url: '/pages/logs/logs'
     });
