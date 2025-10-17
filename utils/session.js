@@ -82,8 +82,6 @@ class UserSession {
   }
 }
 
-// 刷新用户会话功能已改为同步实现
-
 /**
  * 同步获取用户会话信息
  * @returns {UserSession} 用户会话信息对象
@@ -93,11 +91,14 @@ function refresh() {
   const appInstance = getApp();
   let userSession = null;
 
+  // 1. 尝试从全局数据获取
   if (appInstance && appInstance.globalData && appInstance.globalData.userSession) {
     userSession = appInstance.globalData.userSession;
     console.log('【session.js】从全局数据获取用户会话信息');
-  } else {
-    // 尝试从本地存储获取
+  }
+
+  // 2. 如果全局数据中没有，尝试从本地存储获取
+  if (!userSession) {
     try {
       const sessionInfo = wx.getStorageSync('userSession');
       if (sessionInfo) {
@@ -114,14 +115,50 @@ function refresh() {
     }
   }
 
-  // 如果没有会话信息或会话已过期，创建一个空的会话对象
+  // 3. 如果全局数据和本地存储都没有，或者会话已过期，调用接口获取
   if (!userSession || userSession.isExpired()) {
-    userSession = new UserSession();
-    console.log('【session.js】创建新的空用户会话对象');
+    try {
+      console.log('【session.js】调用接口获取用户会话信息');
+      // 调用会话接口
+      const response = wx.requestSync({
+        url: '/rest/user/service/user/session',
+        method: 'GET',
+        header: {
+          'content-type': 'application/json'
+        }
+      });
 
-    // 更新到全局数据
-    if (appInstance) {
-      appInstance.globalData.userSession = userSession;
+      if (response.statusCode === 200 && response.data) {
+        const { code, data } = response.data;
+        if (code === '0' && data) {
+          // 解析为 UserSession 对象
+          userSession = UserSession.fromObject(data);
+          console.log('【session.js】成功获取并解析用户会话信息');
+
+          // 更新到本地存储
+          try {
+            wx.setStorageSync('userSession', userSession.toObject());
+            console.log('【session.js】用户会话信息已保存到本地存储');
+          } catch (storageError) {
+            console.error('【session.js】保存会话信息到本地存储失败:', storageError);
+          }
+
+          // 更新到全局数据
+          if (appInstance) {
+            appInstance.globalData.userSession = userSession;
+            console.log('【session.js】用户会话信息已更新到全局数据');
+          }
+        } else {
+          console.warn('【session.js】接口返回非成功状态:', code);
+          userSession = new UserSession();
+        }
+      } else {
+        console.error('【session.js】接口请求失败，状态码:', response.statusCode);
+        userSession = new UserSession();
+      }
+    } catch (apiError) {
+      console.error('【session.js】调用会话接口异常:', apiError);
+      userSession = new UserSession();
     }
   }
 
