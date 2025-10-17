@@ -119,41 +119,33 @@ function refresh() {
   if (!userSession || userSession.isExpired()) {
     try {
       console.log('【session.js】调用接口获取用户会话信息');
-      // 调用会话接口
-      const response = wx.requestSync({
-        url: '/rest/user/service/user/session',
-        method: 'GET',
-        header: {
-          'content-type': 'application/json'
+      // 使用api.js中的http工具调用会话接口
+      const { api } = require('./api');
+
+      // 由于api.js中的get方法是异步的，我们需要使用Promise或同步方法
+      // 这里我们使用try-catch包装同步调用
+      const responseData = api.get('/user/service/user/session');
+
+      if (responseData) {
+        // 解析为 UserSession 对象
+        userSession = UserSession.fromObject(responseData);
+        console.log('【session.js】成功获取并解析用户会话信息');
+
+        // 更新到本地存储
+        try {
+          wx.setStorageSync('userSession', userSession.toObject());
+          console.log('【session.js】用户会话信息已保存到本地存储');
+        } catch (storageError) {
+          console.error('【session.js】保存会话信息到本地存储失败:', storageError);
         }
-      });
 
-      if (response.statusCode === 200 && response.data) {
-        const { code, data } = response.data;
-        if (code === '0' && data) {
-          // 解析为 UserSession 对象
-          userSession = UserSession.fromObject(data);
-          console.log('【session.js】成功获取并解析用户会话信息');
-
-          // 更新到本地存储
-          try {
-            wx.setStorageSync('userSession', userSession.toObject());
-            console.log('【session.js】用户会话信息已保存到本地存储');
-          } catch (storageError) {
-            console.error('【session.js】保存会话信息到本地存储失败:', storageError);
-          }
-
-          // 更新到全局数据
-          if (appInstance) {
-            appInstance.globalData.userSession = userSession;
-            console.log('【session.js】用户会话信息已更新到全局数据');
-          }
-        } else {
-          console.warn('【session.js】接口返回非成功状态:', code);
-          userSession = new UserSession();
+        // 更新到全局数据
+        if (appInstance) {
+          appInstance.globalData.userSession = userSession;
+          console.log('【session.js】用户会话信息已更新到全局数据');
         }
       } else {
-        console.error('【session.js】接口请求失败，状态码:', response.statusCode);
+        console.warn('【session.js】接口返回数据为空');
         userSession = new UserSession();
       }
     } catch (apiError) {
