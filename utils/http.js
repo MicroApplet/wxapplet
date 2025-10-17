@@ -11,9 +11,21 @@ const { debug } = require('./wx-env.js');
  * @param {Object} [headers] - 请求头，Map<String,String>
  * @param {any} [data] - 请求体数据
  * @param {number} [timeout=10000] - 超时时间，默认10秒
+ * @param {Object} [options] - 额外的请求配置选项
+ * @param {string} [options.dataType='json'] - 返回的数据格式
+ * @param {string} [options.responseType='text'] - 响应的数据类型
+ * @param {boolean} [options.useHighPerformanceMode=true] - 使用高性能模式
+ * @param {boolean} [options.enableHttp2=false] - 开启http2
+ * @param {boolean} [options.enableQuic=false] - 开启Quic/h3协议
+ * @param {boolean} [options.enableCache=false] - 开启Http缓存
+ * @param {boolean} [options.enableHttpDNS=false] - 是否开启HttpDNS服务
+ * @param {string} [options.httpDNSServiceId] - HttpDNS服务商Id
+ * @param {number} [options.httpDNSTimeout=60000] - HttpDNS超时时间
+ * @param {boolean} [options.enableChunked=false] - 开启transfer-encoding chunked
+ * @param {string} [options.redirect='follow'] - 重定向拦截策略
  * @returns {Promise} 返回Promise对象
  */
-function request(method, baseUrl, context, uri, quires, headers, data, timeout = 10000) {
+function request(method, baseUrl, context, uri, quires, headers, data, timeout = 10000, options = {}) {
   // 验证必需参数
   if (!method || !uri) {
     throw new Error('必需参数缺失：method 和 uri 是必需的');
@@ -76,43 +88,55 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
     }
   }
 
-  // 定义请求配置
+  // 定义请求配置，添加微信官方文档支持的所有选项
   const requestConfig = {
     url,
     method: method.toUpperCase(),
     header: headers || {},
     timeout,
-    data
+    data,
+    dataType: options.dataType || 'json',
+    responseType: options.responseType || 'text',
+    useHighPerformanceMode: options.useHighPerformanceMode !== undefined ? options.useHighPerformanceMode : true,
+    enableHttp2: options.enableHttp2 || false,
+    enableQuic: options.enableQuic || false,
+    enableCache: options.enableCache || false,
+    enableHttpDNS: options.enableHttpDNS || false,
+    httpDNSServiceId: options.httpDNSServiceId,
+    httpDNSTimeout: options.httpDNSTimeout || 60000,
+    enableChunked: options.enableChunked || false,
+    redirect: options.redirect || 'follow'
   };
 
   // 执行普通HTTP请求
   return new Promise((resolve, reject) => {
     const makeRequest = () => {
-      let requestCompleted = false;
       // 仅在debug模式下打印日志
       if (debug) {
         console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 开始请求: ${url}`);
+        console.log('[HTTP DEBUG] 请求配置:', {
+          method: requestConfig.method,
+          timeout: requestConfig.timeout,
+          dataType: requestConfig.dataType,
+          responseType: requestConfig.responseType,
+          useHighPerformanceMode: requestConfig.useHighPerformanceMode,
+          enableHttp2: requestConfig.enableHttp2,
+          enableQuic: requestConfig.enableQuic,
+          enableCache: requestConfig.enableCache
+        });
       }
-      const timer = setTimeout(() => {
-        if (!requestCompleted) {
-          const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
-          if (debug) {
-            console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求超时: ${url}`);
-          }
-          // 保留原有的URL信息以便调试
-          reject(timeoutError);
-        }
-      }, timeout);
 
-      wx.request({
+      const requestTask = wx.request({
         ...requestConfig,
         success: (res) => {
           // 仅在debug模式下打印日志
           if (debug) {
             console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求成功: ${url}, 状态码: ${res.statusCode}`);
+            // 打印性能信息（如果可用）
+            if (res.profile) {
+              console.log('[HTTP DEBUG] 性能信息:', res.profile);
+            }
           }
-          requestCompleted = true;
-          clearTimeout(timer);
           // 直接将所有响应结果传递给调用方，包括错误状态码的响应
           resolve(res);
         },
@@ -121,8 +145,6 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
           if (debug) {
             console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求失败: ${url}, 错误:`, error);
           }
-          requestCompleted = true;
-          clearTimeout(timer);
           reject(error);
         },
         complete: () => {
@@ -130,10 +152,11 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
           if (debug) {
             console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求完成: ${url}`);
           }
-          requestCompleted = true;
-          clearTimeout(timer);
         }
       });
+
+      // 返回请求任务对象，允许调用方取消请求
+      return requestTask;
     };
 
     // 发起请求
