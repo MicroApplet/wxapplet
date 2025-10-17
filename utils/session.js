@@ -106,6 +106,7 @@ function refresh() {
       // 成功回调函数
       success: function(response) {
         const sessionInfo = response;
+        console.log('refresh 调用结果', sessionInfo);
         // 从响应体中提取用户会话信息
 
         // 更新应用实例的全局数据（如果应用实例存在）
