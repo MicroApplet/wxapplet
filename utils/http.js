@@ -101,21 +101,8 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
         success: (res) => {
           requestCompleted = true;
           clearTimeout(timer);
-
-          // 检查响应状态码，如果是错误状态码（4xx或5xx），则reject
-          if (res.statusCode && (res.statusCode >= 400)) {
-            // 创建错误对象，包含状态码信息
-            const error = {
-              statusCode: res.statusCode,
-              errMsg: `HTTP请求失败: ${res.statusCode}`,
-              response: res,
-              // 对于401错误特别标记
-              is401Error: res.statusCode === 401
-            };
-            reject(error);
-          } else {
-            resolve(res);
-          }
+          // 直接将所有响应结果传递给调用方，包括错误状态码的响应
+          resolve(res);
         },
         fail: (error) => {
           requestCompleted = true;
