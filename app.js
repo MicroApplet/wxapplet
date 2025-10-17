@@ -11,7 +11,7 @@ App({
     // 初始化页面注册列表
     this._registeredPages = [];
     // 初始化事件总线
-    initEventBus();
+    //initEventBus();
   },
 
   // 生命周期回调——监听小程序启动或切前台
