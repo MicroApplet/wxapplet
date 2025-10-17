@@ -2,6 +2,10 @@
 // 导入所需的模块
 const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType, baseUrl, apiPrefix, debug } = require('./wx-env');
 const http = require('./http');
+const { initEventBus } = require('./event-bus');
+
+// 初始化事件总线
+initEventBus();
 
 // Token相关常量
 const X_USER_TOKEN = 'x-user-token';
@@ -480,8 +484,14 @@ function doLogin(code, success, fail) {
     })
     .catch(error => {
       // 失败函数业务逻辑
-      console.log('使用事件总线发布登录失败事件');
-      wx.$emit('loginFailed', { error: error.message });
+      const errorMessage = error.message || '登录失败';
+      console.log('登录失败:', errorMessage);
+      // 避免重复发布事件导致错误
+      try {
+        wx.$emit && wx.$emit('loginFailed', { error: errorMessage });
+      } catch (emitError) {
+        console.error('发布登录失败事件失败:', emitError);
+      }
       // 调用失败回调
       if (typeof fail === 'function') {
         fail(error);
