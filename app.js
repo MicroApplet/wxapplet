@@ -1,12 +1,17 @@
 //app.js
 // 导入 UserSession 类型
 const { UserSession } = require('./utils/session');
+// 导入事件总线初始化函数
+const { initEventBus } = require('./utils/event-bus');
+
 
 App({
   // 生命周期回调——监听小程序初始化
   onLaunch: function () {
     // 初始化页面注册列表
     this._registeredPages = [];
+    // 初始化事件总线
+    initEventBus();
   },
 
   // 生命周期回调——监听小程序启动或切前台
