@@ -1,6 +1,6 @@
 // mine.js
 // 导入wx-api.js中的API
-const { api } = require('../../utils/wx-api');
+const { api } = require('../../utils/api');
 // 导入证件类型枚举
 const IdCardType = require('../../utils/id-card-type');
 // 导入环境配置
@@ -56,26 +56,27 @@ Page({
   },
 
   // 获取用户手机号信息
-  async getUserPhoneNumber() {
-    try {
-      // 获取app实例
-      const app = getApp();
-      
-      // 检查用户是否已登录且有用户信息
-      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
-        // 获取用户角色信息
-        const roleBit = app.globalData.userInfo.roleBit;
-        console.log('用户角色权限值:', roleBit);
-        
-        // 检查用户是否有手机号角色权限 (PHONE = 4)
-        const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
-        console.log('用户是否有手机号权限:', hasPhonePermission);
-        
-        // 必须调用获取手机号信息的接口，无论用户角色如何
-        console.log('调用获取手机号接口...');
-        const response = await api.get('/rest/user/service/user/phone');
+  getUserPhoneNumber() {
+    // 获取app实例
+    const app = getApp();
+
+    // 检查用户是否已登录且有用户信息
+    if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+      // 获取用户角色信息
+      const roleBit = app.globalData.userInfo.roleBit;
+      console.log('用户角色权限值:', roleBit);
+
+      // 检查用户是否有手机号角色权限 (PHONE = 4)
+      const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
+      console.log('用户是否有手机号权限:', hasPhonePermission);
+
+      // 必须调用获取手机号信息的接口，无论用户角色如何
+      console.log('调用获取手机号接口...');
+
+      // 定义成功回调函数
+      const successCallback = (response) => {
         console.log('获取手机号接口响应:', response);
-        
+
         // 修正解析逻辑：根据API返回格式，data字段直接包含手机号字符串
         if (response && response.code === 0 && response.data) {
           // 设置手机号信息
@@ -100,23 +101,13 @@ Page({
             console.log('未授权手机号或无手机号权限');
           }
         }
-      } else {
-        // 未登录或无用户信息
-        this.setData({
-          phoneAuthorized: false,
-          phoneNumber: ''
-        });
-        console.log('用户未登录，无法获取手机号');
-      }
-    } catch (error) {
-      console.error('获取用户手机号失败:', error);
-      
-      // 出错时，检查用户是否有手机号权限
-      const app = getApp();
-      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
-        const roleBit = app.globalData.userInfo.roleBit;
-        const hasPhonePermission = roleBit && (roleBit & BigInt(4)) === BigInt(4);
-        
+      };
+
+      // 定义失败回调函数
+      const failCallback = (error) => {
+        console.error('获取用户手机号失败:', error);
+
+        // 出错时，检查用户是否有手机号权限
         if (hasPhonePermission) {
           this.setData({
             phoneAuthorized: true,
@@ -129,12 +120,19 @@ Page({
             phoneNumber: ''
           });
         }
-      } else {
-        this.setData({
-          phoneAuthorized: false,
-          phoneNumber: ''
-        });
-      }
+      };
+
+      // 调用接口
+      api.get('/rest/user/service/user/phone')
+        .then(successCallback)
+        .catch(failCallback);
+    } else {
+      // 未登录或无用户信息
+      this.setData({
+        phoneAuthorized: false,
+        phoneNumber: ''
+      });
+      console.log('用户未登录，无法获取手机号');
     }
   },
 
@@ -149,50 +147,48 @@ Page({
   },
 
   // 安全获取用户会话信息
-  async getUserSessionInfo() {
-    try {
-      // 双重检查确保页面实例有效
-      if (!this || typeof this.setData !== 'function') {
-        console.error('页面实例无效，无法设置数据');
-        return;
-      }
+  getUserSessionInfo() {
+    // 双重检查确保页面实例有效
+    if (!this || typeof this.setData !== 'function') {
+      console.error('页面实例无效，无法设置数据');
+      return;
+    }
 
-      this.setData({ isLoading: true });
-      
-      // 获取app实例
-      const app = getApp();
+    this.setData({ isLoading: true });
 
-      // 检查app的globalData中是否已有用户信息
-      if (app.globalData.isLoggedIn && app.globalData.userInfo) {
-        const userInfo = app.globalData.userInfo;
-        // 检查是否有微信头像，如果没有则使用默认图标
-        let avatarUrl = userInfo.avatarUrl || '';
-        // 如果没有头像，尝试从本地存储获取授权的头像
-        if (!avatarUrl) {
-          const localUserInfo = wx.getStorageSync('userInfo');
-          if (localUserInfo && localUserInfo.avatarUrl) {
-            avatarUrl = localUserInfo.avatarUrl;
-          }
+    // 获取app实例
+    const app = getApp();
+
+    // 检查app的globalData中是否已有用户信息
+    if (app.globalData.isLoggedIn && app.globalData.userInfo) {
+      const userInfo = app.globalData.userInfo;
+      // 检查是否有微信头像，如果没有则使用默认图标
+      let avatarUrl = userInfo.avatarUrl || '';
+      // 如果没有头像，尝试从本地存储获取授权的头像
+      if (!avatarUrl) {
+        const localUserInfo = wx.getStorageSync('userInfo');
+        if (localUserInfo && localUserInfo.avatarUrl) {
+          avatarUrl = localUserInfo.avatarUrl;
         }
-        this.setData({
-          nickname: userInfo.nickname || '',
-          avatarUrl: avatarUrl,
-          isLoggedIn: true
-        });
-        
-        // 获取手机号信息（使用await确保异步操作完成）
-        await this.getUserPhoneNumber();
-        
-        // 检查实名认证状态（使用await确保异步操作完成）
-        await this.checkRealNameStatus();
-        
-        this.setData({ isLoading: false });
-        return;
       }
+      this.setData({
+        nickname: userInfo.nickname || '',
+        avatarUrl: avatarUrl,
+        isLoggedIn: true
+      });
 
-      // 如果globalData中没有用户信息，则重新获取
-      const response = await api.get('/rest/user/service/user/session');
+      // 获取手机号信息
+      this.getUserPhoneNumber();
 
+      // 检查实名认证状态
+      this.checkRealNameStatus();
+
+      this.setData({ isLoading: false });
+      return;
+    }
+
+    // 定义成功回调函数
+    const successCallback = (response) => {
       if (response && response.data) {
         const userInfo = response.data;
         // 检查是否有微信头像，如果没有则使用默认图标
@@ -209,13 +205,13 @@ Page({
           avatarUrl: avatarUrl,
           isLoggedIn: true
         });
-        
-        // 获取手机号信息（使用await确保异步操作完成）
-        await this.getUserPhoneNumber();
-        
-        // 检查实名认证状态（使用await确保异步操作完成）
-        await this.checkRealNameStatus();
-        
+
+        // 获取手机号信息
+        this.getUserPhoneNumber();
+
+        // 检查实名认证状态
+        this.checkRealNameStatus();
+
         this.setData({ isLoading: false });
       } else {
         wx.showToast({ title: '获取用户信息失败', icon: 'none' });
@@ -224,7 +220,10 @@ Page({
           isLoggedIn: false
         });
       }
-    } catch (error) {
+    };
+
+    // 定义失败回调函数
+    const failCallback = (error) => {
       console.error('获取用户会话信息失败:', error);
       // 确保在任何错误情况下都能重置加载状态
       if (this && typeof this.setData === 'function') {
@@ -233,7 +232,12 @@ Page({
           isLoggedIn: false
         });
       }
-    }
+    };
+
+    // 如果globalData中没有用户信息，则重新获取
+    api.get('/rest/user/service/user/session')
+      .then(successCallback)
+      .catch(failCallback);
   },
 
   // 引导用户授权获取昵称
@@ -259,43 +263,43 @@ Page({
       wx.showToast({ title: '授权操作异常', icon: 'none' });
     }
   },
-  
+
   // 处理用户选择头像事件
   onChooseAvatar(e) {
     try {
       // 获取用户选择的头像临时路径
       const { avatarUrl } = e.detail;
       console.log('用户选择的头像:', avatarUrl);
-      
+
       // 创建用户信息对象，只包含头像
       const userInfo = {
         avatarUrl: avatarUrl
       };
-      
+
       // 保存头像信息到本地存储
       wx.setStorageSync('userInfo', userInfo);
-      
+
       // 更新页面头像状态
       this.setData({
         avatarUrl: avatarUrl
       });
-      
+
       // 更新app的globalData
       const app = getApp();
       if (app.globalData.userInfo) {
         app.globalData.userInfo.avatarUrl = avatarUrl;
       }
-      
+
       // 保存头像信息到服务器
       this.updateUserAvatar(avatarUrl);
-      
+
       wx.showToast({ title: '头像更新成功' });
     } catch (error) {
       console.error('选择头像事件异常:', error);
       wx.showToast({ title: '操作异常', icon: 'none' });
     }
   },
-  
+
   // 检查用户角色权限
   checkUserRolePermission() {
     // 获取app实例
@@ -396,55 +400,95 @@ Page({
   },
 
   // 更新用户头像到服务器
-  async updateUserAvatar(avatarUrl) {
-    try {
-      // 直接使用api.post，wx-api.js会自动处理token和请求头等
-      const response = await api.post('/rest/user/service/user/updateAvatar', { avatarUrl });
-
+  updateUserAvatar(avatarUrl) {
+    // 定义成功回调函数
+    const successCallback = (response) => {
       if (response && response.code === 0) {
         console.log('头像更新成功');
+        wx.showToast({ title: '头像更新成功' });
+        // 更新本地缓存和globalData中的头像信息
+        const userInfo = wx.getStorageSync('userInfo');
+        if (userInfo) {
+          userInfo.avatarUrl = avatarUrl;
+          wx.setStorageSync('userInfo', userInfo);
+          // 更新globalData
+          const app = getApp();
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.avatarUrl = avatarUrl;
+          }
+        }
+        // 更新页面头像显示
+        this.setData({ avatarUrl: avatarUrl });
       }
-    } catch (error) {
+    };
+
+    // 定义失败回调函数
+    const failCallback = (error) => {
       console.error('更新头像失败:', error);
-      // wx-api.js会处理大部分错误情况
-    }
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+    };
+
+    api.post('/rest/user/service/user/updateAvatar', { avatarUrl })
+      .then(successCallback)
+      .catch(failCallback);
   },
 
   // 更新用户昵称到服务器
-  async updateUserNickname(nickname) {
-    try {
-      // 直接使用api.post，wx-api.js会自动处理token和请求头等
-      const response = await api.post('/rest/user/service/user/updateNickname', { nickname });
+  updateUserNickname(nickname) {
+    if (!nickname || nickname.trim() === '') {
+      wx.showToast({ title: '昵称不能为空', icon: 'none' });
+      return;
+    }
 
+    // 定义成功回调函数
+    const successCallback = (response) => {
       if (response && response.code === 0) {
         wx.showToast({ title: '昵称更新成功' });
+        // 更新本地缓存和globalData中的昵称信息
+        const userInfo = wx.getStorageSync('userInfo');
+        if (userInfo) {
+          userInfo.nickname = nickname;
+          wx.setStorageSync('userInfo', userInfo);
+          // 更新globalData
+          const app = getApp();
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.nickname = nickname;
+          }
+        }
+        // 更新页面昵称显示
+        this.setData({ nickname: nickname });
+      } else {
+        wx.showToast({ title: '昵称更新失败', icon: 'none' });
       }
-    } catch (error) {
+    };
+
+    // 定义失败回调函数
+    const failCallback = (error) => {
       console.error('更新昵称失败:', error);
-      // wx-api.js会处理大部分错误情况
-    }
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+    };
+
+    api.post('/rest/user/service/user/updateNickname', { nickname })
+      .then(successCallback)
+      .catch(failCallback);
   },
 
   // 检查实名认证状态
-  async checkRealNameStatus() {
-    try {
-      // 首先从本地缓存检查
-      const localVerified = wx.getStorageSync('isRealNameVerified');
-      const localRealNameInfo = wx.getStorageSync('realNameInfo');
+  checkRealNameStatus() {
+    // 首先从本地缓存检查
+    const localVerified = wx.getStorageSync('isRealNameVerified');
+    const localRealNameInfo = wx.getStorageSync('realNameInfo');
 
-      if (localVerified && localRealNameInfo) {
-        this.setData({
-          isRealNameVerified: localVerified,
-          realNameInfo: localRealNameInfo
-        });
-        return;
-      }
+    if (localVerified && localRealNameInfo) {
+      this.setData({
+        isRealNameVerified: localVerified,
+        realNameInfo: localRealNameInfo
+      });
+      return;
+    }
 
-      // 本地未找到或已过期，从服务器获取
-      // 支持传入idType参数（可选）
-      const { idType } = this.data;
-      const params = idType ? { idType } : {};
-      const response = await api.get('/rest/user/service/user/id-card/status', params);
+    // 定义成功回调函数
+    const successCallback = (response) => {
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
 
@@ -459,9 +503,20 @@ Page({
           realNameInfo: realNameInfo
         });
       }
-    } catch (error) {
+    };
+
+    // 定义失败回调函数
+    const failCallback = (error) => {
       console.error('获取实名认证状态失败:', error);
-    }
+    };
+
+    // 本地未找到或已过期，从服务器获取
+    // 支持传入idType参数（可选）
+    const { idType } = this.data;
+    const params = idType ? { idType } : {};
+    api.get('/rest/user/service/user/id-card/status', params)
+      .then(successCallback)
+      .catch(failCallback);
   },
 
   // 显示实名认证表单
@@ -624,62 +679,60 @@ Page({
   },
 
   // 提交实名认证信息（支持带或不带人脸核身结果）
-  async submitRealNameInfo(verifyResultData) {
-    try {
-      this.setData({ isLoading: true });
+  submitRealNameInfo(verifyResultData) {
+    this.setData({ isLoading: true });
 
-      const { idType, idName, idNumber } = this.data;
-      // 获取环境配置中的应用信息
-      const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
+    const { idType, idName, idNumber } = this.data;
+    // 获取环境配置中的应用信息
+    const { wxAppId, xAppChlAppType } = require('../../utils/wx-env');
 
-      // 构建请求参数
-      const requestParams = {
-        chl: 'wechat', // 渠道代码
-        chlAppId: wxAppId, // 渠道应用ID
-        chlAppType: xAppChlAppType, // 渠道应用类型
-        idType, // 证件类型代码
-        name: idName, // 姓名
-        number: idNumber // 证件号
-      };
+    // 构建请求参数
+    const requestParams = {
+      chl: 'wechat', // 渠道代码
+      chlAppId: wxAppId, // 渠道应用ID
+      chlAppType: xAppChlAppType, // 渠道应用类型
+      idType, // 证件类型代码
+      name: idName, // 姓名
+      number: idNumber // 证件号
+    };
 
-      // 如果有人脸核身结果，添加verifyResult参数
-      const hasVerifyResult = verifyResultData && verifyResultData.verifyResult;
-      if (hasVerifyResult) {
-        requestParams.verifyResult = verifyResultData.verifyResult;
-      }
+    // 如果有人脸核身结果，添加verifyResult参数
+    const hasVerifyResult = verifyResultData && verifyResultData.verifyResult;
+    if (hasVerifyResult) {
+      requestParams.verifyResult = verifyResultData.verifyResult;
+    }
 
-      // 调用后端接口提交认证信息
-      // 注意：这里使用统一的接口，后台根据是否有verifyResult参数来处理不同的认证流程
-      const response = await api.post('/rest/user/service/user/id-card/authenticate/withface', requestParams);
-
+    // 定义成功回调函数
+    const successCallback = (response) => {
       if (response && response.code === 0 && response.data) {
         const { isVerified, realNameInfo } = response.data;
 
         // 如果有人脸核身结果，再次获取核验结果（提高安全性）
-        let finalResult = null;
         if (hasVerifyResult) {
-          finalResult = await this.getVerificationResult(verifyResultData.verifyResult);
-        }
-
-        if ((isVerified || (finalResult && finalResult.isVerified)) && realNameInfo) {
-          // 缓存认证结果
-          wx.setStorageSync('isRealNameVerified', true);
-          wx.setStorageSync('realNameInfo', realNameInfo);
-
-          this.setData({
-            isRealNameVerified: true,
-            realNameInfo: realNameInfo,
-            showRealNameForm: false
+          this.getVerificationResult(verifyResultData.verifyResult, (finalResult) => {
+            if ((isVerified || (finalResult && finalResult.isVerified)) && realNameInfo) {
+              this.handleAuthSuccess(realNameInfo);
+            } else {
+              wx.showToast({ title: '实名认证未通过', icon: 'none' });
+            }
+            this.setData({ isLoading: false });
           });
-
-          wx.showToast({ title: '实名认证成功' });
         } else {
-          wx.showToast({ title: '实名认证未通过', icon: 'none' });
+          if (isVerified && realNameInfo) {
+            this.handleAuthSuccess(realNameInfo);
+          } else {
+            wx.showToast({ title: '实名认证未通过', icon: 'none' });
+          }
+          this.setData({ isLoading: false });
         }
       } else {
         wx.showToast({ title: '提交认证信息失败', icon: 'none' });
+        this.setData({ isLoading: false });
       }
-    } catch (error) {
+    };
+
+    // 定义失败回调函数
+    const failCallback = (error) => {
       console.error('提交实名认证信息失败:', error);
       // 提供更具体的错误提示
       let errorMsg = '网络异常，请重试';
@@ -687,28 +740,49 @@ Page({
         errorMsg = error.response.data.message;
       }
       wx.showToast({ title: errorMsg, icon: 'none' });
-    } finally {
       this.setData({ isLoading: false });
-    }
+    };
+
+    // 调用后端接口提交认证信息
+    api.post('/rest/user/service/user/id-card/authenticate/withface', requestParams)
+      .then(successCallback)
+      .catch(failCallback);
+  },
+
+  // 处理认证成功逻辑
+  handleAuthSuccess(realNameInfo) {
+    // 缓存认证结果
+    wx.setStorageSync('isRealNameVerified', true);
+    wx.setStorageSync('realNameInfo', realNameInfo);
+
+    this.setData({
+      isRealNameVerified: true,
+      realNameInfo: realNameInfo,
+      showRealNameForm: false
+    });
+
+    wx.showToast({ title: '实名认证成功' });
   },
 
   // 根据文档第四部分要求，再次获取核验结果，提高业务方安全性
-  async getVerificationResult(verifyResult) {
-    try {
-      // 调用后端接口再次获取核验结果
-      const response = await api.get('/rest/user/service/user/id-card/verify-result', {
-        verifyResult: verifyResult // 使用verifyResult字符串作为参数
-      });
-
+  getVerificationResult(verifyResult, callback) {
+    const successCallback = (response) => {
       if (response && response.code === 0 && response.data) {
-        return response.data;
+        callback(response.data);
+      } else {
+        callback(null);
       }
-      return null;
-    } catch (error) {
+    };
+
+    const failCallback = (error) => {
       console.error('获取核验结果失败:', error);
       // 此接口失败不应影响主流程，返回null让主流程继续判断
-      return null;
-    }
+      callback(null);
+    };
+
+    api.get('/rest/user/service/user/id-card/verify-result', {
+      verifyResult: verifyResult // 使用verifyResult字符串作为参数
+    }).then(successCallback).catch(failCallback);
   },
 
   // 获取证件类型中文名

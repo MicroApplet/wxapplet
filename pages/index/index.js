@@ -1,7 +1,7 @@
 //index.js
 
 // 导入API工具
-const api = require('../../utils/wx-api');
+const api = require('../../utils/api');
 const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
 
 Page({

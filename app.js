@@ -1,179 +1,61 @@
 //app.js
-
-// 导入HTTP请求工具
-const { api } = require('./utils/wx-api');
-// 导入环境配置
-const { xAppId, xAppChl, wxAppId, xAppChlAppType } = require('./utils/wx-env');
+// 导入 UserSession 类型
+const { UserSession } = require('./utils/session');
 
 App({
-  // 存储已注册页面的数组，用于全局数据变更时通知页面
-  registeredPages: [],
-
+  // 生命周期回调——监听小程序初始化
   onLaunch: function () {
-    // 小程序启动时执行
-    console.log('App Launch');
-
-    // 获取系统信息
-    wx.getSystemInfo({
-      success: e => {
-        this.globalData.statusBar = e.statusBarHeight;
-        this.globalData.windowHeight = e.windowHeight;
-      }
-    });
   },
 
+  // 生命周期回调——监听小程序启动或切前台
   onShow: function () {
-    // 小程序显示时执行
-    console.log('App Show');
-
-    // 立即执行用户登录
-    this.doWechatLogin();
-
-    // 启动会话监控定时器
-    this.startSessionMonitoring();
+    // 页面显示
+    const updateManager = wx.getUpdateManager();
+    updateManager.onCheckForUpdate(function (res) {
+      // 请求完新版本信息的回调
+      if (res.hasUpdate) {
+        console.log('更新发现新版本', res);
+      }
+    });
+    updateManager.onUpdateReady(function () {
+      wx.showModal({
+        title: '更新提示',
+        content: '新版本已经准备好，是否重启应用？',
+        success(result) {
+          if (result.confirm) {
+            // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
+            updateManager.applyUpdate();
+          }
+        }
+      });
+    });
+    updateManager.onUpdateFailed(function () {
+      // 新版本下载失败
+      console.log('新版本下载失败');
+    });
   },
 
+  // 生命周期回调——监听小程序切后台
   onHide: function () {
-    // 小程序隐藏时执行
-    console.log('App Hide');
-
-    // 停止会话监控定时器
-    this.stopSessionMonitoring();
   },
 
-  // 微信授权登录方法
-  doWechatLogin: function() {
-    const that = this;
-
-    // 调用wx.login获取用户授权码
-    wx.login({
-      success: function(res) {
-        if (res.code) {
-          // 获取到code，调用登录接口
-          that.loginWithCode(res.code);
-        } else {
-          console.error('获取登录授权码失败:', res.errMsg);
-        }
-      },
-      fail: function(err) {
-        console.error('wx.login调用失败:', err);
-      }
-    });
+  // 生命周期回调——监听小程序报错
+  onError: function() {
   },
 
-  // 使用code调用登录接口
-  loginWithCode: function(code) {
-    const that = this;
-
-    // 构建请求头 - 从环境配置中获取
-    const headers = {
-      'x-app-id': xAppId,
-      'x-app-chl': xAppChl,
-      'x-app-chl-appid': wxAppId,
-      'x-app-chl-app-type': xAppChlAppType
-    };
-
-    // 构建请求数据
-    const credentials = {
-      code: code
-    };
-
-    // 调用登录接口
-    api.login('/open/user/auth/login', credentials, headers)
-      .then(function(response) {
-        console.log('登录成功:', response);
-
-        // 登录成功后调用获取当前用户会话的接口
-        that.getUserSessionInfo();
-      })
-      .catch(function(error) {
-        console.error('登录失败:', error);
-      });
+  // 生命周期回调——监听小程序页面不存在
+  onPageNotFound: function() {
   },
 
-  // 获取用户会话信息
-  getUserSessionInfo: function() {
-    const that = this;
-    api.get('/rest/user/service/user/session')
-      .then(function(response) {
-        if (response && response.code === '0' && response.data) {
-          const userData = response.data;
-          // 保存用户信息到全局
-          that.globalData.userInfo = userData;
-          that.globalData.isLoggedIn = true;
-
-          // 缓存用户信息到本地
-          wx.setStorageSync('userInfo', userData);
-          console.log('获取用户会话信息成功');
-
-          // 通知所有已注册的页面，用户会话信息已更新
-          that.notifyGlobalDataChange();
-        }
-      })
-      .catch(function(error) {
-        console.error('获取用户会话信息失败:', error);
-      });
+  // 生命周期回调——监听小程序未处理 Promise 拒绝
+  onUnhandledRejection: function() {
   },
 
-  // 启动会话监控
-  startSessionMonitoring: function() {
-    const that = this;
-    // 清除之前的定时器
-    if (this.sessionTimer) {
-      clearInterval(this.sessionTimer);
-    }
-
-    // 每4分30秒调用一次获取会话接口，避免会话过期
-    this.sessionTimer = setInterval(function() {
-      that.getUserSessionInfo();
-    }, 4 * 60 * 1000 + 30 * 1000);
-  },
-
-  // 停止会话监控
-  stopSessionMonitoring: function() {
-    if (this.sessionTimer) {
-      clearInterval(this.sessionTimer);
-      this.sessionTimer = null;
-    }
-  },
-
-  // 通知所有已注册的页面，全局数据已变更
-  notifyGlobalDataChange: function() {
-    this.registeredPages.forEach(page => {
-      if (page && typeof page.onGlobalDataChange === 'function') {
-        try {
-          page.onGlobalDataChange();
-        } catch (error) {
-          console.error('通知页面全局数据变更失败:', error);
-        }
-      }
-    });
-  },
-
-  // 页面注册到全局通知系统
-  registerPage: function(page) {
-    if (page && typeof page.onGlobalDataChange === 'function') {
-      // 避免重复注册
-      if (!this.registeredPages.includes(page)) {
-        this.registeredPages.push(page);
-        console.log('页面已注册到全局通知系统');
-      }
-    }
-  },
-
-  // 从全局通知系统注销页面
-  unregisterPage: function(page) {
-    const index = this.registeredPages.indexOf(page);
-    if (index > -1) {
-      this.registeredPages.splice(index, 1);
-      console.log('页面已从全局通知系统注销');
-    }
+  // 生命周期回调——监听小程序主题变化
+  onThemeChange: function() {
   },
 
   globalData: {
-    userInfo: null,
-    statusBar: 0,
-    windowHeight: 0,
-    isLoggedIn: false // 用户登录状态
+    userSession: new UserSession() // 初始化 UserSession 类型的全局字段
   }
 });
