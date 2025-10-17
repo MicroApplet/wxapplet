@@ -93,7 +93,9 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     }
 
     const resData = response.data;
-
+    if (debug) {
+      console.log('[API] 请求响应体:', resData);
+    }
     // 规则1: 当status == 401时，调用login函数，然后进行一次重试
     if (resData.status === 401 && !isLogin) {
       if (debug) {
