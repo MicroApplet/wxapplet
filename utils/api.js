@@ -71,14 +71,24 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     }
   }
 
+  // 记录完整的请求URL用于调试
+  const fullUrl = `${baseUrl}${apiPrefix}${uri}`;
+  console.log('[API] 准备发送请求:', method, fullUrl);
+
   try {
     // 调用http.js的request函数
+    console.log('[API] 调用http.request，URL:', fullUrl);
     const response = await http.request(method, baseUrl, apiPrefix, uri, quires, requestHeaders, data, timeout);
+    console.log('[API] 请求成功返回:', fullUrl);
     return response;
   } catch (error) {
-    // 处理401错误重试逻辑
-    if (!isLogin && error && error.statusCode === 401) {
-      console.log(`[API] 检测到401错误，尝试重新登录获取令牌，请求URL: ${baseUrl}${apiPrefix}${uri}`);
+    // 详细记录错误信息
+    console.log('[API] 请求出错捕获:', fullUrl);
+    console.log('[API] 错误对象完整信息:', JSON.stringify(error));
+
+    // 首先检查是否有401状态码
+    if (!isLogin && error && (error.statusCode === 401 || (error.response && error.response.statusCode === 401))) {
+      console.log('[API] 检测到401错误，尝试重新登录获取令牌，请求URL:', fullUrl);
       // 返回一个新的Promise，在login成功后重试
       return new Promise((resolve, reject) => {
         console.log('[API] 准备调用login函数进行重新登录');
@@ -89,32 +99,33 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
             console.log('[API] 登录成功，准备获取新令牌并重试请求');
             // 获取新的token并设置到请求头
             const newToken = userToken();
-            console.log(`[API] 新令牌获取结果: ${newToken ? '已获取' : '未获取'}`);
+            console.log('[API] 新令牌获取结果:', newToken ? '已获取' : '未获取');
             if (newToken) {
               requestHeaders[X_USER_TOKEN] = newToken;
               console.log('[API] 新令牌已设置到请求头');
             }
             // 重试请求
-            console.log('[API] 开始重试请求');
+            console.log('[API] 开始重试请求:', fullUrl);
             http.request(method, baseUrl, apiPrefix, uri, quires, requestHeaders, data, timeout)
               .then((response) => {
-                console.log('[API] 请求重试成功');
+                console.log('[API] 请求重试成功:', fullUrl);
                 resolve(response);
               })
               .catch((retryError) => {
-                console.log('[API] 请求重试失败:', retryError);
+                console.log('[API] 请求重试失败:', fullUrl, retryError);
                 reject(retryError);
               });
           },
           // 登录失败回调
           (loginError) => {
-            console.log('[API] 登录失败，无法重试请求:', loginError);
+            console.log('[API] 登录失败，无法重试请求:', fullUrl, loginError);
             reject(loginError || error);
           }
         );
       });
     }
     // 抛出错误
+    console.log('[API] 非401错误，直接抛出:', fullUrl);
     throw error;
   }
 }
