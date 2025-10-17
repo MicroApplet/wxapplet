@@ -78,24 +78,37 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
   } catch (error) {
     // 处理401错误重试逻辑
     if (!isLogin && error && error.statusCode === 401) {
+      console.log(`[API] 检测到401错误，尝试重新登录获取令牌，请求URL: ${baseUrl}${apiPrefix}${uri}`);
       // 返回一个新的Promise，在login成功后重试
       return new Promise((resolve, reject) => {
+        console.log('[API] 准备调用login函数进行重新登录');
         // 使用回调式login函数
         login(
           // 登录成功回调
           () => {
+            console.log('[API] 登录成功，准备获取新令牌并重试请求');
             // 获取新的token并设置到请求头
             const newToken = userToken();
+            console.log(`[API] 新令牌获取结果: ${newToken ? '已获取' : '未获取'}`);
             if (newToken) {
               requestHeaders[X_USER_TOKEN] = newToken;
+              console.log('[API] 新令牌已设置到请求头');
             }
             // 重试请求
+            console.log('[API] 开始重试请求');
             http.request(method, baseUrl, apiPrefix, uri, quires, requestHeaders, data, timeout)
-              .then(resolve)
-              .catch(reject);
+              .then((response) => {
+                console.log('[API] 请求重试成功');
+                resolve(response);
+              })
+              .catch((retryError) => {
+                console.log('[API] 请求重试失败:', retryError);
+                reject(retryError);
+              });
           },
           // 登录失败回调
           (loginError) => {
+            console.log('[API] 登录失败，无法重试请求:', loginError);
             reject(loginError || error);
           }
         );
@@ -234,24 +247,37 @@ async function upload(uri, filePath, name = 'file', formData = {}, quires, heade
   } catch (error) {
     // 处理401错误重试逻辑
     if (!isLogin && error && error.statusCode === 401) {
+      console.log(`[API] 文件上传检测到401错误，尝试重新登录获取令牌，请求URL: ${baseUrl}${apiPrefix}${uri}`);
       // 返回一个新的Promise，在login成功后重试
       return new Promise((resolve, reject) => {
+        console.log('[API] 准备调用login函数进行重新登录');
         // 使用回调式login函数
         login(
           // 登录成功回调
           () => {
+            console.log('[API] 登录成功，准备获取新令牌并重试上传');
             // 获取新的token并设置到请求头
             const newToken = userToken();
+            console.log(`[API] 新令牌获取结果: ${newToken ? '已获取' : '未获取'}`);
             if (newToken) {
               requestHeaders['x-user-token'] = newToken;
+              console.log('[API] 新令牌已设置到请求头');
             }
             // 重试请求
+            console.log('[API] 开始重试文件上传');
             http.upload(baseUrl, apiPrefix, uri, filePath, name, formData, quires, requestHeaders, onProgressUpdate, 0, timeout)
-              .then(resolve)
-              .catch(reject);
+              .then((response) => {
+                console.log('[API] 文件上传重试成功');
+                resolve(response);
+              })
+              .catch((retryError) => {
+                console.log('[API] 文件上传重试失败:', retryError);
+                reject(retryError);
+              });
           },
           // 登录失败回调
           (loginError) => {
+            console.log('[API] 登录失败，无法重试文件上传:', loginError);
             reject(loginError || error);
           }
         );
