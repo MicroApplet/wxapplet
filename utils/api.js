@@ -84,7 +84,7 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     }
     const response = await http.request(method, baseUrl, apiPrefix, uri, quires, requestHeaders, data, timeout);
     if (debug) {
-      console.log('[API] 请求成功返回:', fullUrl);
+      console.log('[API] 请求成功返回:', response);
     }
 
     // 检查响应数据是否存在
