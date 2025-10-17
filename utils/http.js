@@ -96,6 +96,9 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
       const timer = setTimeout(() => {
         if (!requestCompleted) {
           const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
+          if (debug) {
+            console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求超时: ${url}`);
+          }
           // 保留原有的URL信息以便调试
           reject(timeoutError);
         }
