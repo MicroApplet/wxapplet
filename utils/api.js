@@ -86,18 +86,16 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     if (debug) {
       console.log('[API] 请求成功返回:', fullUrl);
     }
-    return response;
-  } catch (error) {
-    // 详细记录错误信息
-    if (debug) {
-      console.log('[API] 请求出错捕获:', fullUrl);
-      // 打印错误堆栈
-      console.log('[API] 错误堆栈信息:', error.stack || '无堆栈信息');
-      console.log('[API] 错误对象完整信息:', JSON.stringify(error));
+
+    // 检查响应数据是否存在
+    if (!response || !response.data) {
+      throw new Error('响应数据格式异常');
     }
 
-    // 首先检查是否有401状态码或is401Error标记
-    if (!isLogin && error && (error.statusCode === 401 || (error.response && error.response.statusCode === 401) || error.is401Error)) {
+    const resData = response.data;
+
+    // 规则1: 当status == 401时，调用login函数，然后进行一次重试
+    if (resData.status === 401 && !isLogin) {
       if (debug) {
         console.log('[API] 检测到401错误，尝试重新登录获取令牌，请求URL:', fullUrl);
       }
@@ -128,12 +126,12 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
             if (debug) {
               console.log('[API] 开始重试请求:', fullUrl);
             }
-            http.request(method, baseUrl, apiPrefix, uri, quires, requestHeaders, data, timeout)
-              .then((response) => {
+            request(method, uri, data, quires, requestHeaders, timeout, isLogin)
+              .then((retryResult) => {
                 if (debug) {
                   console.log('[API] 请求重试成功:', fullUrl);
                 }
-                resolve(response);
+                resolve(retryResult);
               })
               .catch((retryError) => {
                 if (debug) {
@@ -147,15 +145,50 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
             if (debug) {
               console.log('[API] 登录失败，无法重试请求:', fullUrl, loginError);
             }
-            reject(loginError || error);
+            reject(loginError || new Error('登录失败'));
           }
         );
       });
     }
-    // 抛出错误
-    if (debug) {
-      console.log('[API] 非401错误，直接抛出:', fullUrl);
+
+    // 规则2: 当thr == true时，要弹窗提示用户，展示错误信息
+    if (resData.thr === true) {
+      const errorMessage = `${resData.code || ''}: ${resData.msg || '未知错误'}`;
+      if (debug) {
+        console.log('[API] 显示错误提示:', errorMessage);
+      }
+      wx.showToast({
+        title: resData.msg || '操作失败',
+        icon: 'none',
+        duration: 3000
+      });
+
+      // 抛出错误，包含完整的错误信息
+      const error = new Error(errorMessage);
+      error.code = resData.code;
+      error.details = resData.errs || [];
+      throw error;
     }
+
+    // 规则3: 其他情况，将业务数据负载提取出来，向上传递给调用方
+    return resData.data;
+  } catch (error) {
+    // 详细记录错误信息
+    if (debug) {
+      console.log('[API] 请求出错捕获:', fullUrl);
+      // 打印错误堆栈
+      console.log('[API] 错误堆栈信息:', error.stack || '无堆栈信息');
+      console.log('[API] 错误对象完整信息:', JSON.stringify(error));
+    }
+
+    // 处理网络错误或其他异常情况
+    if (!error.code) {
+      // 网络错误等非业务错误，提取微信小程序的错误信息
+      const errorMsg = error.errMsg || error.message || '网络请求失败';
+      throw new Error(errorMsg);
+    }
+
+    // 抛出业务错误
     throw error;
   }
 }
@@ -266,12 +299,11 @@ async function option(uri, quires, headers, retries = 0, timeout = 10000, isLogi
  * @param {Object} [quires] - 查询参数
  * @param {Object} [headers] - 请求头
  * @param {Function} [onProgressUpdate] - 进度更新回调
- * @param {number} [retries=0] - 重试次数
  * @param {number} [timeout=30000] - 超时时间，默认30秒
  * @param {boolean} [isLogin=false] - 用户是否试图登录
  * @returns {Promise} 返回Promise对象
  */
-async function upload(uri, filePath, name = 'file', formData = {}, quires, headers, onProgressUpdate, retries = 0, timeout = 30000, isLogin = false) {
+async function upload(uri, filePath, name = 'file', formData = {}, quires, headers, onProgressUpdate, timeout = 30000, isLogin = false) {
   // 处理请求头和令牌
   const requestHeaders = { ...headers };
   if (!isLogin) {
@@ -282,49 +314,128 @@ async function upload(uri, filePath, name = 'file', formData = {}, quires, heade
   }
 
   try {
+    // 记录完整的请求URL用于调试
+    const fullUrl = `${baseUrl}${apiPrefix}${uri}`;
+    if (debug) {
+      console.log('[API] 准备上传文件:', fullUrl);
+    }
+
     // 发送请求
-    const response = await http.upload(baseUrl, apiPrefix, uri, filePath, name, formData, quires, requestHeaders, onProgressUpdate, retries, timeout);
-    return response;
-  } catch (error) {
-    // 处理401错误重试逻辑
-    if (!isLogin && error && error.statusCode === 401) {
-      console.log(`[API] 文件上传检测到401错误，尝试重新登录获取令牌，请求URL: ${baseUrl}${apiPrefix}${uri}`);
+    const response = await http.upload(baseUrl, apiPrefix, uri, filePath, name, formData, quires, requestHeaders, onProgressUpdate, timeout);
+
+    if (debug) {
+      console.log('[API] 文件上传成功返回:', fullUrl);
+    }
+
+    // 检查响应数据是否存在
+    if (!response || !response.data) {
+      throw new Error('响应数据格式异常');
+    }
+
+    // 确保响应数据是对象格式
+    let resData = response.data;
+    if (typeof resData === 'string') {
+      try {
+        resData = JSON.parse(resData);
+      } catch {
+        throw new Error('响应数据解析失败');
+      }
+    }
+
+    // 规则1: 当status == 401时，调用login函数，然后进行一次重试
+    if (resData.status === 401 && !isLogin) {
+      if (debug) {
+        console.log('[API] 文件上传检测到401错误，尝试重新登录获取令牌，请求URL:', fullUrl);
+      }
       // 返回一个新的Promise，在login成功后重试
       return new Promise((resolve, reject) => {
-        console.log('[API] 准备调用login函数进行重新登录');
+        if (debug) {
+          console.log('[API] 准备调用login函数进行重新登录');
+        }
         // 使用回调式login函数
         login(
           // 登录成功回调
           () => {
-            console.log('[API] 登录成功，准备获取新令牌并重试上传');
+            if (debug) {
+              console.log('[API] 登录成功，准备获取新令牌并重试上传');
+            }
             // 获取新的token并设置到请求头
             const newToken = userToken();
-            console.log(`[API] 新令牌获取结果: ${newToken ? '已获取' : '未获取'}`);
+            if (debug) {
+              console.log('[API] 新令牌获取结果:', newToken ? '已获取' : '未获取');
+            }
             if (newToken) {
               requestHeaders['x-user-token'] = newToken;
-              console.log('[API] 新令牌已设置到请求头');
+              if (debug) {
+                console.log('[API] 新令牌已设置到请求头');
+              }
             }
             // 重试请求
-            console.log('[API] 开始重试文件上传');
-            http.upload(baseUrl, apiPrefix, uri, filePath, name, formData, quires, requestHeaders, onProgressUpdate, 0, timeout)
-              .then((response) => {
-                console.log('[API] 文件上传重试成功');
-                resolve(response);
+            if (debug) {
+              console.log('[API] 开始重试文件上传');
+            }
+            upload(uri, filePath, name, formData, quires, requestHeaders, onProgressUpdate, timeout, isLogin)
+              .then((retryResult) => {
+                if (debug) {
+                  console.log('[API] 文件上传重试成功');
+                }
+                resolve(retryResult);
               })
               .catch((retryError) => {
-                console.log('[API] 文件上传重试失败:', retryError);
+                if (debug) {
+                  console.log('[API] 文件上传重试失败:', retryError);
+                }
                 reject(retryError);
               });
           },
           // 登录失败回调
           (loginError) => {
-            console.log('[API] 登录失败，无法重试文件上传:', loginError);
-            reject(loginError || error);
+            if (debug) {
+              console.log('[API] 登录失败，无法重试文件上传:', loginError);
+            }
+            reject(loginError || new Error('登录失败'));
           }
         );
       });
     }
-    // 抛出错误
+
+    // 规则2: 当thr == true时，要弹窗提示用户，展示错误信息
+    if (resData.thr === true) {
+      const errorMessage = `${resData.code || ''}: ${resData.msg || '未知错误'}`;
+      if (debug) {
+        console.log('[API] 显示错误提示:', errorMessage);
+      }
+      wx.showToast({
+        title: resData.msg || '上传失败',
+        icon: 'none',
+        duration: 3000
+      });
+
+      // 抛出错误，包含完整的错误信息
+      const error = new Error(errorMessage);
+      error.code = resData.code;
+      error.details = resData.errs || [];
+      throw error;
+    }
+
+    // 规则3: 其他情况，将业务数据负载提取出来，向上传递给调用方
+    return resData.data;
+  } catch (error) {
+    // 详细记录错误信息
+    if (debug) {
+      console.log('[API] 文件上传出错捕获:', error);
+      // 打印错误堆栈
+      console.log('[API] 错误堆栈信息:', error.stack || '无堆栈信息');
+    }
+
+    // 处理网络错误或其他异常情况
+    if (!error.code) {
+      // 网络错误等非业务错误，提取微信小程序的错误信息
+      const errorMsg = error.errMsg || error.message || '文件上传失败';
+      throw new Error(errorMsg);
+    }
+
+    // 抛出业务错误
     throw error;
   }
 }
