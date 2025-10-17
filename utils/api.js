@@ -9,6 +9,7 @@ initEventBus();
 
 // Token相关常量
 const X_USER_TOKEN = 'x-user-token';
+const AUTHORIZATION = 'authorization';
 
 /**
  * 获取Cookie（在微信小程序中使用storage代替）
@@ -72,6 +73,15 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     const token = userToken();
     if (token) {
       requestHeaders[X_USER_TOKEN] = token;
+      requestHeaders[AUTHORIZATION] = token;
+    } else {
+      await login(
+        (res) => {
+          requestHeaders[X_USER_TOKEN] = res;
+          requestHeaders[AUTHORIZATION] = res;
+        },
+        () => {}
+      );
     }
   }
 
