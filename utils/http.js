@@ -88,6 +88,8 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
   return new Promise((resolve, reject) => {
     const makeRequest = () => {
       let requestCompleted = false;
+      // 打印日期和请求信息日志
+      console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 开始请求: ${url}`);
       const timer = setTimeout(() => {
         if (!requestCompleted) {
           const timeoutError = { errMsg: `请求超时：${url}`, timeout: true };
@@ -99,17 +101,23 @@ function request(method, baseUrl, context, uri, quires, headers, data, timeout =
       wx.request({
         ...requestConfig,
         success: (res) => {
+          // 打印debug日志
+          console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求成功: ${url}, 状态码: ${res.statusCode}`);
           requestCompleted = true;
           clearTimeout(timer);
           // 直接将所有响应结果传递给调用方，包括错误状态码的响应
           resolve(res);
         },
         fail: (error) => {
+          // 打印debug日志
+          console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求失败: ${url}, 错误:`, error);
           requestCompleted = true;
           clearTimeout(timer);
           reject(error);
         },
         complete: () => {
+          // 打印debug日志
+          console.log(`[HTTP DEBUG] ${new Date().toISOString()} - 请求完成: ${url}`);
           requestCompleted = true;
           clearTimeout(timer);
         }
