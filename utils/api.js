@@ -471,33 +471,11 @@ function doLogin(code, success, fail) {
   // 使用Promise处理post请求
   post('/open/user/auth/login', body, null, headers, 0, 10000, true)
     .then(response => {
-      console.log('===========  ' + response);
-      // 成功函数业务逻辑
-      if (response && response.code === '0' && response.data) {
-        // 从响应体中提取令牌
-        const token = response.data;
-
-        // 调用wx-api.js的setUserToken函数，设置用户令牌
-        setUserToken(token);
-
-        // 发布用户登录令牌更新事件
-        console.log('使用事件总线发布用户登录令牌更新事件');
-        wx.$emit('userTokenUpdated', { token });
-
-        // 调用成功回调
-        if (typeof success === 'function') {
-          success(response);
-        }
-      } else {
-        // 业务逻辑失败
-        const errorMessage = response?.msg || '登录失败';
-        // 发布登录失败事件
-        console.log('使用事件总线发布登录失败事件');
-        wx.$emit('loginFailed', { error: errorMessage });
-        // 调用失败回调
-        if (typeof fail === 'function') {
-          fail(new Error(errorMessage));
-        }
+      setUserToken(response);
+      wx.$emit('userTokenUpdated', { token: response });
+      // 调用成功回调
+      if (typeof success === 'function') {
+        success(response);
       }
     })
     .catch(error => {
