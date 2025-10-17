@@ -142,5 +142,5 @@ function initEventBus() {
 }
 
 // 导出模块
-export default eventBus;
-export { initEventBus };
+module.exports = eventBus;
+module.exports.initEventBus = initEventBus;

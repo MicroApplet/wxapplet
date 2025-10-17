@@ -105,8 +105,8 @@ function refresh() {
     api.get('/rest/user/service/user/session', {
       // 成功回调函数
       success: function(response) {
+        console.log('【session.js】refresh 调用结果', response);
         const sessionInfo = response;
-        console.log('refresh 调用结果', sessionInfo);
         // 从响应体中提取用户会话信息
 
         // 更新应用实例的全局数据（如果应用实例存在）
@@ -119,11 +119,11 @@ function refresh() {
           // 缓存用户会话信息到本地存储
           wx.setStorageSync('userSession', sessionInfo);
 
-          console.log('用户会话信息已更新:', sessionInfo);
+          console.log('【session.js】用户会话信息已更新:', sessionInfo);
         }
 
         // 发布用户会话信息更新事件
-        console.log('使用事件总线发布用户会话信息更新事件');
+        console.log('【session.js】使用事件总线发布用户会话信息更新事件');
         wx.$emit('userSessionUpdated', { sessionInfo });
 
         // 激活一个延时任务，在4分钟后重新调用该函数，获取新的会话令牌
@@ -134,9 +134,9 @@ function refresh() {
 
         // 设置4分钟(240000毫秒)后的定时器
         global.sessionRefreshTimer = setTimeout(() => {
-          console.log('定时刷新用户会话令牌');
+          console.log('【session.js】定时刷新用户会话令牌');
           refresh().catch(error => {
-            console.error('定时刷新会话失败:', error);
+            console.error('【session.js】定时刷新会话失败:', error);
           });
         }, 4 * 60 * 1000);
 
@@ -146,10 +146,10 @@ function refresh() {
       // 失败回调函数
       fail: function(error) {
         // 失败回调函数处理逻辑
-        console.error('获取用户会话失败:', error);
+        console.error('【session.js】获取用户会话失败:', error);
 
         // 发布用户会话获取失败事件
-        console.log('使用事件总线发布用户会话获取失败事件');
+        console.log('【session.js】使用事件总线发布用户会话获取失败事件');
         wx.$emit('userSessionFailed', { error: error.message || String(error) });
 
         // 清除定时器，避免在失败状态下继续尝试刷新
@@ -158,8 +158,6 @@ function refresh() {
           global.sessionRefreshTimer = null;
         }
 
-        // 无论成功失败，都清除Promise引用
-        refreshPromise = null;
         reject(error);
       }
     });
@@ -167,6 +165,7 @@ function refresh() {
 
   // 无论成功失败，最终都清除Promise引用
   refreshPromise.finally(() => {
+    console.log('【session.js】refresh Promise执行完成，清除引用');
     refreshPromise = null;
   });
 
