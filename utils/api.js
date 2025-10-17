@@ -91,6 +91,8 @@ async function request(method, uri, data, quires, headers, timeout = 10000, isLo
     // 详细记录错误信息
     if (debug) {
       console.log('[API] 请求出错捕获:', fullUrl);
+      // 打印错误堆栈
+      console.log('[API] 错误堆栈信息:', error.stack || '无堆栈信息');
       console.log('[API] 错误对象完整信息:', JSON.stringify(error));
     }
 
