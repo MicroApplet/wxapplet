@@ -83,13 +83,23 @@ class UserSession {
   }
 }
 
+// 用于存储正在执行的refresh Promise，防止重复调用
+let refreshPromise = null;
+
 /**
  * 刷新用户会话信息
  * 实现与 api.js 中 userSession 函数相同的功能
  * @returns {Promise<Object>} 用户会话信息
  */
 function refresh() {
-  return new Promise((resolve, reject) => {
+  // 如果已有refresh请求正在进行，直接返回该Promise
+  if (refreshPromise) {
+    console.log('【session.js】refresh请求已在进行中，返回同一Promise');
+    return refreshPromise;
+  }
+
+  // 创建新的Promise并保存引用
+  refreshPromise = new Promise((resolve, reject) => {
     // 调用 api.get 函数获取用户会话信息，使用回调函数方式
     console.log('【session.js】调用 /rest/user/service/user/session 接口获取用户会话信息');
     api.get('/rest/user/service/user/session', {
@@ -147,10 +157,19 @@ function refresh() {
           global.sessionRefreshTimer = null;
         }
 
+        // 无论成功失败，都清除Promise引用
+        refreshPromise = null;
         reject(error);
       }
     });
   });
+
+  // 无论成功失败，最终都清除Promise引用
+  refreshPromise.finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
 }
 
 module.exports = {
