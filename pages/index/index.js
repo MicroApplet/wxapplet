@@ -1,8 +1,8 @@
 //index.js
 
-// 导入API工具
-const api = require('../../utils/api');
+// 导入工具和会话管理
 const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
+const { refresh } = require('../../utils/session.js');
 
 Page({
   data: {
@@ -37,43 +37,50 @@ Page({
     const app = getApp();
     app.registerPage(this);
 
-    // 获取用户会话信息
-    this.getUserSessionInfo();
+    // 从session.js获取用户会话信息
+    this.updateUserSessionInfo();
 
     // 加载文章列表和视频列表
     this.loadArticleList();
     this.loadVideoList();
   },
 
-  // 获取用户会话信息
-  async getUserSessionInfo() {
+  // 从全局数据更新用户会话信息
+  updateUserSessionInfo() {
     try {
       this.setData({ isCheckingRole: true });
-      // 调用获取用户会话接口
-      console.log('【index.js】调用 /rest/user/service/user/session 接口获取用户会话信息');
-      const response = await api.get('/rest/user/service/user/session');
-
-      if (response && response.code === '0' && response.data) {
-        const userData = response.data;
+      // 从全局数据获取会话信息
+      const app = getApp();
+      const userSession = app.globalData.userSession;
+      if (userSession && userSession.roleBit !== undefined) {
         // 检查用户角色
-        this.checkUserRole(userData.roleBit);
+        this.checkUserRole(userSession.roleBit);
       } else {
-        // 没有data或roleBit字段，隐藏整个功能
-        this.setData({
-          showPrescriptionModule: false,
-          isCheckingRole: false
+        // 没有会话信息，尝试从session.js刷新
+        refresh().then(() => {
+          // 刷新后再次获取并检查
+          const updatedSession = getApp().globalData.userSession;
+          if (updatedSession && updatedSession.roleBit !== undefined) {
+            this.checkUserRole(updatedSession.roleBit);
+          } else {
+            this.setData({
+              showPrescriptionModule: false,
+              isCheckingRole: false
+            });
+          }
+        }).catch(() => {
+          this.setData({
+            showPrescriptionModule: false,
+            isCheckingRole: false
+          });
         });
-        // 这里不强制跳转登录页，让用户可以继续使用首页其他功能
-        console.log('用户未登录或会话过期，显示首页基础内容');
       }
     } catch (error) {
-      console.error('获取用户会话信息失败:', error);
+      console.error('更新用户会话信息失败:', error);
       this.setData({
         showPrescriptionModule: false,
         isCheckingRole: false
       });
-      // 捕获到错误时也不强制跳转登录页，让用户可以继续使用首页其他功能
-      console.log('获取会话信息出错，显示首页基础内容');
     }
   },
 
@@ -499,15 +506,15 @@ Page({
   // 生命周期函数--监听页面显示
   onShow: function () {
     console.log('首页显示');
-    // 重新获取用户会话信息，确保显示最新数据
-    this.getUserSessionInfo();
+    // 重新从全局数据更新用户会话信息，确保显示最新数据
+    this.updateUserSessionInfo();
   },
 
   // 监听全局会话信息变更
   onGlobalDataChange: function() {
-    // 用户会话信息发生变更，重新获取数据
+    // 用户会话信息发生变更，重新更新数据
     console.log('全局会话信息变更，刷新首页模块');
-    this.getUserSessionInfo();
+    this.updateUserSessionInfo();
   },
 
   // 生命周期函数--监听页面隐藏
@@ -564,14 +571,22 @@ Page({
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          // 清除本地存储的用户信息和token
+          // 清除本地存储的用户信息和会话
           try {
             wx.removeStorageSync('userToken');
             wx.removeStorageSync('userInfo');
+            wx.removeStorageSync('userSession');
 
             // 清除全局数据
             const app = getApp();
             app.globalData.userInfo = null;
+            app.globalData.userSession = null;
+
+            // 清除定时器
+            if (global.sessionRefreshTimer) {
+              clearTimeout(global.sessionRefreshTimer);
+              global.sessionRefreshTimer = null;
+            }
           } catch (e) {
             console.error('清除用户信息失败:', e);
           }
