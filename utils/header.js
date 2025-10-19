@@ -6,10 +6,10 @@ const { getUserSession, isExpired } = require('./session');
 const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType } = require('./env');
 
 /**
- * 获取用户令牌
- * @returns {Promise<string>} 用户令牌
+ * 获取用户令牌（同步版本）
+ * @returns {string} 用户令牌
  */
-async function userToken() {
+function userToken() {
   try {
     // 1. 从本地存储中获取 x-user-token
     const localToken = wx.getStorageSync('x-user-token');
@@ -28,63 +28,12 @@ async function userToken() {
       return userSession.token;
     }
     
-    // 6. 调用 wx.login 获取登录凭证
-    return new Promise((resolve, reject) => {
-      wx.login({
-        success: async (loginRes) => {
-          if (loginRes.code) {
-            try {
-              // 6.1 构建登录URL
-              const loginUrl = open('/user/auth/login');
-              
-              // 6.2 构建请求头（传入tryLogin为true避免无限循环）
-              const headers = header(null, true);
-              
-              // 6.3 构建请求体
-              const requestData = { code: loginRes.code };
-              
-              // 6.4 调用 wx.request 进行登录请求
-              wx.request({
-                url: loginUrl,
-                method: 'POST',
-                header: headers,
-                data: requestData,
-                success: (res) => {
-                  try {
-                    // 6.4.1 调用 parse 函数解析返回结果
-                    const token = parse(res);
-                    
-                    // 6.4.2 将返回结果存储到本地存储中
-                    if (token) {
-                      wx.setStorageSync('x-user-token', token);
-                      resolve(token);
-                    } else {
-                      reject(new Error('登录失败：未获取到有效的用户令牌'));
-                    }
-                  } catch (error) {
-                    reject(error);
-                  }
-                },
-                fail: (error) => {
-                  reject(new Error('登录请求失败：' + error.errMsg));
-                }
-              });
-            } catch (error) {
-              reject(error);
-            }
-          } else {
-            reject(new Error('微信登录失败：' + loginRes.errMsg));
-          }
-        },
-        fail: (error) => {
-          reject(new Error('wx.login 调用失败：' + error.errMsg));
-        }
-      });
-    });
+    // 6. 如果没有找到有效的令牌，返回空字符串
+    return '';
     
   } catch (error) {
     console.error('获取用户令牌失败：', error);
-    throw error;
+    return '';
   }
 }
 
@@ -107,8 +56,8 @@ function header(headers = {}, tryLogin = false) {
   // 2. 如果 tryLogin === false，获取用户令牌并添加到请求头
   if (!tryLogin) {
     try {
-      // 注意：这里使用同步方式获取token，实际使用时可能需要改为异步
-      const token = wx.getStorageSync('x-user-token');
+      // 调用 userToken 函数获取用户令牌
+      const token = userToken();
       if (token && token.trim() !== '') {
         targetHeaders['x-user-token'] = token;
         targetHeaders['authorization'] = token;
