@@ -62,8 +62,29 @@ App({
     } catch (error) {
       console.error('立即刷新会话失败:', error);
     }
+    // 检查会话剩余有效期，如果少于5秒则调用refresh
+    try {
+      const remainingTime = this.globalData.userSession.getRemainingTime();
+      if (remainingTime > 0 && remainingTime < 5000) {
+        console.log('会话即将过期，立即刷新');
+        refresh();
+      }
+    } catch (error) {
+      console.error('检查会话有效期失败:', error);
+    }
     // 设置定时任务：每4分30秒(270000毫秒)调用一次 refresh 函数
     this._sessionRefreshTimer = setInterval(() => {
+      try {
+        // 先检查会话剩余有效期，如果少于5秒则调用refresh
+        const remainingTime = this.globalData.userSession.getRemainingTime();
+        if (remainingTime > 0 && remainingTime < 5000) {
+          console.log('会话即将过期，立即刷新');
+          refresh();
+        }
+      } catch (error) {
+        console.error('检查会话有效期失败:', error);
+      }
+      // 无论如何都调用refresh函数进行定期刷新
       try {
         refresh();
       } catch (error) {
