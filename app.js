@@ -41,66 +41,35 @@ App({
       // 新版本下载失败
       console.log('新版本下载失败');
     });
-
-    // 初始化任务调度器
-    this._initTaskScheduler();
-  },
-
-  // 生命周期回调——监听小程序切后台
-  onHide: function () {
-    // 停止任务调度器
-    this._stopTaskScheduler();
-  },
-
-  // 任务调度器初始化
-  _initTaskScheduler: function() {
-    // 先停止可能存在的任务调度器
-    this._stopTaskScheduler();
-    // 立即执行一次 refresh 函数（小程序启动或切前台时立即刷新）
-    try {
-      refresh();
-    } catch (error) {
-      console.error('立即刷新会话失败:', error);
+    
+    // 清理可能存在的定时器
+    if (this._sessionCheckTimer) {
+      clearInterval(this._sessionCheckTimer);
     }
-    // 检查会话剩余有效期，如果少于5秒则调用refresh
-    try {
-      const remainingTime = this.globalData.userSession.getRemainingTime();
-      if (remainingTime > 0 && remainingTime < 5000) {
-        console.log('会话即将过期，立即刷新');
-        refresh();
-      }
-    } catch (error) {
-      console.error('检查会话有效期失败:', error);
-    }
-    // 设置定时任务：每4分30秒(270000毫秒)调用一次 refresh 函数
-    this._sessionRefreshTimer = setInterval(() => {
+    
+    // 设置每5秒检查一次会话过期状态
+    this._sessionCheckTimer = setInterval(() => {
       try {
-        // 先检查会话剩余有效期，如果少于5秒则调用refresh
         const remainingTime = this.globalData.userSession.getRemainingTime();
-        if (remainingTime > 0 && remainingTime < 5000) {
-          console.log('会话即将过期，立即刷新');
+        // 如果距离过期时间在5秒以内或者已过期，则执行refresh
+        if (remainingTime <= 5000) {
+          console.log('会话即将过期或已过期，执行刷新');
           refresh();
         }
       } catch (error) {
-        console.error('检查会话有效期失败:', error);
+        console.error('检查会话过期状态失败:', error);
       }
-      // 无论如何都调用refresh函数进行定期刷新
-      try {
-        refresh();
-      } catch (error) {
-        console.error('定时刷新会话失败:', error);
-      }
-    }, 270000);
+    }, 5000);
   },
 
-  // 停止任务调度器
-  _stopTaskScheduler: function() {
-    // 清理定时器，确保切后台后不再调用 refresh 函数
-    if (this._sessionRefreshTimer) {
-      clearInterval(this._sessionRefreshTimer);
-      this._sessionRefreshTimer = null;
+  onHide: function () {
+    // 清理会话检查定时器
+    if (this._sessionCheckTimer) {
+      clearInterval(this._sessionCheckTimer);
+      this._sessionCheckTimer = null;
     }
   },
+
 
   // 生命周期回调——监听小程序报错
   onError: function() {
@@ -153,5 +122,7 @@ App({
   // 私有属性 - 注册的页面列表
   _registeredPages: [],
   // 私有属性 - 会话刷新定时器
-  _sessionRefreshTimer: null
+  _sessionRefreshTimer: null,
+  // 私有属性 - 会话检查定时器
+  _sessionCheckTimer: null
 });
