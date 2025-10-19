@@ -1,7 +1,7 @@
 // 引入依赖模块
 const { open } = require('./url');
 const { parse } = require('./response');
-const { header } = require('./header');
+const { userToken } = require('./header');
 
 // userSession 结构体定义
 
@@ -123,25 +123,36 @@ function isExpired(session) {
  */
 function refresh() {
   try {
-    wx.request({
-      url: open('/user/service/user/session'),
-      method: 'GET',
-      header: header(null, false),
-      success: (res) => {
-        // 解析返回结果作为用户会话信息
-        const session = parse(res);
-        // 将session设置到全局数据
-        if (session) {
-          const app = getApp();
-          app.globalData.userSession = UserSession.fromObject(session);
-        } else {
-          console.error('登录失败：未获取到有效的用户会话');
+    // 先尝试获取用户令牌，确保有登录状态
+    // 注意：这里不使用header函数，避免循环引用
+    const token = userToken();
+    if (token && token.trim() !== '') {
+      // 只有在获取到用户令牌后，才调用session接口
+      wx.request({
+        url: open('/user/service/user/session'),
+        method: 'GET',
+        header: {
+          'x-user-token': token,
+          'authorization': token
+        },
+        success: (res) => {
+          // 解析返回结果作为用户会话信息
+          const session = parse(res);
+          // 将session设置到全局数据
+          if (session) {
+            const app = getApp();
+            app.globalData.userSession = UserSession.fromObject(session);
+          } else {
+            console.error('会话刷新失败：未获取到有效的用户会话');
+          }
+        },
+        fail: (error) => {
+          console.error('会话刷新请求失败:', error);
         }
-      },
-      fail: (error) => {
-        console.error('登录请求失败:', error);
-      }
-    });
+      });
+    } else {
+      console.warn('未获取到用户令牌，跳过会话刷新');
+    }
   } catch (error) {
     console.error('刷新会话过程发生错误:', error);
   }
