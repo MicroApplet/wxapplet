@@ -50,6 +50,7 @@ App({
     // 设置每5秒检查一次会话过期状态
     this._sessionCheckTimer = setInterval(() => {
       try {
+        console.log('检查会话过期状态');
         const remainingTime = this.globalData.userSession.getRemainingTime();
         // 如果距离过期时间在5秒以内或者已过期，则执行refresh
         if (remainingTime <= 5000) {
