@@ -35,9 +35,9 @@ function userToken() {
         // 6.4 调用后台接口执行登录
         wx.request({
           url: open('/user/auth/login'),
-          method: 'POST',
-          header: header(null, true),
           data: { code: code.code },
+          header: header(null, true),
+          method: 'POST',
           success: (res) => {
             // 6.4.1 调用 parse 函数解析返回结果作为用户令牌
             const token = parse(res);
