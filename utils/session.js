@@ -82,85 +82,38 @@ class UserSession {
   }
 }
 
+
 /**
- * 同步获取用户会话信息
- * @returns {UserSession} 用户会话信息对象
+ * 从全局数据获取用户会话
+ * @returns {UserSession|null} 用户会话对象
  */
-function refresh() {
-  // 从全局数据获取会话信息
-  const appInstance = getApp();
-  let userSession = null;
-
-  // 1. 尝试从全局数据获取
-  if (appInstance && appInstance.globalData && appInstance.globalData.userSession) {
-    userSession = appInstance.globalData.userSession;
-    console.log('【session.js】从全局数据获取用户会话信息');
+function getUserSession() {
+  try {
+    const app = getApp();
+    const sessionData = app && app.globalData && app.globalData.userSession;
+    return sessionData ? UserSession.fromObject(sessionData) : null;
+  } catch (error) {
+    console.error('获取用户会话失败:', error);
+    return null;
   }
+}
 
-  // 2. 如果全局数据中没有，尝试从本地存储获取
-  if (!userSession) {
-    try {
-      const sessionInfo = wx.getStorageSync('userSession');
-      if (sessionInfo) {
-        userSession = UserSession.fromObject(sessionInfo);
-        console.log('【session.js】从本地存储获取用户会话信息');
-
-        // 更新到全局数据
-        if (appInstance) {
-          appInstance.globalData.userSession = userSession;
-        }
-      }
-    } catch (error) {
-      console.error('【session.js】从本地存储获取会话信息失败:', error);
-    }
+/**
+ * 检查用户会话是否过期
+ * @param {UserSession} session - 用户会话对象
+ * @returns {boolean} 是否已过期
+ */
+function isExpired(session) {
+  try {
+    return session && session.isExpired ? session.isExpired() : true;
+  } catch (error) {
+    console.error('检查会话过期状态失败:', error);
+    return true;
   }
-
-  // 3. 如果全局数据和本地存储都没有，或者会话已过期，调用接口获取
-  if (!userSession || userSession.isExpired()) {
-    try {
-      console.log('【session.js】调用接口获取用户会话信息');
-      // TODO: api.js模块已移除，暂时使用mock数据
-      // const { get } = require('./api');
-      
-      // Mock数据
-      const mockSessionData = {
-        id: 'mock-session-id',
-        token: 'mock-token-123456',
-        appid: 'mock-appid',
-        userid: 'mock-userid',
-        roleBit: 1,
-        chl: 'wxapp',
-        chlAppid: 'mock-chl-appid',
-        chlAppType: 'MINIAPP',
-        chlUserid: 'mock-chl-userid',
-        loginTime: new Date().toISOString(),
-        expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24小时后过期
-      };
-      
-      userSession = UserSession.fromObject(mockSessionData);
-      // 更新到全局数据
-      if (appInstance) {
-        appInstance.globalData.userSession = userSession;
-        console.log('【session.js】用户会话信息已更新到全局数据');
-      }
-      // 更新到本地存储
-      try {
-        wx.setStorageSync('userSession', userSession.toObject());
-        console.log('【session.js】用户会话信息已保存到本地存储');
-      } catch (storageError) {
-        console.error('【session.js】保存会话信息到本地存储失败:', storageError);
-      }
-
-    } catch (apiError) {
-      console.error('【session.js】调用会话接口异常:', apiError);
-      userSession =  null;
-    }
-  }
-
-  return userSession;
 }
 
 module.exports = {
   UserSession,
-  refresh
+  getUserSession,
+  isExpired
 };
