@@ -1,8 +1,8 @@
 //app.js
 // 导入 UserSession 类型
 const { UserSession } = require('./utils/session');
-// 导入事件总线初始化函数
-const { initEventBus } = require('./utils/event-bus');
+// TODO: event-bus模块已移除，后续需要重新实现事件总线功能
+// const { initEventBus } = require('./utils/event-bus');
 
 
 App({
@@ -11,6 +11,7 @@ App({
     // 初始化页面注册列表
     this._registeredPages = [];
     // 初始化事件总线
+    // TODO: event-bus模块已移除，后续需要重新实现事件总线功能
     //initEventBus();
   },
 

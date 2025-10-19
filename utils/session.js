@@ -119,30 +119,37 @@ function refresh() {
   if (!userSession || userSession.isExpired()) {
     try {
       console.log('【session.js】调用接口获取用户会话信息');
-      // 使用api.js中的http工具调用会话接口
-      const { get } = require('./api');
-
-      // 由于api.js中的get方法是异步的，我们需要使用Promise或同步方法
-      // 这里我们使用try-catch包装同步调用
-      const promise = get('/rest/user/service/user/session');
-      promise.then(res => {
-        userSession = UserSession.fromObject(res);
-        // 更新到全局数据
-        if (appInstance) {
-          appInstance.globalData.userSession = userSession;
-          console.log('【session.js】用户会话信息已更新到全局数据');
-        }
-        // 更新到本地存储
-        try {
-          wx.setStorageSync('userSession', userSession.toObject());
-          console.log('【session.js】用户会话信息已保存到本地存储');
-        } catch (storageError) {
-          console.error('【session.js】保存会话信息到本地存储失败:', storageError);
-        }
-      }, err => {
-        console.error('【session.js】调用会话接口异常:', err);
-        userSession =  null;
-      });
+      // TODO: api.js模块已移除，暂时使用mock数据
+      // const { get } = require('./api');
+      
+      // Mock数据
+      const mockSessionData = {
+        id: 'mock-session-id',
+        token: 'mock-token-123456',
+        appid: 'mock-appid',
+        userid: 'mock-userid',
+        roleBit: 1,
+        chl: 'wxapp',
+        chlAppid: 'mock-chl-appid',
+        chlAppType: 'MINIAPP',
+        chlUserid: 'mock-chl-userid',
+        loginTime: new Date().toISOString(),
+        expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24小时后过期
+      };
+      
+      userSession = UserSession.fromObject(mockSessionData);
+      // 更新到全局数据
+      if (appInstance) {
+        appInstance.globalData.userSession = userSession;
+        console.log('【session.js】用户会话信息已更新到全局数据');
+      }
+      // 更新到本地存储
+      try {
+        wx.setStorageSync('userSession', userSession.toObject());
+        console.log('【session.js】用户会话信息已保存到本地存储');
+      } catch (storageError) {
+        console.error('【session.js】保存会话信息到本地存储失败:', storageError);
+      }
 
     } catch (apiError) {
       console.error('【session.js】调用会话接口异常:', apiError);
