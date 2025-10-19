@@ -1,5 +1,5 @@
 // 引入依赖模块
-const { open } = require('./url');
+const { open,rest } = require('./url');
 const { parse } = require('./response');
 const { userToken } = require('./header');
 
@@ -129,7 +129,7 @@ function refresh() {
     if (token && token.trim() !== '') {
       // 只有在获取到用户令牌后，才调用session接口
       wx.request({
-        url: open('/user/service/user/session'),
+        url: rest('/user/service/user/session'),
         method: 'GET',
         header: {
           'x-user-token': token,
