@@ -1,7 +1,7 @@
 // 引入依赖模块
 const { open,rest } = require('./url');
 const { parse } = require('./response');
-const { userToken } = require('./header');
+const { userToken, header } = require('./header');
 
 // userSession 结构体定义
 
@@ -131,10 +131,7 @@ function refresh() {
       wx.request({
         url: rest('/user/service/user/session'),
         method: 'GET',
-        header: {
-          'x-user-token': token,
-          'authorization': token
-        },
+        header: header(null,false),
         success: (res) => {
           // 解析返回结果作为用户会话信息
           const session = parse(res);
