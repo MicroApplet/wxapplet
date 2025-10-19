@@ -1,3 +1,8 @@
+// 引入依赖模块
+const { open } = require('./url');
+const { parse } = require('./response');
+const { header } = require('./header');
+
 // userSession 结构体定义
 
 class UserSession {
@@ -112,8 +117,39 @@ function isExpired(session) {
   }
 }
 
+/**
+ * 刷新用户会话信息
+ * @returns {void}
+ */
+function refresh() {
+  try {
+    wx.request({
+      url: open('/user/service/user/session'),
+      method: 'GET',
+      header: header(null, false),
+      success: (res) => {
+        // 解析返回结果作为用户会话信息
+        const session = parse(res);
+        // 将session设置到全局数据
+        if (session) {
+          const app = getApp();
+          app.globalData.userSession = UserSession.fromObject(session);
+        } else {
+          console.error('登录失败：未获取到有效的用户会话');
+        }
+      },
+      fail: (error) => {
+        console.error('登录请求失败:', error);
+      }
+    });
+  } catch (error) {
+    console.error('刷新会话过程发生错误:', error);
+  }
+}
+
 module.exports = {
   UserSession,
   getUserSession,
-  isExpired
+  isExpired,
+  refresh
 };
