@@ -13,25 +13,25 @@ function buildUrl(type, uri, queries = {}) {
   if (!uri.startsWith('/')) {
     uri = '/' + uri;
   }
-  
+
   // 构建基础URL
   let url = baseUrl + apiPrefix + '/' + type + uri;
-  
+
   // 处理查询参数
   if (queries && typeof queries === 'object' && Object.keys(queries).length > 0) {
     // 检查URL是否已经包含查询参数
     const hasQuery = url.includes('?');
     const separator = hasQuery ? '&' : '?';
-    
+
     // 转换查询参数对象为查询字符串
     const queryString = Object.entries(queries)
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&');
-    
+
     // 添加查询字符串到URL
     url += separator + queryString;
   }
-  
+
   return url;
 }
 

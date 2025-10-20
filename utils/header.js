@@ -2,7 +2,6 @@
 // 引入依赖模块
 const { open } = require('./url');
 const { parse } = require('./response');
-const { getUserSession, isExpired } = require('./session');
 const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType } = require('./env');
 
 /**
@@ -17,15 +16,6 @@ function userToken() {
   if (localToken && localToken.trim() !== '') {
     return localToken;
   }
-
-  // // 3. 从全局数据中获取 userSession 数据
-  // const userSession = getUserSession();
-
-  // // 4. 如果获取到数据，则校验该数据是否在有效期内
-  // if (userSession && !isExpired(userSession)) {
-  //   // 5. 如果校验通过，则直接返回 userSession 中的 token 字段值
-  //   return userSession.token;
-  // }
 
   // 6 还获取不到用户令牌，执行登录功能并从后台应用中换取用户的 令牌
   wx.login({

@@ -41,12 +41,12 @@ App({
       // 新版本下载失败
       console.log('新版本下载失败');
     });
-    
+
     // 清理可能存在的定时器
     if (this._sessionCheckTimer) {
       clearInterval(this._sessionCheckTimer);
     }
-    
+
     // 设置每5秒检查一次会话过期状态
     this._sessionCheckTimer = setInterval(() => {
       try {

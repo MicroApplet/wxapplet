@@ -1,5 +1,5 @@
 // 引入依赖模块
-const { open,rest } = require('./url');
+const { rest } = require('./url');
 const { parse } = require('./response');
 const { userToken, header } = require('./header');
 
