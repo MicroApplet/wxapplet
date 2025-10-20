@@ -1,8 +1,8 @@
 
 // 引入依赖模块
+const { open } = require('./url');
+const { parse } = require('./response');
 const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType } = require('./env');
-// 引入app.js以使用全局登录函数
-const app = getApp();
 
 /**
  * 获取用户令牌（同步版本）
@@ -17,45 +17,50 @@ function userToken() {
     return localToken;
   }
 
-  // 3. 如果未获取到令牌，调用app.js中的全局performLogin函数
-  // 注意：这里使用Promise的同步方式处理异步登录
-  try {
-    // 创建一个同步阻塞的方式等待异步登录完成
-    let loginCompleted = false;
-    let loginError = null;
-    // 调用全局登录函数
-    app.performLogin().then(() => {
-      loginCompleted = true;
-    }).catch(error => {
-      loginError = error;
-      loginCompleted = true;
-    });
-    // 同步等待登录完成（小程序环境下的阻塞方式）
-    const startTime = Date.now();
-    while (!loginCompleted && Date.now() - startTime < 5000) {
-      // 小程序环境下简单的轮询等待，避免长时间阻塞
-      if (Date.now() - startTime > 100) {
-        // 短暂让出执行权
-        setTimeout(() => {}, 0);
-      }
-    }
-    if (loginError) {
-      throw loginError;
-    }
-  } catch (err) {
-    console.error('登录过程发生错误:', err);
-    throw err;
-  }
+  // 6 还获取不到用户令牌，执行登录功能并从后台应用中换取用户的 令牌
+  wx.login({
+    // 用户授权成功
+    success: (code) => {
+      try {
+        // 6.4 调用后台接口执行登录
+        wx.request({
+          url: open('/user/auth/login'),
+          data: { code: code.code },
+          header: header(null, true),
+          method: 'POST',
+          success: (res) => {
+            // 6.4.1 调用 parse 函数解析返回结果作为用户令牌
+            const token = parse(res);
 
-  // 4. 再次从本地存储中获取 x-user-token
+            // 6.4.2 将返回结果存储到本地存储中
+            if (token) {
+              wx.setStorageSync('x-user-token', token);
+            } else {
+              console.error('登录失败：未获取到有效的用户令牌');
+            }
+          },
+          fail: (error) => {
+            console.error('登录请求失败:', error);
+          }
+        });
+      } catch (err) {
+        console.error('登录过程发生错误:', err);
+      }
+    },
+    fail: (err) => {
+      throw new Error('登录失败：' + err.errMsg);
+    }
+  });
+
+  // 7. 再次从本地存储中获取 x-user-token
   localToken = wx.getStorageSync('x-user-token');
 
-  // 5. 如果获取到数据，且不为空的情况下，直接返回 x-user-token 的值
+  // 8. 如果获取到数据，且不为空的情况下，直接返回 x-user-token 的值
   if (localToken && localToken.trim() !== '') {
     return localToken;
   }
 
-  // 6. 如果还取不到值则报错
+  // 9 如果还取不到值则报错
   throw new Error('未获取到有效的用户令牌');
 }
 

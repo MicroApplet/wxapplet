@@ -1,55 +1,9 @@
 //app.js
 // 导入 UserSession 类型和 refresh 函数
 const { UserSession, refresh } = require('./utils/session');
-// 导入依赖模块
-const { open } = require('./utils/url');
-const { parse } = require('./utils/response');
-const { header } = require('./utils/header');
 // TODO: event-bus模块已移除，后续需要重新实现事件总线功能
 // const { initEventBus } = require('./utils/event-bus');
 
-// 全局登录函数，从header.js迁移
-function performLogin() {
-  return new Promise((resolve, reject) => {
-    wx.login({
-      // 用户授权成功
-      success: (code) => {
-        try {
-          // 调用后台接口执行登录
-          wx.request({
-            url: open('/user/auth/login'),
-            data: { code: code.code },
-            header: header(null, true),
-            method: 'POST',
-            success: (res) => {
-              // 调用 parse 函数解析返回结果作为用户令牌
-              const token = parse(res);
-
-              // 将返回结果存储到本地存储中
-              if (token) {
-                wx.setStorageSync('x-user-token', token);
-                resolve(token);
-              } else {
-                console.error('登录失败：未获取到有效的用户令牌');
-                reject(new Error('登录失败：未获取到有效的用户令牌'));
-              }
-            },
-            fail: (error) => {
-              console.error('登录请求失败:', error);
-              reject(error);
-            }
-          });
-        } catch (err) {
-          console.error('登录过程发生错误:', err);
-          reject(err);
-        }
-      },
-      fail: (err) => {
-        reject(new Error('登录失败：' + err.errMsg));
-      }
-    });
-  });
-}
 
 App({
   // 生命周期回调——监听小程序初始化
@@ -162,9 +116,6 @@ App({
       }
     });
   },
-
-  // 全局登录函数
-  performLogin: performLogin,
 
   // 全局数据
   globalData: {

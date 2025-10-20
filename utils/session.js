@@ -82,8 +82,12 @@ class UserSession {
   getRemainingTime() {
     if (!this.expireAt) return -1;
     const now = new Date();
+    console.log('now:', now);
     const expireTime = new Date(this.expireAt);
-    return expireTime - now;
+    console.log('expireTimenow:', expireTime);
+    const remainingTime = expireTime - now;
+    console.log('remainingTime:', remainingTime);
+    return remainingTime;
   }
 }
 
