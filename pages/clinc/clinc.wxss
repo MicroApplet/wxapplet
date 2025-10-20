@@ -1,0 +1,209 @@
+/* clinc.wxss */
+.container {
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+/* 用药提醒/处方台账模块样式 */
+.prescription-reminder {
+  margin: 3px 3px 20px 3px;
+  padding: 15px;
+  border-radius: 16px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.prescription-reminder-inner {
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.03);
+}
+
+.prescription-reminder-inner:last-child {
+  margin-bottom: 0;
+}
+
+/* 用药提醒样式 - 紧凑一行展示 */
+.reminder-header {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reminder-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: inline-block;
+}
+
+.reminder-subtitle {
+  font-size: 13px;
+  color: #666;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.reminder-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.reminder-label {
+  color: #666;
+  margin-right: 4px;
+}
+
+.reminder-value {
+  color: #333;
+  font-weight: 500;
+}
+
+.reminder-urgent {
+  color: #e64340;
+  font-weight: bold;
+}
+
+/* 处方台账样式 */
+.ledger-header {
+  margin-bottom: 16px;
+}
+
+.ledger-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.ledger-subtitle {
+  font-size: 14px;
+  color: #666;
+  display: block;
+  margin-top: 4px;
+}
+
+.ledger-list {
+  height: 200px;
+}
+
+.ledger-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ledger-patient {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.ledger-date {
+  font-size: 13px;
+  color: #666;
+}
+
+.ledger-status {
+  font-size: 12px;
+  color: #fff;
+  background-color: #1aad19;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+/* 空处方台账状态 */
+.empty-ledger {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 角色加载状态 */
+.role-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1aad19;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 无权限状态 */
+.no-permission {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.no-permission-text {
+  font-size: 16px;
+  color: #999;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 底部信息 */
+.footer {
+  margin-top: auto;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: #999;
+}
