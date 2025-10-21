@@ -1,3 +1,28 @@
+/**
+ * 解析wx.request返回结果
+ * @param {Object} res - wx.request成功回调函数的返回结果
+ * @returns {*} 业务数据负载
+ */
+function authenticated(res, _401AuthCallable = null, _403ForbiddenCallable = null) {
+  console.log('响应信息：', res);
+  console.log('响应状态码：', res.statusCode);
+  if (res.statusCode >= 200 && res.statusCode < 300){
+    return true;
+  }
+
+  if (res.statusCode === 401 && _401AuthCallable && typeof _401AuthCallable === 'function') {
+    console.log('401 未授权错误');
+    _401AuthCallable(res);
+    return false;
+  }
+
+  if (res.statusCode === 403 && _403ForbiddenCallable && typeof _403ForbiddenCallable === 'function') {
+    console.log('403 拒绝访问错误');
+    _403ForbiddenCallable(res);
+    return false;
+  }
+  return false;
+}
 
 /**
  * 解析wx.request返回结果
@@ -29,4 +54,4 @@ function parse(res, pageCallable = null, throwCallable = null) {
 }
 
 // 导出parse函数
-module.exports = { parse };
+module.exports = { parse, authenticated };

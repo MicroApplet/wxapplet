@@ -4,6 +4,11 @@ const { open } = require('./url');
 const { parse } = require('./response');
 const { xAppId, xAppChl, xAppChlAppid, xAppChlAppType } = require('./env');
 
+function refreshUserToken(){
+  wx.removeStorageSync('x-user-token');
+  userToken();
+}
+
 /**
  * 获取用户令牌（同步版本）
  * @returns {string} 用户令牌
@@ -98,4 +103,4 @@ function header(headers = {}, tryLogin = false) {
 }
 
 // 导出函数
-module.exports = { userToken, header };
+module.exports = { userToken, refreshUserToken, header };

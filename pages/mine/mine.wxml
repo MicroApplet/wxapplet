@@ -1,184 +1,136 @@
+<!-- mine.wxml -->
 <view class="container">
-  <!-- 用户信息卡片 -->
-  <view class="user-info-card">
-    <view class="user-header">
-      <view class="avatar-section">
-        <!-- 使用button组件的chooseAvatar能力让用户选择头像 -->
-        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-          <!-- 未授权微信头像时使用默认头像图片 -->
-          <image wx:if="{{!avatarUrl}}" class="avatar" src="/images/default_avatar.jpg" mode="aspectFill"></image>
-          <!-- 已授权头像时显示微信头像 -->
-          <image wx:elif="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
-        </button>
-      </view>
-      
-      <view class="info-section">
-        <!-- 用户信息列表 -->
-        <view class="info-list">
-          <!-- 1. 微信昵称 -->
-          <view class="info-list-item">
-            <view class="info-value">
-              <text wx:if="{{nickname}}" class="user-info-text">{{nickname}}</text>
-              <button wx:else class="authorize-btn" bindtap="authorizeUserInfo" open-type="getUserInfo" size="mini">
-                授权获取昵称
-              </button>
-            </view>
-          </view>
-          
-          <!-- 2. 授权手机号 -->
-          <view class="info-list-item">
-            <view class="info-value">
-              <text wx:if="{{phoneAuthorized && phoneNumber}}" class="user-info-text">{{phoneNumber}}</text>
-              <button wx:else open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" class="authorize-btn" size="mini">
-                授权手机号
-              </button>
-            </view>
-          </view>
-          
-          <!-- 3. 实名信息 -->
-          <view class="info-list-item">
-            <view class="info-value">
-              <text wx:if="{{isRealNameVerified && realNameInfo && realNameInfo.name}}" class="user-info-text">
-                {{realNameInfo.name}} ({{getCnNameById(realNameInfo.type)}}: {{realNameInfo.number}})
-              </text>
-              <button wx:else class="authorize-btn" bindtap="showRealNameForm" type="primary" size="mini">
-                去实名认证
-              </button>
-            </view>
-          </view>
-        </view>
-      </view>
+  <!-- 全局加载遮罩 -->
+  <view class="global-loading-mask" wx:if="{{isLoading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
     </view>
   </view>
-
-<!-- 错误信息显示 -->
-<view wx:if="{{errorMsg}}" class="error-message">
-  <text>{{errorMsg}}</text>
-</view>
-  
-  <!-- 功能模块列表 -->
-  <view class="feature-list" wx:if="{{!isLoading && nickname}}">
-    <!-- 用户基本信息 -->
-    <view class="feature-section">
-      <view class="section-title">账户信息</view>
-      <view class="feature-item">
-        <view class="item-left">
-          <icon class="item-icon" type="user" size="24"></icon>
-          <text class="item-label">昵称</text>
-        </view>
-        <text class="item-value">{{nickname}}</text>
-      </view>
-      
-      <!-- 实名认证信息 -->
-      <view class="feature-item">
-        <view class="item-left">
-          <icon class="item-icon" type="success" size="24" color="{{isRealNameVerified ? '#07c160' : '#666'}}"></icon>
-          <text class="item-label">实名认证</text>
-        </view>
-        <view class="item-right">
-          <text wx:if="{{isRealNameVerified}}" class="value verified">已认证</text>
-          <button wx:elif="{{!isRealNameVerified}}" class="verify-btn" bindtap="showRealNameForm" type="primary" size="mini">
-            去实名认证
-          </button>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 已实名认证时显示脱敏信息 -->
-    <view class="feature-section" wx:if="{{isRealNameVerified && realNameInfo}}">
-      <view class="section-title">认证详情</view>
-      <view class="feature-item">
-        <view class="item-left">
-          <icon class="item-icon" type="info" size="24"></icon>
-          <text class="item-label">姓名</text>
-        </view>
-        <text class="item-value">{{realNameInfo.name}}</text>
-      </view>
-      <view class="feature-item">
-        <view class="item-left">
-          <icon class="item-icon" type="info" size="24"></icon>
-          <text class="item-label">证件类型</text>
-        </view>
-        <text class="item-value">{{getCnNameById(realNameInfo.type)}}</text>
-      </view>
-      <view class="feature-item">
-        <view class="item-left">
-          <icon class="item-icon" type="info" size="24"></icon>
-          <text class="item-label">证件号码</text>
-        </view>
-        <text class="item-value">{{realNameInfo.number}}</text>
-      </view>
-    </view>
-  
-    <!-- 其他功能 -->
-    <view class="feature-section">
-      <view class="section-title">其他功能</view>
-      <view class="feature-item" bindtap="goToLogs">
-        <view class="item-left">
-          <icon class="item-icon" type="success_no_circle" size="24"></icon>
-          <text class="item-label">日志记录</text>
-        </view>
-        <view class="arrow-icon">→</view>
-      </view>
-      <view class="feature-item" bindtap="logout">
-        <view class="item-left">
-          <icon class="item-icon" type="clear" size="24" color="#f5222d"></icon>
-          <text class="item-label logout-text">退出登录</text>
-        </view>
-        <view class="arrow-icon">→</view>
-      </view>
-    </view>
-  </view>
-  
-<!-- 实名认证表单弹窗 -->
-<view wx:if="{{showRealNameForm}}" class="form-modal">
-  <view class="modal-backdrop" bindtap="hideRealNameForm"></view>
-  <view class="modal-content">
-    <view class="modal-header">
-      <text class="modal-title">实名认证</text>
-      <view class="close-btn" bindtap="hideRealNameForm">×</view>
-    </view>
-    
-    <view class="form-container">
-      <!-- 证件类型 -->
-      <view class="form-group">
-        <text class="form-label">请选择证件类型</text>
-        <picker mode="selector" 
-                range="{{availableIdCardTypes}}" 
-                range-key="cnName" 
-                bindchange="onIdTypePickerChange" 
-                value="{{idTypePickerIndex}}">
-          <view class="form-input">
-            <text>{{idTypeCnName || '请选择证件类型'}}</text>
-          </view>
-        </picker>
-      </view>
-      
-      <!-- 证件姓名 -->
-      <view class="form-group">
-        <text class="form-label">请输入证件姓名</text>
-        <input class="form-input" placeholder="请输入证件姓名" value="{{idName}}" data-field="idName" bindinput="onInput" />
-      </view>
-      
-      <!-- 证件号码 -->
-      <view class="form-group">
-        <text class="form-label">请输入证件号码</text>
-        <input class="form-input" placeholder="请输入证件号码" value="{{idNumber}}" data-field="idNumber" bindinput="onInput" />
-      </view>
-    </view>
-    
-    <!-- 人脸认证按钮 -->
-    <view wx:if="{{idName && idNumber}}" class="btn-container">
-      <button class="face-btn" bindtap="performFaceVerification" type="primary">
-        {{isLoading ? '处理中...' : '去认证'}}
+  <!-- 用户信息行 -->
+  <view class="user-info-row">
+    <!-- 用户头像 -->
+    <view  class="avatar-button">
+      <button open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar" class="avatar-button">
+        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
       </button>
-
     </view>
     
-    <!-- 表单未填写完整提示 -->
-    <view wx:elif="{{!isLoading}}" class="form-tip">
-      <text>请先填写完整的身份信息</text>
+    <!-- 用户昵称 -->
+    <view class="user-info">
+      <text class="nickname" bindtap="onNicknameClick">{{userInfo.nickName}}</text>
+    </view>
+    
+    <!-- 昵称修改表单 -->
+    <view class="mask" wx:if="{{showNicknameForm}}" bindtap="onCancelNickname">
+      <view class="mask-content" catchtap="stopPropagation">
+        <form bindsubmit="onNicknameSubmit" class="nickname-form">
+          <view class="form-header">修改昵称</view>
+          <view class="form-content">
+            <input type="nickname" class="nickname-input" name="nickname" value="{{tempNickname}}" placeholder="请输入昵称" focus="{{showNicknameForm}}" />
+          </view>
+          <view class="form-buttons">
+            <button form-type="submit" class="submit-button">确定</button>
+            <button bindtap="onCancelNickname" class="cancel-button">取消</button>
+          </view>
+        </form>
+      </view>
+    </view>
+    
+    <!-- 用户手机号 - 可点击进行授权 -->
+    <view class="phone-container">
+      <button open-type="getPhoneNumber" bind:getphonenumber="onGetPhoneNumber" class="phone-button">
+        <text class="phone-number">{{userInfo.phoneNumber}}</text>
+      </button>
+    </view>
+    
+    <!-- 证件按钮 -->
+    <view class="id-card-container">
+      <button bindtap="onIdCardClick" class="id-card-button">
+        <text class="id-card-text">证件</text>
+      </button>
     </view>
   </view>
-</view>
+  
+  
+  <!-- 证件信息展示弹窗 -->
+  <view class="mask" wx:if="{{showIdCardInfo}}" bindtap="onCloseIdCardInfo">
+    <view class="mask-content" catchtap="stopPropagation">
+      <view class="form-header">证件信息</view>
+      <view class="form-content">
+        <view class="info-item" wx:if="{{realNameInfo.type}}">
+          <text class="info-label">类型：</text>
+          <text class="info-value">{{realNameInfo.typeName}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.name}}">
+          <text class="info-label">姓名：</text>
+          <text class="info-value">{{realNameInfo.name}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.number}}">
+          <text class="info-label">号码：</text>
+          <text class="info-value">{{realNameInfo.number}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.gender}}">
+          <text class="info-label">性别：</text>
+          <text class="info-value">{{realNameInfo.gender}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.nationality}}">
+          <text class="info-label">国籍：</text>
+          <text class="info-value">{{realNameInfo.nationality}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.brithday}}">
+          <text class="info-label">生日：</text>
+          <text class="info-value">{{realNameInfo.brithday}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.address}}">
+          <text class="info-label">地址：</text>
+          <text class="info-value">{{realNameInfo.address}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.issue}}">
+          <text class="info-label">机关：</text>
+          <text class="info-value">{{realNameInfo.issue}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.issueDate}}">
+          <text class="info-label">日期：</text>
+          <text class="info-value">{{realNameInfo.issueDate}}</text>
+        </view>
+        <view class="info-item" wx:if="{{realNameInfo.issueExpires}}">
+          <text class="info-label">期至：</text>
+          <text class="info-value">{{realNameInfo.issueExpires}}</text>
+        </view>
+      </view>
+      <view class="form-buttons">
+        <button bindtap="onCloseIdCardInfo" class="submit-button">关闭</button>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 实名认证弹窗 -->
+  <view class="mask" wx:if="{{showIdCardAuth}}" bindtap="onCloseIdCardAuth">
+    <view class="mask-content" catchtap="stopPropagation">
+      <form bindsubmit="onIdCardAuthSubmit" class="nickname-form">
+        <view class="form-header">实名认证</view>
+        <view class="form-content">
+          <view class="form-item">
+            <text class="form-label">证件：</text>
+            <picker mode="selector"   range="{{availableIdCardTypes}}" range-key="cnName" bindchange="onIdCardTypeChange" value="{{idCardTypeIndex}}">
+              <view class="nickname-input">{{selectedIdCardType.cnName || '请选择证件类型'}}</view>
+            </picker>
+          </view>
+          <view class="form-item">
+            <text class="form-label">姓名：</text>
+            <input type="text" class="nickname-input" name="name" placeholder="请输入证件姓名" />
+          </view>
+          <view class="form-item">
+            <text class="form-label">号码：</text>
+            <input type="text" class="nickname-input" name="number" placeholder="请输入证件编号" />
+          </view>
+        </view>
+        <view class="form-buttons">
+          <button form-type="submit" class="submit-button">确定</button>
+          <button bindtap="onCloseIdCardAuth" class="cancel-button">取消</button>
+        </view>
+      </form>
+    </view>
+  </view>
 </view>

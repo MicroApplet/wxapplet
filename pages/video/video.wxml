@@ -1,43 +1,10 @@
 <!--video.wxml-->
 <view class="container">
-  <!-- 隐藏的视频播放组件，用于实际播放视频 -->
-  <video id="myVideo" style="width: 1px; height: 1px; opacity: 0;"></video>
-  
-  <!-- 视频模块 -->
-  <view class="video-section">
-    <view class="section-header">
-      <text class="section-title">热门视频</text>
-    </view>
-    
-    <!-- 横向滚动视频列表 -->
-    <scroll-view class="video-scroll-list" scroll-x enable-flex>
-      <!-- 视频列表 -->
-      <block wx:if="{{videoList.length > 0}}">
-        <view wx:for="{{videoList}}" wx:key="id" class="video-item" bindtap="playVideo" data-id="{{item.id}}" data-url="{{item.url}}">
-          <view class="video-thumbnail-container">
-            <image class="video-thumbnail" src="{{item.thumbnail}}" mode="aspectFill"></image>
-            <view class="video-duration">{{item.duration}}</view>
-            <view class="play-icon"></view>
-          </view>
-          <text class="video-title">{{item.title}}</text>
-          <text class="video-views">{{item.views}} 次观看</text>
-        </view>
-      </block>
-      
-      <!-- 视频列表为空 -->
-      <view wx:elif="{{!isVideoLoading}}" class="empty-video-state">
-        <text class="empty-video-text">暂无视频数据</text>
-      </view>
-      
-      <!-- 视频加载中 -->
-      <view wx:if="{{isVideoLoading}}" class="video-loading">
-        <view class="loading-spinner-small"></view>
-      </view>
-    </scroll-view>
+  <view class="header">
+    <text class="page-title">{{pageTitle}}</text>
   </view>
-
-  <!-- 底部信息 -->
-  <view class="footer">
-    <text class="footer-text">© 2023 文章阅读小程序</text>
+  
+  <view class="intro-section">
+    <text class="intro-text">{{introText}}</text>
   </view>
 </view>

@@ -1,7 +1,7 @@
 // 引入依赖模块
 const { rest } = require('./url');
-const { parse } = require('./response');
-const { userToken, header } = require('./header');
+const { parse, authenticated } = require('./response');
+const { userToken, refreshUserToken, header } = require('./header');
 
 // userSession 结构体定义
 
@@ -135,16 +135,29 @@ function refresh() {
       wx.request({
         url: rest('/user/service/user/session'),
         method: 'GET',
-        header: header(null,false),
+        header: header(null, false),
         success: (res) => {
-          // 解析返回结果作为用户会话信息
-          const session = parse(res);
-          // 将session设置到全局数据
-          if (session) {
-            const app = getApp();
-            app.globalData.userSession = UserSession.fromObject(session);
+          const isAuthenticated = authenticated(
+            res,
+            () => {
+              console.log('执行401回调');
+              refreshUserToken();
+              refresh(); // 刷新会话
+            },
+            () => {}
+          );
+          if (isAuthenticated) {
+            // 解析返回结果作为用户会话信息
+            const session = parse(res);
+            // 将session设置到全局数据
+            if (session) {
+              const app = getApp();
+              app.globalData.userSession = UserSession.fromObject(session);
+            } else {
+              console.error('会话刷新失败：未获取到有效的用户会话');
+            }
           } else {
-            console.error('会话刷新失败：未获取到有效的用户会话');
+            console.error('会话刷新失败：会话已过期');
           }
         },
         fail: (error) => {
