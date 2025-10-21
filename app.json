@@ -27,20 +27,20 @@
       {
         "pagePath": "pages/video/video",
         "text": "视频",
-        "iconPath": "icon/home.png",
-        "selectedIconPath": "icon/home_active.png"
+        "iconPath": "icon/video.png",
+        "selectedIconPath": "icon/video_active.png"
       },
       {
         "pagePath": "pages/article/article",
         "text": "文章",
-        "iconPath": "icon/home.png",
-        "selectedIconPath": "icon/home_active.png"
+        "iconPath": "icon/file-text.png",
+        "selectedIconPath": "icon/file-text_active.png"
       },
       {
         "pagePath": "pages/clinc/clinc",
         "text": "医疗",
-        "iconPath": "icon/home.png",
-        "selectedIconPath": "icon/home_active.png"
+        "iconPath": "icon/activity.png",
+        "selectedIconPath": "icon/activity_active.png"
       },
       {
         "pagePath": "pages/mine/mine",

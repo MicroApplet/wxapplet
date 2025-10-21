@@ -10,7 +10,10 @@ const targetDir = path.join(__dirname, 'icon');
 const icons = [
   { name: 'home', activeName: 'home_active' },
   { name: 'login', activeName: 'login_active' },
-  { name: 'user', activeName: 'user_active' }
+  { name: 'user', activeName: 'user_active' },
+  { name: 'video', activeName: 'video_active' },
+  { name: 'file-text', activeName: 'file-text_active' },
+  { name: 'activity', activeName: 'activity_active' }
 ];
 
 // 颜色配置
