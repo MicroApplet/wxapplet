@@ -1,10 +1,34 @@
 <!--video.wxml-->
-<view class="container">
-  <view class="header">
-    <text class="page-title">{{pageTitle}}</text>
+<view class="video-container" 
+      bindtouchstart="onTouchStart"
+      bindtouchend="onTouchEnd">
+  <!-- 当前播放的视频 -->
+  <video id="myVideo"
+         class="video-player"
+         src="{{videoList[currentVideoIndex].src}}"
+         poster="{{videoList[currentVideoIndex].poster}}"
+         autoplay="false"
+         controls="true"
+         enable-progress-gesture="true"
+         show-center-play-btn="true"
+         show-play-btn="true"
+         show-fullscreen-btn="true"
+         object-fit="cover"
+         binderror="onVideoError"
+         bindloadedmetadata="onVideoLoaded"
+         show-mute-btn="true"
+         enable-play-gesture="true">
+  </video>
+  
+  <!-- 视频信息 -->
+  <view class="video-info">
+    <text class="video-title">{{videoList[currentVideoIndex].title}}</text>
+    <text class="video-description">{{videoList[currentVideoIndex].description}}</text>
   </view>
   
-  <view class="intro-section">
-    <text class="intro-text">{{introText}}</text>
+  <!-- 滑动提示 -->
+  <view class="swipe-hint">
+    <text class="hint-text">上滑切换下一个</text>
+    <text class="hint-text">下滑切换上一个</text>
   </view>
 </view>

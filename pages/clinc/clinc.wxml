@@ -1,5 +1,11 @@
 <!--clinc.wxml-->
 <view class="container">
+  <view class="text">
+    <text class="reminder">
+    等待实现
+    https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/1v1voip.html
+    </text>
+  </view>
   <!-- 用药提醒/处方台账模块 -->
   <view class="prescription-reminder" wx:if="{{showPrescriptionModule}}">
     <!-- 超管/管理员/同时拥有两种权限的用户，同时显示两个模块 -->

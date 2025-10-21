@@ -1,32 +1,119 @@
 /* video.wxss */
-.container {
-  padding: 20rpx;
+/* 重置样式 */
+page {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  background-color: #f7f7f7;
-  min-height: 100vh;
 }
 
-.header {
-  text-align: center;
-  margin: 40rpx 0;
+/* 移除页面默认边距 */
+page {
+  padding: 0;
+  margin: 0;
+  background-color: #000;
 }
 
-.page-title {
-  font-size: 40rpx;
+/* 视频容器 - 完全覆盖除tabBar外的页面 */
+.video-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* 视频播放器 - 完全覆盖容器并保持比例一致 */
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 保持视频比例并覆盖整个容器 */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* 视频信息 - 保持在底部但在tabBar上方 */
+.video-info {
+  position: absolute;
+  bottom: 130rpx; /* 预留tabBar的高度 */
+  left: 0;
+  right: 0;
+  padding: 0 40rpx;
+  color: #fff;
+  z-index: 10;
+}
+
+.video-title {
+  font-size: 36rpx;
   font-weight: bold;
-  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
-.intro-section {
-  background-color: #fff;
-  padding: 30rpx;
-  border-radius: 12rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  text-align: center;
-}
-
-.intro-text {
+.video-description {
   font-size: 28rpx;
-  color: #666;
-  line-height: 1.6;
+  opacity: 0.9;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+/* 滑动提示 */
+.swipe-hint {
+  position: absolute;
+  top: 50%;
+  right: 40rpx;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.hint-text {
+  color: #fff;
+  font-size: 24rpx;
+  opacity: 0.7;
+  margin: 20rpx 0;
+  padding: 10rpx;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 20rpx;
+  writing-mode: vertical-rl;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+/* 渐变遮罩，提升文字可读性 */
+.video-info::before {
+  content: '';
+  position: absolute;
+  bottom: -50rpx;
+  left: 0;
+  right: 0;
+  height: 200rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  z-index: -1;
+}
+
+/* 适配不同尺寸的设备，确保在各种屏幕上都能完全覆盖 */
+@media screen and (min-height: 800px) {
+  .video-info {
+    bottom: 150rpx;
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .video-info {
+    bottom: 120rpx;
+  }
+  
+  .video-title {
+    font-size: 32rpx;
+    margin-bottom: 10rpx;
+  }
+  
+  .video-description {
+    font-size: 24rpx;
+  }
 }
