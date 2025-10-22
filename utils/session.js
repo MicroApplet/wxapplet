@@ -172,9 +172,59 @@ function refresh() {
   }
 }
 
+/**
+ * 刷新用户会话信息并返回Promise
+ * @returns {Promise<void>} 会话刷新Promise
+ */
+function refreshSession() {
+  return new Promise((resolve) => {
+    // 先保存原始的wx.request方法
+    const originalRequest = wx.request;
+    let sessionRequestCompleted = false;
+    
+    // 创建临时的request函数来拦截session刷新请求
+    const tempRequest = (options) => {
+      // 检查是否是session刷新请求
+      if (options.url && options.url.includes('/user/service/user/session') && options.method === 'GET') {
+        // 保存原始success回调
+        const originalSuccess = options.success;
+        
+        // 重写success回调，在完成时标记并resolve
+        options.success = (res) => {
+          if (originalSuccess) {
+            originalSuccess(res);
+          }
+          sessionRequestCompleted = true;
+          resolve();
+        };
+      }
+      
+      // 调用原始的request方法
+      return originalRequest(options);
+    };
+    
+    // 替换wx.request
+    wx.request = tempRequest;
+    
+    // 调用refresh函数
+    refresh();
+    
+    // 添加一个超时机制，防止请求卡住
+    setTimeout(() => {
+      if (!sessionRequestCompleted) {
+        console.log('会话刷新超时，继续加载页面');
+        // 恢复原始的wx.request方法
+        wx.request = originalRequest;
+        resolve();
+      }
+    }, 3000);
+  });
+}
+
 module.exports = {
   UserSession,
   getUserSession,
   isExpired,
-  refresh
+  refresh,
+  refreshSession
 };

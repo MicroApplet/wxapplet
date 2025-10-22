@@ -4,7 +4,7 @@ const { get, put, post } = require('../../utils/api');
 const { xAppId, xAppChl, wxAppId } = require('../../utils/env');
 const {header} = require('../../utils/header');
 const IdCardType = require('../../utils/id-card-type');
-const { refresh } = require('../../utils/session');
+const { refreshSession } = require('../../utils/session');
 
 
 Page({
@@ -40,55 +40,7 @@ Page({
     });
   },
   
-  // 包装refresh函数为Promise，便于等待其完成
-  refreshSession() {
-    return new Promise((resolve) => {
-
-      refresh();
-
-      // 先保存原始的success回调逻辑
-      //const originalSuccess = wx.request.success;
-      
-      // 覆盖wx.request以捕获session刷新完成的时机
-      const originalRequest = wx.request;
-      let sessionRequestCompleted = false;
-      
-      // 创建临时的request函数来拦截session请求
-      const tempRequest = (options) => {
-        // 检查是否是session刷新请求
-        if (options.url && options.url.includes('/user/service/user/session') && options.method === 'GET') {
-          // 保存原始success回调
-          const originalSuccess = options.success;
-          
-          // 重写success回调，在完成时标记并resolve
-          options.success = (res) => {
-            if (originalSuccess) {
-              originalSuccess(res);
-            }
-            sessionRequestCompleted = true;
-            resolve();
-          };
-        }
-        
-        // 调用原始的request方法
-        return originalRequest(options);
-      };
-      
-      // 替换wx.request
-      wx.request = tempRequest;
-      
-      // 调用refresh函数
-      refresh();
-      
-      // 添加一个超时机制，防止请求卡住
-      setTimeout(() => {
-        if (!sessionRequestCompleted) {
-          console.log('会话刷新超时，继续加载页面');
-          resolve();
-        }
-      }, 3000);
-    });
-  },
+  // 直接使用从session.js导入的refreshSession函数
   
   // 加载用户信息的统一方法
   loadUserInfo() {
