@@ -53,7 +53,7 @@ App({
         console.log('检查会话过期状态');
         const remainingTime = this.globalData.userSession.getRemainingTime();
         // 如果距离过期时间在5秒以内或者已过期，则执行refresh
-        if (remainingTime <= 5000) {
+        if (remainingTime <= 50_000) {
           console.log('会话即将过期或已过期，执行刷新');
           refresh();
         } else {

@@ -37,46 +37,8 @@ Page({
     const app = getApp();
     app.registerPage(this);
 
-    // 初始化页面数据
-    this.updateUserSessionInfo();
   },
 
-  /**
-   * 从全局数据更新用户会话信息
-   */
-  updateUserSessionInfo: function() {
-    try {
-      this.setData({ isCheckingRole: true });
-
-      // 从全局数据获取会话信息
-      const app = getApp();
-      const userSession = app.globalData.userSession;
-
-      // 验证会话信息的有效性
-      if (userSession && userSession instanceof UserSession && userSession.roleBit !== undefined && !userSession.isExpired()) {
-        // 会话有效，检查用户角色
-        this.checkUserRole(userSession.roleBit);
-      } else {
-        // 会话无效或不存在，尝试刷新
-        console.log('会话信息无效或不存在，尝试刷新');
-        refresh().then(() => {
-          // 刷新后再次获取并检查
-          const updatedSession = getApp().globalData.userSession;
-          if (updatedSession && updatedSession instanceof UserSession && updatedSession.roleBit !== undefined) {
-            this.checkUserRole(updatedSession.roleBit);
-          } else {
-            this._handleSessionError();
-          }
-        }).catch(error => {
-          console.error('刷新会话失败:', error);
-          this._handleSessionError();
-        });
-      }
-    } catch (error) {
-      console.error('更新用户会话信息失败:', error);
-      this._handleSessionError();
-    }
-  },
 
   /**
    * 处理会话错误的通用逻辑

@@ -30,7 +30,7 @@ Page({
   onLoad() {
     console.log('个人中心页面加载');
     // 在所有操作之前先调用session的refresh函数
-    this.refreshSession().then(() => {
+    refreshSession().then(() => {
       // refresh函数调用完成后，加载其他信息
       this.loadUserInfo();
     }).catch(error => {
