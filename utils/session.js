@@ -133,7 +133,7 @@ function refresh() {
     if (token && token.trim() !== '') {
       // 只有在获取到用户令牌后，才调用session接口
       wx.request({
-        url: rest('/user/service/user/session'),
+        url: rest('/user/session'),
         method: 'GET',
         header: header(null, false),
         success: (res) => {
@@ -185,7 +185,7 @@ function refreshSession() {
     // 创建临时的request函数来拦截session刷新请求
     const tempRequest = (options) => {
       // 检查是否是session刷新请求
-      if (options.url && options.url.includes('/user/service/user/session') && options.method === 'GET') {
+      if (options.url && options.url.includes('/user/session') && options.method === 'GET') {
         // 保存原始success回调
         const originalSuccess = options.success;
         

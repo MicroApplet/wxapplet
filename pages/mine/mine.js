@@ -79,7 +79,7 @@ Page({
   // 获取证件状态信息
   getIdCardStatus: function() {
     wx.showLoading({ title: '加载中' });
-    get(rest( '/user/service/user/id-card/status'))
+    get(rest( '/user/id-card/status'))
       .then(res => {
         wx.hideLoading();
         if (res && res.isVerified && res.realNameInfo) {
@@ -142,7 +142,7 @@ Page({
       // verifyChl 和 verifyParam 暂时不传
     };
     
-    post(rest( '/user/service/user/id-card/authenticate'), requestData)
+    post(rest( '/user/id-card/authenticate'), requestData)
       .then(res => {
         wx.hideLoading();
         wx.showToast({ title: '实名认证成功', icon: 'success' });
@@ -175,7 +175,7 @@ Page({
   // 从后台获取用户昵称
   getNicknameFromBackend() {
     const that = this;
-    get(rest('/user/service/user/nickname'))
+    get(rest('/user/nickname'))
     .then(res => {
         console.log('从后台获取昵称成功:', res);
         that.setData({
@@ -204,7 +204,7 @@ Page({
   // 从后台获取用户头像
   getAvatarFromBackend() {
     const that = this;
-    get(rest('/user/service/user/avatar'))
+    get(rest('/user/avatar'))
       .then(res => {
         console.log('从后台获取头像成功:', res);
         let avatarUrl = res;
@@ -285,7 +285,7 @@ Page({
       });
       
       // 调用后台接口更新昵称
-      put(rest('/user/service/user/nickname'), { data: { nickname: nickname}})
+      put(rest('/user/nickname'), { data: { nickname: nickname}})
         .then(res => {
           // 隐藏加载提示
           wx.hideLoading();
@@ -380,7 +380,7 @@ Page({
     } else {
       // 使用文件上传方式（由于api.js中未封装uploadFile，暂时保留原生调用）
         wx.uploadFile({
-          url: rest('/user/service/user/avatar'),
+          url: rest('/user/avatar'),
           header: header(),
           filePath: tempFilePath,
           name: 'avatar',
@@ -433,7 +433,7 @@ Page({
   getUserPhoneNumber() {
     const that = this;
     // 调用后台接口获取用户授权手机号
-    get(rest(  '/user/service/user/phone'))
+    get(rest(  '/user/phone'))
       .then(res => {
         console.log('从后台获取手机号成功:', res);
         // 如果返回结果不为空且有长度则直接显示，否则显示请授权手机号
@@ -481,7 +481,7 @@ Page({
       };
       
       // 调用后台接口进行手机号注册
-      post( rest( '/user/service/user/registrar/register'),data)
+      post( rest( '/user/registrar/register'),data)
         .then(res => {
           // 隐藏加载提示
           wx.hideLoading();
