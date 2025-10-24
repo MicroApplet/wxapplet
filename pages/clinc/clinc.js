@@ -17,13 +17,10 @@ Page({
     hasPermission: true,
     prescriptionData: [],
     isProfessionalUser: false,
-    filterType: 'none', // 筛选类型：none, name, idNo, phone
     searchValue: '', // 搜索值
-    searchParams: {
-      name: '',
-      idNo: '',
-      phone: ''
-    },
+    selectedSearchType: 'none', // 选中的搜索类型：none, name, idNo, phone
+    showSearchOptions: false, // 是否显示搜索选项下拉表
+    showSearchInput: false, // 是否显示搜索输入框
     pagination: {
       page: 1,
       size: 3,
@@ -105,9 +102,9 @@ Page({
       size
     };
     
-    // 如果是专业用户且选择了筛选类型，则添加对应的搜索参数
-    if (that.data.isProfessionalUser && that.data.filterType !== 'none') {
-      queryParams[that.data.filterType] = that.data.searchValue;
+    // 如果是专业用户且选择了搜索类型，则添加对应的搜索参数
+    if (that.data.isProfessionalUser && that.data.selectedSearchType !== 'none') {
+      queryParams[that.data.selectedSearchType] = that.data.searchValue;
     }
 
     // 调用后台接口，传入分页回调函数
@@ -177,27 +174,47 @@ Page({
   },
 
   /**
-   * 切换筛选类型
+   * 显示搜索选项下拉表
    */
-  onFilterTypeChange: function(e) {
-    const type = e.currentTarget.dataset.type;
+  showSearchOptions: function() {
     this.setData({
-      filterType: type,
-      searchValue: '', // 切换类型时清空搜索值
-      'pagination.page': 1,
-      prescriptionData: []
+      showSearchOptions: true,
+      showSearchInput: false
     });
+  },
+
+  /**
+   * 选择搜索选项
+   */
+  selectSearchOption: function(e) {
+    const type = e.currentTarget.dataset.type;
     
-    // 如果切换到"不筛选"，直接重新加载数据
     if (type === 'none') {
+      // 取消搜索，重置所有搜索状态
+      this.setData({
+        showSearchOptions: false,
+        showSearchInput: false,
+        selectedSearchType: 'none',
+        searchValue: '',
+        'pagination.page': 1,
+        prescriptionData: []
+      });
       this.fetchPrescriptionData();
+    } else {
+      // 选择搜索类型，显示输入框
+      this.setData({
+        showSearchOptions: false,
+        showSearchInput: true,
+        selectedSearchType: type,
+        searchValue: ''
+      });
     }
   },
 
   /**
-   * 筛选输入框变化
+   * 搜索输入框变化
    */
-  onFilterInput: function(e) {
+  onSearchInput: function(e) {
     const value = e.detail.value;
     this.setData({
       searchValue: value
@@ -205,14 +222,11 @@ Page({
   },
 
   /**
-   * 执行筛选搜索
+   * 确认搜索
    */
-  onFilterSearch: function() {
-    if (this.data.filterType === 'none') {
-      return;
-    }
-    
+  confirmSearch: function() {
     this.setData({
+      showSearchInput: false,
       'pagination.page': 1,
       prescriptionData: []
     });
@@ -220,19 +234,13 @@ Page({
   },
 
   /**
-   * 清空筛选
+   * 取消搜索输入
    */
-  onFilterClear: function() {
+  cancelSearch: function() {
     this.setData({
-      searchValue: '',
-      'pagination.page': 1,
-      prescriptionData: []
+      showSearchInput: false,
+      searchValue: ''
     });
-    
-    // 如果当前有筛选类型，执行搜索（空值）
-    if (this.data.filterType !== 'none') {
-      this.fetchPrescriptionData();
-    }
   },
 
   /**

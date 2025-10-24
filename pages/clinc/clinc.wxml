@@ -20,25 +20,29 @@
     <view class="prescription-section">
       <view class="section-header">
         <text class="section-title">{{isProfessionalUser ? '处方提醒列表' : '我的处方提醒'}}</text>
-        <text wx:if="{{isProfessionalUser}}" class="total-count">共 {{pagination.total}} 条记录</text>
-      </view>
-
-      <!-- 专业用户搜索筛选区域 -->
-      <view wx:if="{{isProfessionalUser}}" class="filter-section">
-        <view class="filter-tabs">
-          <view class="filter-tab {{filterType === 'none' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="none">不筛选</view>
-          <view class="filter-tab {{filterType === 'name' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="name">姓名</view>
-          <view class="filter-tab {{filterType === 'idNo' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="idNo">证件号</view>
-          <view class="filter-tab {{filterType === 'phone' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="phone">手机号</view>
-        </view>
-        
-        <view class="filter-input-container" wx:if="{{filterType !== 'none'}}">
-          <input class="filter-input" 
-                 placeholder="请输入{{filterType === 'name' ? '姓名' : filterType === 'idNo' ? '证件号' : '手机号'}}" 
-                 value="{{searchValue}}" 
-                 bindinput="onFilterInput" />
-          <button class="filter-btn" bindtap="onFilterSearch">搜索</button>
-          <button class="filter-btn secondary" bindtap="onFilterClear">清空</button>
+        <view wx:if="{{isProfessionalUser}}" class="header-right">
+          <!-- 搜索按钮 -->
+          <button wx:if="{{!showSearchOptions}}" class="search-btn" bindtap="showSearchOptions">搜索</button>
+          
+          <!-- 搜索选项下拉表 -->
+          <view wx:if="{{showSearchOptions}}" class="search-options">
+            <view class="option-item" bindtap="selectSearchOption" data-type="name">姓名</view>
+            <view class="option-item" bindtap="selectSearchOption" data-type="idNo">证件号</view>
+            <view class="option-item" bindtap="selectSearchOption" data-type="phone">手机号</view>
+            <view class="option-item" bindtap="selectSearchOption" data-type="none">取消搜索</view>
+          </view>
+          
+          <!-- 搜索输入区域 -->
+          <view wx:if="{{showSearchInput}}" class="search-input-container">
+            <input class="search-input" 
+                   placeholder="请输入{{selectedSearchType === 'name' ? '姓名' : selectedSearchType === 'idNo' ? '证件号' : '手机号'}}" 
+                   value="{{searchValue}}" 
+                   bindinput="onSearchInput" />
+            <button class="search-confirm-btn" bindtap="confirmSearch">确认</button>
+            <button class="search-cancel-btn" bindtap="cancelSearch">取消</button>
+          </view>
+          
+          <text class="total-count">共 {{pagination.total}} 条记录</text>
         </view>
       </view>
 
