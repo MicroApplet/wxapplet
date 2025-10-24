@@ -1,8 +1,7 @@
 //clinc.js
 const { rest } = require('../../utils/url');
 const { get } = require('../../utils/api');
-const { refreshSession, getUserSession } = require('../../utils/session');
-const { RoleUtil } = require('../../utils/role-enum');
+const { refreshSession } = require('../../utils/session');
 
 /**
  * 医疗页面组件
@@ -17,13 +16,6 @@ Page({
     isLoading: false,
     loadingMore: false,
     hasPermission: true,
-    isProfessionalUser: false,
-    showSearchPickerVisible: false,
-    pickerValue: 0,
-    pickerRange: ['姓名', '证件号', '手机号'],
-    showSearchInput: false,
-    selectedSearchType: '',
-    searchValue: '',
     pagination: {
       page:1,
       size:3,
@@ -67,56 +59,27 @@ Page({
     // 调用refreshSession函数
     refreshSession().then(() => {
       console.log('会话刷新完成');
-      // 检查用户角色
-      that.checkUserRole();
+      // 直接加载处方数据
+      that.fetchPrescriptionData();
     }).catch(error => {
       console.error('刷新会话失败:', error);
       // 即使会话刷新失败，也尝试加载数据
-      that.checkUserRole();
+      that.fetchPrescriptionData();
     });
-  },
-
-  /**
-   * 检查用户角色
-   */
-  checkUserRole: function() {
-    const that = this;
-    const session = getUserSession();
-    
-    // 使用RoleUtil中的isProfessionalUser函数进行专业用户判断
-    const isProfessional = session && RoleUtil.isProfessionalUser(session.getRoleBitBigInt());
-    
-    that.setData({
-      isProfessionalUser: isProfessional
-    });
-    
-    // 加载处方数据
-    that.fetchPrescriptionData();
   },
 
   /**
    * 获取处方数据
    */
-  fetchPrescriptionData: function(isSearch = false) {
+  fetchPrescriptionData: function() {
     const that = this;
     const { page, size } = that.data.pagination;
     
-    // 构建查询参数
+    // 构建查询参数（仅包含分页信息）
     const queryParams = {
       page,
       size
     };
-    
-    // 如果有搜索条件，添加到参数中
-    if (that.data.selectedSearchType && that.data.searchValue) {
-      if (that.data.selectedSearchType === 'name') {
-        queryParams.patientName = that.data.searchValue;
-      } else if (that.data.selectedSearchType === 'idNo') {
-        queryParams.idNo = that.data.searchValue;
-      } else if (that.data.selectedSearchType === 'phone') {
-        queryParams.phone = that.data.searchValue;
-      }
-    }
 
     // 调用后台接口，传入分页回调函数
     get(rest('/clinc/prescription/reminder/list', queryParams), {
@@ -153,8 +116,8 @@ Page({
             };
           });
 
-          // 根据是否是搜索操作决定是替换还是追加数据
-          const updatedData = isSearch ? formattedData : [...that.data.prescriptionData, ...formattedData];
+          // 这里修改为永远替换数据，不考虑是否是搜索操作
+          const updatedData = formattedData;
 
           that.setData({
             prescriptionData: updatedData,
@@ -183,71 +146,7 @@ Page({
       });
   },
 
-  /**
-   * 显示搜索Picker
-   */
-  showSearchPicker: function() {
-    this.setData({
-      showSearchPickerVisible: true,
-      showSearchInput: false
-    });
-  },
 
-  /**
-   * Picker选择变化
-   */
-  onPickerChange: function(e) {
-    const index = e.detail.value;
-    const type = ['name', 'idNo', 'phone'][index];
-    
-    this.setData({
-      pickerValue: index,
-      showSearchPickerVisible: false,
-      showSearchInput: true,
-      selectedSearchType: type,
-      searchValue: ''
-    });
-  },
-
-  /**
-   * 搜索输入框变化
-   */
-  onSearchInput: function(e) {
-    const value = e.detail.value;
-    this.setData({
-      searchValue: value
-    });
-  },
-
-  /**
-   * 确认搜索
-   */
-  confirmSearch: function() {
-    if (!this.data.searchValue.trim()) {
-      wx.showToast({
-        title: '请输入搜索内容',
-        icon: 'none'
-      });
-      return;
-    }
-
-    // 重置分页
-    this.setData({
-      pagination: {
-        ...this.data.pagination,
-        page: 1
-      },
-      noMoreData: false
-    });
-
-    // 执行搜索
-    this.fetchPrescriptionData(true);
-
-    // 隐藏搜索输入框
-    this.setData({
-      showSearchInput: false
-    });
-  },
 
   /**
    * 模拟生成数据
@@ -332,33 +231,7 @@ Page({
     };
   },
 
-  /**
-   * 专业用户点击表格行，显示对应手机号
-   */
-  onRowClick: function(e) {
-    const phone = e.currentTarget.dataset.phone;
-    if (phone) {
-      wx.showModal({
-        title: '用户手机号',
-        content: phone,
-        showCancel: true,
-        cancelText: '关闭',
-        confirmText: '复制',
-        success(res) {
-          if (res.confirm) {
-            wx.setClipboardData({
-              data: phone,
-              success() {
-                wx.showToast({ title: '复制成功', icon: 'success' });
-              }
-            });
-          }
-        }
-      });
-    } else {
-      wx.showToast({ title: '该记录暂无手机号信息', icon: 'none' });
-    }
-  },
+
 
   /**
    * 页面相关事件处理函数--监听用户下拉动作
@@ -391,7 +264,7 @@ Page({
       'pagination.page': this.data.pagination.page + 1
     });
     
-    this.fetchPrescriptionData(false);
+    this.fetchPrescriptionData();
   },
 
   /**

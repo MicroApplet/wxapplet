@@ -19,28 +19,7 @@
     <!-- 处方信息区域 -->
     <view class="prescription-section">
       <view class="section-header">
-        <text class="section-title">{{isProfessionalUser ? '' : '我的处方提醒'}}</text>
-        
-        <!-- 专业用户搜索区域 -->
-        <view wx:if="{{isProfessionalUser}}" class="professional-search-container">
-          <button class="search-btn" bindtap="showSearchPicker" style="position: relative; left: -512rpx; top: 0rpx; width: 76rpx; height: 52rpx; display: block; box-sizing: border-box">搜索</button>
-          
-          <!-- 搜索选项Picker -->
-          <picker wx:if="{{showSearchPickerVisible}}" bindchange="onPickerChange" value="{{pickerValue}}" range="{{pickerRange}}">
-            <view class="picker">
-              当前选择：{{pickerRange[pickerValue]}}
-            </view>
-          </picker>
-          
-          <!-- 搜索输入和确认区域 -->
-          <view wx:if="{{showSearchInput}}" class="search-input-wrapper">
-            <input class="search-input" 
-                   placeholder="请输入{{selectedSearchType === 'name' ? '姓名' : selectedSearchType === 'idNo' ? '证件号' : '手机号'}}" 
-                   value="{{searchValue}}" 
-                   bindinput="onSearchInput" />
-            <button class="confirm-btn" bindtap="confirmSearch">确认</button>
-          </view>
-        </view>
+        <text class="section-title">我的处方提醒</text>
       </view>
 
       <!-- 处方记录表格 -->
@@ -60,7 +39,7 @@
           </view>
           
           <block wx:for="{{prescriptionData}}" wx:key="index">
-            <view class="table-row {{isProfessionalUser ? 'clickable' : ''}}" bindtap="{{isProfessionalUser ? 'onRowClick' : ''}}" data-phone="{{item.phone}}">
+            <view class="table-row">
               <view class="table-cell">{{item.lastDate}}</view>
               <view class="table-cell">{{item.lastDays}} 天</view>
               <view class="table-cell">{{item.nextDate}}</view>
