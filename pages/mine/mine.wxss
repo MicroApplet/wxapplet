@@ -119,7 +119,7 @@
 /* 用户信息（昵称） */
 .user-info {
   text-align: left;
-  left
+  left: 20rpx;
   flex: 1;
 }
 

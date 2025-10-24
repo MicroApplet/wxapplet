@@ -1,5 +1,4 @@
 // 引入依赖模块
-const { rest } = require('./url');
 const { header, refreshUserToken } = require('./header');
 const { parse, authenticated } = require('./response');
 
@@ -156,19 +155,6 @@ function connect(uri, options = {}) {
   return request(uri, { ...options, method: 'CONNECT' });
 }
 
-// 创建REST API对象（默认使用rest类型）
-const restApi = {
-  request: (uri, options = {}) => request(uri, options),
-  get: (uri, options = {}) => get(uri, options),
-  post: (uri, data = {}, options = {}) => post(uri, data, options),
-  put: (uri, data = {}, options = {}) => put(uri, data, options),
-  delete: (uri, options = {}) => del(uri, options),
-  head: (uri, options = {}) => head(uri, options),
-  options: (uri, options = {}) => options(uri, options),
-  trace: (uri, options = {}) => trace(uri, options),
-  connect: (uri, options = {}) => connect(uri, options)
-};
-
 // 导出函数和REST API对象
 module.exports = {
   // 基础方法
@@ -181,7 +167,4 @@ module.exports = {
   options,
   trace,
   connect,
-  
-  // 按类型分组的API
-  rest: restApi
 };

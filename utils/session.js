@@ -11,7 +11,7 @@ class UserSession {
     this.token = ''; // 会话令牌
     this.appid = ''; // 会话所属应用编号
     this.userid = ''; // 用户编号
-    this.roleBit = 0; // 角色位图，参考：role-enum.js
+    this.roleBit = '0'; // 角色位图，参考：role-enum.js (使用字符串存储避免大整数精度问题)
     this.chl = ''; // 会话渠道
     this.chlAppid = ''; // 会话渠道应用编号
     this.chlAppType = ''; // 会话渠道应用类型
@@ -20,12 +20,21 @@ class UserSession {
     this.expireAt = ''; // 过期时间，格式：yyyy-MM-dd'T'HH:mm:ss
   }
 
+  // 创建一个名为getRoleBitBigInt的函数，实现将roleBit转换为BigInt类型
+  getRoleBitBigInt() {
+    console.log('roleBit:', this.roleBit);
+    console.log('roleBit类型:', typeof this.roleBit);
+    console.log('值:', this);
+    return BigInt(this.roleBit);
+  }
+
   /**
    * 从对象创建 UserSession 实例
    * @param {Object} data - 包含会话信息的对象
    * @returns {UserSession} UserSession 实例
    */
   static fromObject(data) {
+    console.log('会话结果:', data);
     const session = new UserSession();
     if (!data) return session;
 
@@ -33,7 +42,9 @@ class UserSession {
     session.token = data.token || '';
     session.appid = data.appid || '';
     session.userid = data.userid || '';
-    session.roleBit = data.roleBit || 0;
+    // 将roleBit转为字符串存储，避免大整数精度问题
+    // 优先使用roleBitStr，如果不存在则使用roleBit
+    session.roleBit = data.roleBitStr !== undefined ? String(data.roleBitStr) : (data.roleBit !== undefined ? String(data.roleBit) : '0');
     session.chl = data.chl || '';
     session.chlAppid = data.chlAppid || '';
     session.chlAppType = data.chlAppType || '';
@@ -152,6 +163,7 @@ function refresh() {
             // 将session设置到全局数据
             if (session) {
               const app = getApp();
+              console.log('会话刷新成功:', session);
               app.globalData.userSession = UserSession.fromObject(session);
             } else {
               console.error('会话刷新失败：未获取到有效的用户会话');

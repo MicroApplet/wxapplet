@@ -130,8 +130,14 @@ const RoleUtil = {
    * @returns {boolean} - 是否为专业用户
    */
   isProfessionalUser(roleBit) {
-    return this.isAuthenticated(roleBit) &&
-           (this.contains(roleBit, RoleCode.NURSE) || this.contains(roleBit, RoleCode.DOCTOR));
+    console.log('用户角色代码:', roleBit);
+    const authenticated = this.isAuthenticated(roleBit);
+    const isNurse =this.contains(roleBit, RoleCode.NURSE);
+    const isDoctor = this.contains(roleBit, RoleCode.DOCTOR);
+    console.log('用户是否登录:', authenticated);
+    console.log('是否护师:', isNurse);
+    console.log('是否医师:', isDoctor);
+    return authenticated && (isNurse || isDoctor);
   },
 
   /**
