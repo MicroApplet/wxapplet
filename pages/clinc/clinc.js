@@ -99,12 +99,12 @@ Page({
     const { name, idNo, phone } = that.data.searchParams;
     
     // 构建查询参数
+    // 非专业用户不能使用搜索参数
     const queryParams = {
       page,
       size,
-      name,
-      idNo,
-      phone
+      // 只有专业用户才能使用搜索参数
+      ...(that.data.isProfessionalUser ? { name, idNo, phone } : {})
     };
 
     // 调用后台接口，传入分页回调函数
@@ -177,6 +177,15 @@ Page({
    * 搜索框输入变化
    */
   onSearchInput: function(e) {
+    // 只有专业用户才能修改搜索参数
+    if (!this.data.isProfessionalUser) {
+      wx.showToast({
+        title: '只有专业用户才能使用搜索功能',
+        icon: 'none'
+      });
+      return;
+    }
+    
     const { field } = e.currentTarget.dataset;
     const { value } = e.detail;
     
@@ -189,6 +198,15 @@ Page({
    * 执行搜索
    */
   onSearch: function() {
+    // 只有专业用户才能执行搜索
+    if (!this.data.isProfessionalUser) {
+      wx.showToast({
+        title: '只有专业用户才能使用搜索功能',
+        icon: 'none'
+      });
+      return;
+    }
+    
     this.setData({
       'pagination.page': 1,
       prescriptionData: []
@@ -200,6 +218,15 @@ Page({
    * 清空搜索
    */
   onClearSearch: function() {
+    // 只有专业用户才能清空搜索
+    if (!this.data.isProfessionalUser) {
+      wx.showToast({
+        title: '只有专业用户才能使用搜索功能',
+        icon: 'none'
+      });
+      return;
+    }
+    
     this.setData({
       searchParams: {
         name: '',
