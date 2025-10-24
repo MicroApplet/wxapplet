@@ -23,7 +23,7 @@ Page({
     },
     pagination: {
       page: 1,
-      size: 10,
+      size: 3,
       total: 0,
       pages: 0
     },
@@ -111,7 +111,7 @@ Page({
     get(rest('/clinc/prescription/reminder/list', queryParams), {
       pageCallable: (response) => {
         // 从完整响应中提取分页信息
-        if (response && response.page !== undefined && response.size !== undefined) {
+        if (response && response.pageable && response.page !== undefined && response.size !== undefined) {
           that.setData({
             pagination: {
               page: response.page || 1,
@@ -141,8 +141,13 @@ Page({
             };
           });
 
+          // 根据是否是加载更多来决定是替换还是追加数据
+          const updatedData = that.data.loadingMore 
+            ? [...that.data.prescriptionData, ...formattedData]
+            : formattedData;
+
           that.setData({
-            prescriptionData: formattedData,
+            prescriptionData: updatedData,
             hasPermission: true,
             noMoreData: res.length < size
           });
@@ -209,14 +214,20 @@ Page({
 
   /**
    * 页面相关事件处理函数--监听用户下拉动作
+   * 根据需求，下拉时加载下一页数据
    */
   onPullDownRefresh: function() {
-    console.log('下拉刷新');
-    this.setData({
-      'pagination.page': 1,
-      prescriptionData: []
-    });
-    this.fetchPrescriptionData();
+    console.log('下拉加载下一页');
+    // 只有在有更多数据且不在加载中的情况下才加载下一页
+    if (!this.data.loadingMore && !this.data.noMoreData) {
+      this.setData({
+        loadingMore: true,
+        'pagination.page': this.data.pagination.page + 1
+      });
+      this.fetchPrescriptionData();
+    } else {
+      wx.stopPullDownRefresh();
+    }
   },
 
   /**
