@@ -2,6 +2,7 @@
 const { rest } = require('../../utils/url');
 const { get } = require('../../utils/api');
 const { refreshSession, getUserSession } = require('../../utils/session');
+const { RoleUtil } = require('../../utils/role-enum');
 
 /**
  * 医疗页面组件
@@ -78,9 +79,8 @@ Page({
     const that = this;
     const session = getUserSession();
     
-    // 简单判断是否为专业用户（根据session.roleBit）
-    // 这里只是示例，实际判断逻辑可能需要根据后台定义的角色位图来确定
-    const isProfessional = session && session.roleBit > 0;
+    // 使用RoleUtil中的isProfessionalUser函数进行专业用户判断
+    const isProfessional = session && RoleUtil.isProfessionalUser(session.roleBit);
     
     that.setData({
       isProfessionalUser: isProfessional
