@@ -1,16 +1,34 @@
 //clinc.js
+const { rest } = require('../../utils/url');
+const { get } = require('../../utils/api');
+const { refreshSession, getUserSession } = require('../../utils/session');
 
 /**
  * 医疗页面组件
- * 基础页面结构
+ * 实现处方提醒查询功能
  */
 Page({
   /**
    * 页面初始数据
    */
   data: {
-    // 基础数据结构
-    isLoading: false
+    isLoading: true,
+    hasPermission: true,
+    prescriptionData: [],
+    isProfessionalUser: false,
+    searchParams: {
+      name: '',
+      idNo: '',
+      phone: ''
+    },
+    pagination: {
+      page: 1,
+      size: 10,
+      total: 0,
+      pages: 0
+    },
+    loadingMore: false,
+    noMoreData: false
   },
 
   /**
@@ -18,13 +36,7 @@ Page({
    */
   onLoad: function () {
     console.log('医疗页面加载');
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function() {
-    console.log('医疗页面渲染完成');
+    this.loadPrescriptionData();
   },
 
   /**
@@ -32,20 +44,158 @@ Page({
    */
   onShow: function() {
     console.log('医疗页面显示');
+    // 如果是专业用户且数据已加载，可以刷新数据
+    if (this.data.isProfessionalUser && this.data.prescriptionData.length > 0) {
+      this.loadPrescriptionData();
+    }
   },
 
   /**
-   * 生命周期函数--监听页面隐藏
+   * 加载处方数据
    */
-  onHide: function() {
-    console.log('医疗页面隐藏');
+  loadPrescriptionData: function() {
+    const that = this;
+    that.setData({
+      isLoading: true
+    });
+
+    // 调用refreshSession函数
+    refreshSession().then(() => {
+      console.log('会话刷新完成');
+      // 检查用户角色
+      that.checkUserRole();
+    }).catch(error => {
+      console.error('刷新会话失败:', error);
+      // 即使会话刷新失败，也尝试加载数据
+      that.checkUserRole();
+    });
   },
 
   /**
-   * 生命周期函数--监听页面卸载
+   * 检查用户角色
    */
-  onUnload: function() {
-    console.log('医疗页面卸载');
+  checkUserRole: function() {
+    const that = this;
+    const session = getUserSession();
+    
+    // 简单判断是否为专业用户（根据session.roleBit）
+    // 这里只是示例，实际判断逻辑可能需要根据后台定义的角色位图来确定
+    const isProfessional = session && session.roleBit > 0;
+    
+    that.setData({
+      isProfessionalUser: isProfessional
+    });
+    
+    // 加载处方数据
+    that.fetchPrescriptionData();
+  },
+
+  /**
+   * 获取处方数据
+   */
+  fetchPrescriptionData: function() {
+    const that = this;
+    const { page, size } = that.data.pagination;
+    const { name, idNo, phone } = that.data.searchParams;
+    
+    // 构建查询参数
+    const queryParams = {
+      page,
+      size,
+      name,
+      idNo,
+      phone
+    };
+
+    // 调用后台接口
+    get(rest('/clinc/prescription/reminder/list', queryParams))
+      .then(res => {
+        console.log('获取处方数据成功:', res);
+        
+        // 处理返回的数据
+        if (res && res.data) {
+          // 格式化数据，计算剩余天数
+          const formattedData = res.data.map(item => {
+            const today = new Date();
+            const nextDate = new Date(item.nextDate);
+            const diffTime = nextDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return {
+              ...item,
+              remainingDays: diffDays
+            };
+          });
+
+          that.setData({
+            prescriptionData: formattedData,
+            pagination: {
+              ...that.data.pagination,
+              total: res.total || 0,
+              pages: res.pages || 0
+            },
+            hasPermission: true,
+            noMoreData: res.data.length < size
+          });
+        }
+      })
+      .catch(error => {
+        console.error('获取处方数据失败:', error);
+        // 处理无权限情况
+        that.setData({
+          hasPermission: false
+        });
+        wx.showToast({
+          title: '获取数据失败',
+          icon: 'none'
+        });
+      })
+      .finally(() => {
+        that.setData({
+          isLoading: false,
+          loadingMore: false
+        });
+        wx.stopPullDownRefresh();
+      });
+  },
+
+  /**
+   * 搜索框输入变化
+   */
+  onSearchInput: function(e) {
+    const { field } = e.currentTarget.dataset;
+    const { value } = e.detail;
+    
+    this.setData({
+      [`searchParams.${field}`]: value
+    });
+  },
+
+  /**
+   * 执行搜索
+   */
+  onSearch: function() {
+    this.setData({
+      'pagination.page': 1,
+      prescriptionData: []
+    });
+    this.fetchPrescriptionData();
+  },
+
+  /**
+   * 清空搜索
+   */
+  onClearSearch: function() {
+    this.setData({
+      searchParams: {
+        name: '',
+        idNo: '',
+        phone: ''
+      },
+      'pagination.page': 1,
+      prescriptionData: []
+    });
+    this.fetchPrescriptionData();
   },
 
   /**
@@ -53,7 +203,24 @@ Page({
    */
   onPullDownRefresh: function() {
     console.log('下拉刷新');
-    wx.stopPullDownRefresh();
+    this.setData({
+      'pagination.page': 1,
+      prescriptionData: []
+    });
+    this.fetchPrescriptionData();
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function() {
+    if (!this.data.loadingMore && !this.data.noMoreData && this.data.isProfessionalUser) {
+      this.setData({
+        loadingMore: true,
+        'pagination.page': this.data.pagination.page + 1
+      });
+      this.fetchPrescriptionData();
+    }
   },
 
   /**
@@ -61,7 +228,7 @@ Page({
    */
   onShareAppMessage: function() {
     return {
-      title: '微信小程序医疗服务',
+      title: '处方提醒服务',
       path: '/pages/clinc/clinc'
     };
   }

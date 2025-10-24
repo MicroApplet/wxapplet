@@ -1,7 +1,111 @@
 <!--clinc.wxml-->
 <view class="container">
-  <view class="page-content">
-    <text class="page-title">医疗页面</text>
-    <text class="page-description">基础页面结构</text>
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 无权限提示 -->
+  <view wx:elif="{{!hasPermission}}" class="no-permission-container">
+    <view class="no-permission-icon">🔒</view>
+    <text class="no-permission-text">您没有权限查看此内容</text>
+  </view>
+
+  <!-- 正常内容 -->
+  <view wx:else class="content-container">
+    <!-- 专业用户搜索区域 -->
+    <view wx:if="{{isProfessionalUser}}" class="search-section">
+      <view class="search-header">
+        <text class="section-title">搜索用户</text>
+      </view>
+      
+      <view class="search-form">
+        <view class="form-item">
+          <text class="form-label">姓名:</text>
+          <input class="form-input" placeholder="请输入姓名" 
+                 value="{{searchParams.name}}" 
+                 data-field="name" 
+                 bindinput="onSearchInput"/>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">证件号:</text>
+          <input class="form-input" placeholder="请输入证件号" 
+                 value="{{searchParams.idNo}}" 
+                 data-field="idNo" 
+                 bindinput="onSearchInput"/>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">手机号:</text>
+          <input class="form-input" placeholder="请输入手机号" 
+                 value="{{searchParams.phone}}" 
+                 data-field="phone" 
+                 bindinput="onSearchInput"/>
+        </view>
+        
+        <view class="search-buttons">
+          <button class="search-btn primary-btn" bindtap="onSearch">搜索</button>
+          <button class="search-btn secondary-btn" bindtap="onClearSearch">清空</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 处方信息区域 -->
+    <view class="prescription-section">
+      <view class="section-header">
+        <text class="section-title">{{isProfessionalUser ? '处方提醒列表' : '我的处方提醒'}}</text>
+        <text wx:if="{{isProfessionalUser}}" class="total-count">共 {{pagination.total}} 条记录</text>
+      </view>
+
+      <!-- 处方记录列表 -->
+      <view class="prescription-list">
+        <view wx:if="{{prescriptionData.length === 0}}" class="empty-state">
+          <text class="empty-text">暂无处方记录</text>
+        </view>
+        
+        <block wx:for="{{prescriptionData}}" wx:key="index">
+          <view class="prescription-card">
+            <view wx:if="{{isProfessionalUser}}" class="patient-info">
+              <text class="patient-name">{{item.phone || '用户'}}</text>
+            </view>
+            
+            <view class="prescription-details">
+              <view class="detail-item">
+                <text class="detail-label">上次处方日期:</text>
+                <text class="detail-value">{{item.lastDate}}</text>
+              </view>
+              
+              <view class="detail-item">
+                <text class="detail-label">处方有效期:</text>
+                <text class="detail-value">{{item.lastDays}} 天</text>
+              </view>
+              
+              <view class="detail-item">
+                <text class="detail-label">下次处方日期:</text>
+                <text class="detail-value">{{item.nextDate}}</text>
+              </view>
+              
+              <view class="detail-item">
+                <text class="detail-label">距离下次处方:</text>
+                <text class="detail-value {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
+                  {{item.remainingDays}} 天
+                </text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{loadingMore}}" class="loading-more">
+        <text>加载更多...</text>
+      </view>
+      
+      <view wx:if="{{noMoreData && prescriptionData.length > 0}}" class="no-more">
+        <text>没有更多数据了</text>
+      </view>
+    </view>
   </view>
 </view>
