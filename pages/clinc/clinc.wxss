@@ -70,111 +70,74 @@
   z-index: 100;
 }
 
-/* 搜索按钮样式 - 简洁扁平化设计 */
+/* 专业用户搜索区域容器 */
+.professional-search-container {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex-wrap: wrap;
+}
+
+/* 搜索按钮样式 */
 .search-btn {
   min-width: 100rpx;
   height: 56rpx;
   line-height: 56rpx;
   padding: 0 20rpx;
-  background: #1aad19;
+  border-radius: 6rpx;
+  background-color: #1989fa;
   color: #fff;
-  font-size: 28rpx;
-  border-radius: 6rpx;
-  border: none;
-  transition: background-color 0.2s;
-}
-
-.search-btn:active {
-  background: #179116;
-}
-
-/* 搜索选项下拉表样式 - 简洁卡片设计 */
-.search-options {
-  position: absolute;
-  top: 66rpx;
-  right: 0;
-  background: #fff;
-  border: 1rpx solid #e8e8e8;
-  border-radius: 6rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
-  z-index: 100;
-  width: 180rpx;
-  overflow: hidden;
-}
-
-.option-item {
-  padding: 20rpx 24rpx;
-  font-size: 28rpx;
-  color: #333;
-  border-bottom: 1rpx solid #f0f0f0;
-  text-align: left;
-}
-
-.option-item:last-child {
-  border-bottom: none;
-  color: #999;
-}
-
-.option-item:active {
-  background: #f5f5f5;
-}
-
-/* 搜索输入区域样式 - 简约无额外装饰 */
-.search-input-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  width: 100%;
-  max-width: 500rpx;
-}
-
-.search-input {
-  width: 100%;
-  height: 68rpx;
-  padding: 0 20rpx;
-  background: #fff;
-  border: 1rpx solid #ddd;
-  border-radius: 6rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
+  text-align: center;
+  display: inline-block;
   box-sizing: border-box;
 }
 
-/* 搜索按钮组 - 行内布局 */
-.search-buttons {
-  display: flex;
-  gap: 12rpx;
-}
-
-.search-confirm-btn {
-  flex: 1;
-  height: 68rpx;
-  line-height: 68rpx;
-  background: #1aad19;
-  color: #fff;
-  font-size: 28rpx;
-  border-radius: 6rpx;
-  border: none;
-  transition: background-color 0.2s;
-}
-
-.search-confirm-btn:active {
-  background: #179116;
-}
-
-.search-cancel-btn {
-  flex: 1;
-  height: 68rpx;
-  line-height: 68rpx;
-  background: #f5f5f5;
-  color: #666;
-  font-size: 28rpx;
-  border-radius: 6rpx;
+/* Picker样式 */
+.picker {
+  padding: 10rpx 20rpx;
   border: 1rpx solid #ddd;
-  transition: background-color 0.2s;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+  background-color: #fff;
+  min-width: 200rpx;
 }
 
-.search-cancel-btn:active {
-  background: #eee;
+/* 搜索输入和确认按钮容器 */
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 搜索输入框样式 */
+.search-input {
+  height: 68rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 6rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  flex: 1;
+  background-color: #fff;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* 确认按钮样式 */
+.confirm-btn {
+  min-width: 80rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 20rpx;
+  border-radius: 6rpx;
+  background-color: #1989fa;
+  color: #fff;
+  font-size: 26rpx;
+  text-align: center;
+  display: inline-block;
+  box-sizing: border-box;
 }
 
 /* 处方信息区域样式 */

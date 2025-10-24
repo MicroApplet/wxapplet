@@ -19,32 +19,27 @@
     <!-- 处方信息区域 -->
     <view class="prescription-section">
       <view class="section-header">
-        <text class="section-title">{{isProfessionalUser ? '处方提醒列表' : '我的处方提醒'}}</text>
-        <view wx:if="{{isProfessionalUser}}" class="header-right">
-          <!-- 搜索按钮 -->
-          <button wx:if="{{!showSearchOptions}}" class="search-btn" bindtap="showSearchOptions">搜索</button>
+        <text class="section-title">{{isProfessionalUser ? '' : '我的处方提醒'}}</text>
+        
+        <!-- 专业用户搜索区域 -->
+        <view wx:if="{{isProfessionalUser}}" class="professional-search-container">
+          <button class="search-btn" bindtap="showSearchPicker" style="position: relative; left: -512rpx; top: 0rpx; width: 76rpx; height: 52rpx; display: block; box-sizing: border-box">搜索</button>
           
-          <!-- 搜索选项下拉表 -->
-          <view wx:if="{{showSearchOptions}}" class="search-options">
-            <view class="option-item" bindtap="selectSearchOption" data-type="name">姓名</view>
-            <view class="option-item" bindtap="selectSearchOption" data-type="idNo">证件号</view>
-            <view class="option-item" bindtap="selectSearchOption" data-type="phone">手机号</view>
-            <view class="option-item" bindtap="selectSearchOption" data-type="none">取消搜索</view>
-          </view>
+          <!-- 搜索选项Picker -->
+          <picker wx:if="{{showSearchPickerVisible}}" bindchange="onPickerChange" value="{{pickerValue}}" range="{{pickerRange}}">
+            <view class="picker">
+              当前选择：{{pickerRange[pickerValue]}}
+            </view>
+          </picker>
           
-          <!-- 搜索输入区域 -->
-          <view wx:if="{{showSearchInput}}" class="search-input-container">
+          <!-- 搜索输入和确认区域 -->
+          <view wx:if="{{showSearchInput}}" class="search-input-wrapper">
             <input class="search-input" 
                    placeholder="请输入{{selectedSearchType === 'name' ? '姓名' : selectedSearchType === 'idNo' ? '证件号' : '手机号'}}" 
                    value="{{searchValue}}" 
                    bindinput="onSearchInput" />
-            <view class="search-buttons">
-              <button class="search-confirm-btn" bindtap="confirmSearch">确认</button>
-              <button class="search-cancel-btn" bindtap="cancelSearch">取消</button>
-            </view>
+            <button class="confirm-btn" bindtap="confirmSearch">确认</button>
           </view>
-          
-          <!-- 已移除记录总数显示 -->
         </view>
       </view>
 

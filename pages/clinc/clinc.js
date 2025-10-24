@@ -13,21 +13,24 @@ Page({
    * 页面初始数据
    */
   data: {
-    isLoading: true,
-    hasPermission: true,
     prescriptionData: [],
-    isProfessionalUser: false,
-    searchValue: '', // 搜索值
-    selectedSearchType: 'none', // 选中的搜索类型：none, name, idNo, phone
-    showSearchOptions: false, // 是否显示搜索选项下拉表
-    showSearchInput: false, // 是否显示搜索输入框
-    pagination: {
-      page: 1,
-      size: 3,
-      total: 0,
-      pages: 0
-    },
+    isLoading: false,
     loadingMore: false,
+    hasPermission: true,
+    isProfessionalUser: false,
+    showSearchPickerVisible: false,
+    pickerValue: 0,
+    pickerRange: ['姓名', '证件号', '手机号'],
+    showSearchInput: false,
+    selectedSearchType: '',
+    searchValue: '',
+    pagination: {
+      page:1,
+      size:3,
+      current: 1,
+      size: 10,
+      total: 0
+    },
     noMoreData: false
   },
 
@@ -92,29 +95,36 @@ Page({
   /**
    * 获取处方数据
    */
-  fetchPrescriptionData: function() {
+  fetchPrescriptionData: function(isSearch = false) {
     const that = this;
-    const { page, size } = that.data.pagination;
+    const { current, size } = that.data.pagination;
     
     // 构建查询参数
     const queryParams = {
-      page,
+      current,
       size
     };
     
-    // 如果是专业用户且选择了搜索类型，则添加对应的搜索参数
-    if (that.data.isProfessionalUser && that.data.selectedSearchType !== 'none') {
-      queryParams[that.data.selectedSearchType] = that.data.searchValue;
+    // 如果有搜索条件，添加到参数中
+    if (that.data.selectedSearchType && that.data.searchValue) {
+      if (that.data.selectedSearchType === 'name') {
+        queryParams.patientName = that.data.searchValue;
+      } else if (that.data.selectedSearchType === 'idNo') {
+        queryParams.idNo = that.data.searchValue;
+      } else if (that.data.selectedSearchType === 'phone') {
+        queryParams.phone = that.data.searchValue;
+      }
     }
 
     // 调用后台接口，传入分页回调函数
     get(rest('/clinc/prescription/reminder/list', queryParams), {
       pageCallable: (response) => {
         // 从完整响应中提取分页信息
-        if (response && response.pageable && response.page !== undefined && response.size !== undefined) {
+        if (response && response.pageable && response.current !== undefined && response.size !== undefined) {
           that.setData({
             pagination: {
-              page: response.page || 1,
+              ...that.data.pagination,
+              current: response.current || 1,
               size: response.size || 10,
               total: response.total || 0,
               pages: response.pages || 0
@@ -141,10 +151,8 @@ Page({
             };
           });
 
-          // 根据是否是加载更多来决定是替换还是追加数据
-          const updatedData = that.data.loadingMore 
-            ? [...that.data.prescriptionData, ...formattedData]
-            : formattedData;
+          // 根据是否是搜索操作决定是替换还是追加数据
+          const updatedData = isSearch ? formattedData : [...that.data.prescriptionData, ...formattedData];
 
           that.setData({
             prescriptionData: updatedData,
@@ -174,41 +182,29 @@ Page({
   },
 
   /**
-   * 显示搜索选项下拉表
+   * 显示搜索Picker
    */
-  showSearchOptions: function() {
+  showSearchPicker: function() {
     this.setData({
-      showSearchOptions: true,
+      showSearchPickerVisible: true,
       showSearchInput: false
     });
   },
 
   /**
-   * 选择搜索选项
+   * Picker选择变化
    */
-  selectSearchOption: function(e) {
-    const type = e.currentTarget.dataset.type;
+  onPickerChange: function(e) {
+    const index = e.detail.value;
+    const type = ['name', 'idNo', 'phone'][index];
     
-    if (type === 'none') {
-      // 取消搜索，重置所有搜索状态
-      this.setData({
-        showSearchOptions: false,
-        showSearchInput: false,
-        selectedSearchType: 'none',
-        searchValue: '',
-        'pagination.page': 1,
-        prescriptionData: []
-      });
-      this.fetchPrescriptionData();
-    } else {
-      // 选择搜索类型，显示输入框
-      this.setData({
-        showSearchOptions: false,
-        showSearchInput: true,
-        selectedSearchType: type,
-        searchValue: ''
-      });
-    }
+    this.setData({
+      pickerValue: index,
+      showSearchPickerVisible: false,
+      showSearchInput: true,
+      selectedSearchType: type,
+      searchValue: ''
+    });
   },
 
   /**
@@ -225,22 +221,113 @@ Page({
    * 确认搜索
    */
   confirmSearch: function() {
+    if (!this.data.searchValue.trim()) {
+      wx.showToast({
+        title: '请输入搜索内容',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 重置分页
     this.setData({
-      showSearchInput: false,
-      'pagination.page': 1,
-      prescriptionData: []
+      pagination: {
+        ...this.data.pagination,
+        current: 1
+      },
+      noMoreData: false
     });
-    this.fetchPrescriptionData();
+
+    // 执行搜索
+    this.fetchPrescriptionData(true);
+
+    // 隐藏搜索输入框
+    this.setData({
+      showSearchInput: false
+    });
   },
 
   /**
-   * 取消搜索输入
+   * 模拟生成数据
    */
-  cancelSearch: function() {
-    this.setData({
-      showSearchInput: false,
-      searchValue: ''
-    });
+  generateMockData: function(params) {
+    // 模拟总数据量
+    const totalCount = 50;
+    // 根据页码和每页大小计算返回的数据
+    const startIndex = (params.current - 1) * params.size;
+    const endIndex = Math.min(startIndex + params.size, totalCount);
+    
+    // 判断是否有更多数据
+    const noMoreData = endIndex >= totalCount;
+    
+    // 生成模拟数据
+    const data = [];
+    for (let i = startIndex; i < endIndex; i++) {
+      // 模拟一些不同的状态
+      const status = i % 4;
+      let statusText = '';
+      let statusColor = '';
+      
+      switch (status) {
+        case 0:
+          statusText = '未执行';
+          statusColor = '#e64340'; // 红色
+          break;
+        case 1:
+          statusText = '执行中';
+          statusColor = '#1aad19'; // 绿色
+          break;
+        case 2:
+          statusText = '已完成';
+          statusColor = '#1989fa'; // 蓝色
+          break;
+        case 3:
+          statusText = '已过期';
+          statusColor = '#999999'; // 灰色
+          break;
+      }
+      
+      data.push({
+        id: `prescription-${i + 1}`,
+        patientName: `患者${i + 1}`,
+        idNo: `11010119900101${String(i + 1).padStart(4, '0')}`,
+        phone: `1380013800${i % 10}`,
+        medicineName: `药品${i % 5 + 1}`,
+        medicineDosage: `${(i % 3 + 1) * 10}mg/${(i % 2 + 1)}次/日`,
+        executionTime: `2023-06-${String(10 + i % 20).padStart(2, '0')} ${String(i % 24).padStart(2, '0')}:00`,
+        status: status,
+        statusText: statusText,
+        statusColor: statusColor
+      });
+    }
+    
+    // 如果有搜索条件，模拟过滤
+    if (params.patientName || params.idNo || params.phone) {
+      const filteredData = data.filter(item => {
+        if (params.patientName && !item.patientName.includes(params.patientName)) {
+          return false;
+        }
+        if (params.idNo && !item.idNo.includes(params.idNo)) {
+          return false;
+        }
+        if (params.phone && !item.phone.includes(params.phone)) {
+          return false;
+        }
+        return true;
+      });
+      
+      return {
+        data: filteredData,
+        total: filteredData.length,
+        noMoreData: true // 搜索结果不分页
+      };
+    }
+    
+    return {
+      data: data,
+      total: totalCount,
+      noMoreData: noMoreData
+    };
   },
 
   /**
@@ -290,16 +377,19 @@ Page({
   },
 
   /**
-   * 页面上拉触底事件的处理函数
+   * 上拉加载更多
    */
   onReachBottom: function() {
-    if (!this.data.loadingMore && !this.data.noMoreData && this.data.isProfessionalUser) {
-      this.setData({
-        loadingMore: true,
-        'pagination.page': this.data.pagination.page + 1
-      });
-      this.fetchPrescriptionData();
+    if (this.data.isLoading || this.data.loadingMore || this.data.noMoreData) {
+      return;
     }
+    
+    this.setData({
+      loadingMore: true,
+      'pagination.current': this.data.pagination.current + 1
+    });
+    
+    this.fetchPrescriptionData(false);
   },
 
   /**
