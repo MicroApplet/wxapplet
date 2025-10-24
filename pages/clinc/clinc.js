@@ -27,8 +27,7 @@ Page({
     pagination: {
       page:1,
       size:3,
-      current: 1,
-      size: 10,
+      pages: 1,
       total: 0
     },
     noMoreData: false
@@ -59,7 +58,10 @@ Page({
   loadPrescriptionData: function() {
     const that = this;
     that.setData({
-      isLoading: true
+      isLoading: true,
+      prescriptionData: [], // 清空现有数据
+      'pagination.page': 1, // 重置为第一页
+      noMoreData: false
     });
 
     // 调用refreshSession函数
@@ -97,11 +99,11 @@ Page({
    */
   fetchPrescriptionData: function(isSearch = false) {
     const that = this;
-    const { current, size } = that.data.pagination;
+    const { page, size } = that.data.pagination;
     
     // 构建查询参数
     const queryParams = {
-      current,
+      page,
       size
     };
     
@@ -120,11 +122,11 @@ Page({
     get(rest('/clinc/prescription/reminder/list', queryParams), {
       pageCallable: (response) => {
         // 从完整响应中提取分页信息
-        if (response && response.pageable && response.current !== undefined && response.size !== undefined) {
+        if (response && response.pageable) {
           that.setData({
             pagination: {
               ...that.data.pagination,
-              current: response.current || 1,
+              page: response.page || 1,
               size: response.size || 10,
               total: response.total || 0,
               pages: response.pages || 0
@@ -233,7 +235,7 @@ Page({
     this.setData({
       pagination: {
         ...this.data.pagination,
-        current: 1
+        page: 1
       },
       noMoreData: false
     });
@@ -386,7 +388,7 @@ Page({
     
     this.setData({
       loadingMore: true,
-      'pagination.current': this.data.pagination.current + 1
+      'pagination.page': this.data.pagination.page + 1
     });
     
     this.fetchPrescriptionData(false);
