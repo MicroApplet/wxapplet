@@ -12,10 +12,12 @@
       class="prescription-list" 
       scroll-y
       style="height: calc(100vh - 120px)"
+      bindscroll="onScroll"
       bindscrolltolower="onReachBottom"
       bindrefresherpulling="onPullDownRefresh"
       refresher-enabled="true"
       refresher-triggered="{{refreshing}}"
+      scroll-with-animation="true"
     >
       <!-- 列表头部 -->
       <view class="list-header">

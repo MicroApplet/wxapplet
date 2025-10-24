@@ -25,6 +25,12 @@ Page({
     },
     noMoreData: false
   },
+  
+  /**
+   * 页面私有变量
+   */
+  lastScrollTop: 0, // 上次滚动位置
+  isLoadingPage: false, // 是否正在加载页面数据
 
   /**
    * 生命周期函数--监听页面加载
@@ -57,6 +63,7 @@ Page({
       noMoreData: false,
       refreshing: false     // 确保刷新状态关闭
     });
+    that.lastScrollTop = 0; // 重置滚动位置
 
     // 调用refreshSession函数
     refreshSession().then(() => {
@@ -146,6 +153,7 @@ Page({
           refreshing: false  // 关闭刷新状态
         });
         wx.stopPullDownRefresh();
+        that.isLoadingPage = false;
       });
   },
 
@@ -237,6 +245,88 @@ Page({
 
 
   /**
+   * 监听滚动事件，根据滚动方向调整页码
+   */
+  onScroll: function(e) {
+    const that = this;
+    const scrollTop = e.detail.scrollTop;
+    const scrollHeight = e.detail.scrollHeight;
+    const clientHeight = e.detail.clientHeight;
+    
+    // 计算滚动到底部的阈值
+    const bottomThreshold = scrollHeight - clientHeight - 10;
+    
+    // 避免频繁触发，只有在页面稳定时才处理滚动方向
+    if (!that.isLoadingPage) {
+      // 向上滑动 - 当滚动到底部附近时，加载下一页
+      if (scrollTop > that.lastScrollTop && scrollTop >= bottomThreshold) {
+        // 确保不是第一页且还有更多数据
+        if (!that.data.noMoreData && !that.data.loadingMore) {
+          console.log('向上滑动，加载下一页');
+          that.loadNextPage();
+        }
+      } 
+      // 向下滑动 - 当滚动到顶部附近且不是第一页时，加载上一页
+      else if (scrollTop < that.lastScrollTop && scrollTop <= 50 && that.data.pagination.page > 1) {
+        // 检查是否可以加载上一页
+        const maxPages = Math.ceil(that.data.pagination.total / that.data.pagination.size);
+        if (!that.isLoadingPage && !that.data.refreshing && !that.data.isLoading && !that.data.loadingMore) {
+          console.log('向下滑动，加载上一页');
+          that.loadPreviousPage();
+        }
+      }
+    }
+    
+    // 更新最后滚动位置
+    that.lastScrollTop = scrollTop;
+  },
+  
+  /**
+   * 加载下一页数据
+   */
+  loadNextPage: function() {
+    const that = this;
+    const currentPage = that.data.pagination.page;
+    const maxPages = Math.ceil(that.data.pagination.total / that.data.pagination.size);
+    
+    // 检查是否还有下一页
+    if (currentPage < maxPages || !that.data.pagination.total) {
+      that.setData({
+        loadingMore: true,
+        'pagination.page': currentPage + 1
+      });
+      that.isLoadingPage = true;
+      that.fetchPrescriptionData().finally(() => {
+        that.isLoadingPage = false;
+      });
+    } else {
+      that.setData({ noMoreData: true });
+    }
+  },
+  
+  /**
+   * 加载上一页数据
+   */
+  loadPreviousPage: function() {
+    const that = this;
+    const currentPage = that.data.pagination.page;
+    
+    // 确保页码不会小于1
+    if (currentPage > 1) {
+      that.isLoadingPage = true;
+      that.setData({
+        isLoading: true,
+        'pagination.page': currentPage - 1
+      });
+      
+      // 加载上一页数据
+      that.fetchPrescriptionData().finally(() => {
+        that.isLoadingPage = false;
+      });
+    }
+  },
+  
+  /**
    * 页面相关事件处理函数--监听用户下拉动作
    * 下拉时重置为第一页并刷新数据
    */
@@ -253,19 +343,12 @@ Page({
   },
 
   /**
-   * 上拉加载更多
+   * 上拉加载更多 - 作为备用触发方式
    */
   onReachBottom: function() {
-    if (this.data.isLoading || this.data.loadingMore || this.data.noMoreData) {
-      return;
+    if (!this.isLoadingPage && !this.data.isLoading && !this.data.loadingMore && !this.data.noMoreData) {
+      this.loadNextPage();
     }
-    
-    this.setData({
-      loadingMore: true,
-      'pagination.page': this.data.pagination.page + 1
-    });
-    
-    this.fetchPrescriptionData();
   },
 
   /**

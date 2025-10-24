@@ -35,6 +35,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
 }
 
 /* 列表头部 */
@@ -64,6 +65,7 @@
   padding: 16px 8px;
   border-bottom: 1px solid #f0f0f0;
   transition: background-color 0.2s;
+  background-color: #fff;
 }
 
 .prescription-item:active {
