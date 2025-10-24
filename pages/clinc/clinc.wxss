@@ -71,14 +71,14 @@
 
 /* 搜索按钮样式 */
 .search-btn {
-  min-width: 120rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  padding: 0 20rpx;
+  min-width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  padding: 0 15rpx;
   background: #1aad19;
   color: #fff;
-  font-size: 28rpx;
-  border-radius: 8rpx;
+  font-size: 26rpx;
+  border-radius: 6rpx;
   border: none;
   margin-bottom: 10rpx;
 }

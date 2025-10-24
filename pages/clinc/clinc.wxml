@@ -42,7 +42,7 @@
             <button class="search-cancel-btn" bindtap="cancelSearch">取消</button>
           </view>
           
-          <text class="total-count">共 {{pagination.total}} 条记录</text>
+          <!-- 已移除记录总数显示 -->
         </view>
       </view>
 
