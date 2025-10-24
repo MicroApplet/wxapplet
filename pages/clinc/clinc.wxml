@@ -72,26 +72,28 @@
             </view>
             
             <view class="prescription-details">
-              <view class="detail-item">
-                <text class="detail-label">上次处方日期:</text>
-                <text class="detail-value">{{item.lastDate}}</text>
+              <view class="detail-row">
+                <view class="detail-item half">
+                  <text class="detail-label">上次日期:</text>
+                  <text class="detail-value">{{item.lastDate}}</text>
+                </view>
+                <view class="detail-item half">
+                  <text class="detail-label">处方天数:</text>
+                  <text class="detail-value">{{item.lastDays}} 天</text>
+                </view>
               </view>
               
-              <view class="detail-item">
-                <text class="detail-label">处方有效期:</text>
-                <text class="detail-value">{{item.lastDays}} 天</text>
-              </view>
-              
-              <view class="detail-item">
-                <text class="detail-label">下次处方日期:</text>
-                <text class="detail-value">{{item.nextDate}}</text>
-              </view>
-              
-              <view class="detail-item">
-                <text class="detail-label">距离下次处方:</text>
-                <text class="detail-value {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
-                  {{item.remainingDays}} 天
-                </text>
+              <view class="detail-row">
+                <view class="detail-item half">
+                  <text class="detail-label">下次日期:</text>
+                  <text class="detail-value">{{item.nextDate}}</text>
+                </view>
+                <view class="detail-item half">
+                  <text class="detail-label">剩余天数:</text>
+                  <text class="detail-value {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
+                    {{item.remainingDays}} 天
+                  </text>
+                </view>
               </view>
             </view>
           </view>

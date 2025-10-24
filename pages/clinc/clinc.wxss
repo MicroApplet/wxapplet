@@ -195,11 +195,26 @@
   width: 100%;
 }
 
+.detail-row {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
 .detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  width: 100%;
+}
+
+.detail-item.half {
+  width: 48%;
+  margin-right: 2%;
+}
+
+.detail-item.half:last-child {
+  margin-right: 0;
 }
 
 .detail-item:last-child {
