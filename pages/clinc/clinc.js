@@ -2,7 +2,9 @@
 
 // 导入工具和会话管理
 const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
-const { refresh } = require('../../utils/session.js');
+const { refresh, refreshSession } = require('../../utils/session.js');
+const { rest } = require('../../utils/api.js');
+const { rest: buildRestUrl } = require('../../utils/url.js');
 
 /**
  * 医疗页面组件
@@ -37,20 +39,29 @@ Page({
     const app = getApp();
     app.registerPage(this);
 
+    console.log('clinc页面加载');
+    // 在所有操作之前先调用session的refresh函数
+    refreshSession().then(() => {
+      // refresh函数调用完成后，加载其他信息
+      this.load();
+    }).catch(error => {
+      console.error('刷新会话失败:', error);
+      // 即使刷新失败也继续加载用户信息
+      this.load();
+    });
+
   },
 
-
-  /**
-   * 处理会话错误的通用逻辑
-   * @private
-   */
-  _handleSessionError: function() {
+  
+  // 加载clinc信息的统一方法
+  load() {
+   
+    // 设置加载状态为完成
     this.setData({
-      showPrescriptionModule: false,
-      isCheckingRole: false,
-      showBothModules: false
+      isLoading: false
     });
   },
+
 
   /**
    * 检查用户角色并设置对应的数据展示
@@ -101,18 +112,19 @@ Page({
 
   /**
    * 获取用药提醒信息
-   * 在实际环境中，这里会调用真实接口获取数据
+   * 根据接口文档实现真实的API调用
    */
   getPrescriptionReminder: async function() {
     try {
-      // 在实际环境中调用接口
-      // const response = await api.get('/rest/clinc/prescription/reminder/user/status');
+      // 构建API URL
+      const apiUrl = buildRestUrl('/clinc/prescription/reminder/list', { page: 1, size: 1 });
+      
+      // 调用API获取数据
+      const response = await rest.get(apiUrl);
 
-      // 使用mock数据进行测试
-      const mockResponse = this.getMockPrescriptionReminder();
-
-      if (mockResponse.code === '0' && mockResponse.data) {
-        const prescriptionInfo = mockResponse.data;
+      if (response && response.length > 0) {
+        // 接口返回的是数组，我们取第一个元素作为用药提醒信息
+        const prescriptionInfo = response[0];
         // 计算剩余天数
         const daysRemaining = this.calculateDaysRemaining(prescriptionInfo.nextDate);
 
@@ -132,19 +144,26 @@ Page({
 
   /**
    * 获取处方台账信息
-   * 在实际环境中，这里会调用真实接口获取数据
+   * 在实际环境中调用真实接口获取数据
    */
   getPrescriptionLedger: async function() {
     try {
-      // 在实际环境中调用接口
-      // const response = await api.get('/rest/clinc/prescription/ledger', { page: 1, size: 5 });
+      // 构建API URL - 这里使用通用的用药提醒接口，但可以添加筛选条件
+      const apiUrl = buildRestUrl('/clinc/prescription/reminder/list', { page: 1, size: 5 });
+      
+      // 调用API获取数据
+      const response = await rest.get(apiUrl);
 
-      // 使用mock数据进行测试
-      const mockResponse = this.getMockPrescriptionLedger();
-
-      if (mockResponse.code === '0' && mockResponse.data) {
+      if (response && response.length > 0) {
+        // 由于接口返回的数据结构可能与台账数据不完全匹配，我们进行一些转换
+        const ledgerList = response.map(item => ({
+          patientName: item.phone || '未知用户', // 使用手机号作为患者标识
+          prescriptionDate: item.lastDate || '',
+          status: '已完成' // 简单处理状态
+        }));
+        
         this.setData({
-          ledgerList: mockResponse.data
+          ledgerList: ledgerList
         });
       }
     } catch (error) {
@@ -182,83 +201,7 @@ Page({
     }
   },
 
-  /**
-   * 获取模拟用药提醒数据
-   * @returns {Object} 模拟的用药提醒响应数据
-   */
-  getMockPrescriptionReminder: function() {
-    // 生成一些模拟数据
-    const today = new Date();
-    const lastDate = new Date(today);
-    lastDate.setDate(today.getDate() - 30);
-
-    const nextDate = new Date(today);
-    nextDate.setDate(today.getDate() + 2); // 设置为2天后，测试少于3天的情况
-
-    return {
-      'status': 200,
-      'thr': false,
-      'pageable': false,
-      'code': '0',
-      'msg': '成功',
-      'data': {
-        'lastDate': this.formatDate(lastDate),
-        'lastDays': 30,
-        'nextDate': this.formatDate(nextDate)
-      },
-      'errs': [],
-      'page': 1,
-      'size': 1,
-      'pages': 1,
-      'total': 1
-    };
-  },
-
-  /**
-   * 获取模拟处方台账数据
-   * @returns {Object} 模拟的处方台账响应数据
-   */
-  getMockPrescriptionLedger: function() {
-    return {
-      'status': 200,
-      'thr': false,
-      'pageable': false,
-      'code': '0',
-      'msg': '成功',
-      'data': [
-        {
-          'patientName': '张三',
-          'prescriptionDate': '2024-10-10',
-          'status': '已完成'
-        },
-        {
-          'patientName': '李四',
-          'prescriptionDate': '2024-10-08',
-          'status': '处理中'
-        },
-        {
-          'patientName': '王五',
-          'prescriptionDate': '2024-10-05',
-          'status': '已完成'
-        },
-        {
-          'patientName': '赵六',
-          'prescriptionDate': '2024-10-01',
-          'status': '已完成'
-        },
-        {
-          'patientName': '孙七',
-          'prescriptionDate': '2024-09-28',
-          'status': '已取消'
-        }
-      ],
-      'errs': [],
-      'page': 1,
-      'size': 5,
-      'pages': 2,
-      'total': 10
-    };
-  },
+  // 模拟数据方法已移除，现在使用真实API调用
 
   /**
    * 格式化日期为yyyy-MM-dd格式
