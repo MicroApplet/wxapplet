@@ -32,8 +32,14 @@
           <view class="table-cell">剩余天数</view>
         </view>
         
-        <!-- 表格内容区域 -->
-        <view class="table-body">
+        <!-- 表格内容区域 - 使用scroll-view实现上下滑动 -->
+        <scroll-view 
+          class="table-body" 
+          scroll-y 
+          style="max-height: 500px;"
+          bindscrolltolower="onReachBottom"
+          enable-back-to-top
+        >
           <view wx:if="{{prescriptionData.length === 0}}" class="empty-state">
             <text class="empty-text">暂无处方记录</text>
           </view>
@@ -48,17 +54,19 @@
               </view>
             </view>
           </block>
-        </view>
+          
+          <!-- 加载更多提示 -->
+          <view wx:if="{{loadingMore}}" class="loading-more">
+            <text>加载更多...</text>
+          </view>
+          
+          <view wx:if="{{noMoreData && prescriptionData.length > 0}}" class="no-more">
+            <text>没有更多数据了</text>
+          </view>
+        </scroll-view>
       </view>
 
-      <!-- 加载更多 -->
-      <view wx:if="{{loadingMore}}" class="loading-more">
-        <text>加载更多...</text>
-      </view>
-      
-      <view wx:if="{{noMoreData && prescriptionData.length > 0}}" class="no-more">
-        <text>没有更多数据了</text>
-      </view>
+      <!-- 加载状态已移至scroll-view内部 -->
     </view>
   </view>
 </view>

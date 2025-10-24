@@ -38,10 +38,10 @@ Page({
    */
   onShow: function() {
     console.log('医疗页面显示');
-    // 如果是专业用户且数据已加载，可以刷新数据
-    //if (this.data.isProfessionalUser && this.data.prescriptionData.length > 0) {
+    // 仅在数据为空时加载数据，避免重复加载
+    if (this.data.prescriptionData.length === 0) {
       this.loadPrescriptionData();
-    //}
+    }
   },
 
   /**
@@ -116,8 +116,8 @@ Page({
             };
           });
 
-          // 这里修改为永远替换数据，不考虑是否是搜索操作
-          const updatedData = formattedData;
+          // 根据当前页码决定是替换数据还是追加数据
+          const updatedData = page === 1 ? formattedData : [...that.data.prescriptionData, ...formattedData];
 
           that.setData({
             prescriptionData: updatedData,
@@ -235,20 +235,17 @@ Page({
 
   /**
    * 页面相关事件处理函数--监听用户下拉动作
-   * 根据需求，下拉时加载下一页数据
+   * 下拉时重置为第一页并刷新数据
    */
   onPullDownRefresh: function() {
-    console.log('下拉加载下一页');
-    // 只有在有更多数据且不在加载中的情况下才加载下一页
-    if (!this.data.loadingMore && !this.data.noMoreData) {
-      this.setData({
-        loadingMore: true,
-        'pagination.page': this.data.pagination.page + 1
-      });
-      this.fetchPrescriptionData();
-    } else {
-      wx.stopPullDownRefresh();
-    }
+    console.log('下拉刷新');
+    // 重置为第一页并重新加载数据
+    this.setData({
+      isLoading: true,
+      'pagination.page': 1,
+      noMoreData: false
+    });
+    this.fetchPrescriptionData();
   },
 
   /**
