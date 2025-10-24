@@ -15,6 +15,7 @@ Page({
     prescriptionData: [],
     isLoading: false,
     loadingMore: false,
+    refreshing: false,  // 用于scroll-view的下拉刷新状态
     hasPermission: true,
     pagination: {
       page:1,
@@ -53,7 +54,8 @@ Page({
       isLoading: true,
       prescriptionData: [], // 清空现有数据
       'pagination.page': 1, // 重置为第一页
-      noMoreData: false
+      noMoreData: false,
+      refreshing: false     // 确保刷新状态关闭
     });
 
     // 调用refreshSession函数
@@ -140,7 +142,8 @@ Page({
       .finally(() => {
         that.setData({
           isLoading: false,
-          loadingMore: false
+          loadingMore: false,
+          refreshing: false  // 关闭刷新状态
         });
         wx.stopPullDownRefresh();
       });
@@ -239,12 +242,13 @@ Page({
    */
   onPullDownRefresh: function() {
     console.log('下拉刷新');
-    // 重置为第一页并重新加载数据
+    // 设置刷新状态并重置分页
     this.setData({
-      isLoading: true,
+      refreshing: true,
       'pagination.page': 1,
       noMoreData: false
     });
+    // 重新加载数据
     this.fetchPrescriptionData();
   },
 

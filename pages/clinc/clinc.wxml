@@ -1,70 +1,71 @@
-<!--clinc.wxml-->
+<!--clinc.wxml 重新设计的处方提醒页面 -->
 <view class="container">
-  <!-- 加载状态 -->
-  <view wx:if="{{isLoading}}" class="loading-container">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="header-title">我的处方提醒</text>
   </view>
 
-  <!-- 无权限提示 -->
-  <view wx:elif="{{!hasPermission}}" class="no-permission-container">
-    <view class="no-permission-icon">🔒</view>
-    <text class="no-permission-text">您没有权限查看此内容</text>
-  </view>
-
-  <!-- 正常内容 -->
-  <view wx:else class="content-container">
-
-
-    <!-- 处方信息区域 -->
-    <view class="prescription-section">
-      <view class="section-header">
-        <text class="section-title">我的处方提醒</text>
+  <!-- 主要内容区域 -->
+  <view class="main-content">
+    <!-- 处方记录列表 -->
+    <scroll-view 
+      class="prescription-list" 
+      scroll-y
+      style="height: calc(100vh - 120px)"
+      bindscrolltolower="onReachBottom"
+      bindrefresherpulling="onPullDownRefresh"
+      refresher-enabled="true"
+      refresher-triggered="{{refreshing}}"
+    >
+      <!-- 列表头部 -->
+      <view class="list-header">
+        <view class="header-item">上次日期</view>
+        <view class="header-item">处方天数</view>
+        <view class="header-item">下次日期</view>
+        <view class="header-item">剩余天数</view>
       </view>
-
-      <!-- 处方记录表格 -->
-      <view class="prescription-table-container">
-        <!-- 表格表头 -->
-        <view class="table-header">
-          <view class="table-cell">上次日期</view>
-          <view class="table-cell">处方天数</view>
-          <view class="table-cell">下次日期</view>
-          <view class="table-cell">剩余天数</view>
+      
+      <!-- 空状态 -->
+      <view wx:if="{{prescriptionData.length === 0 && !isLoading}}" class="empty-container">
+        <text class="empty-icon">💊</text>
+        <text class="empty-text">暂无处方记录</text>
+      </view>
+      
+      <!-- 处方列表项 -->
+      <view class="list-content">
+        <view wx:for="{{prescriptionData}}" wx:key="index" class="prescription-item">
+          <view class="prescription-cell">{{item.lastDate}}</view>
+          <view class="prescription-cell">{{item.lastDays}} 天</view>
+          <view class="prescription-cell">{{item.nextDate}}</view>
+          <view class="prescription-cell {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
+            {{item.remainingDays}} 天
+          </view>
         </view>
-        
-        <!-- 表格内容区域 - 使用scroll-view实现上下滑动 -->
-        <scroll-view 
-          class="table-body" 
-          scroll-y 
-          style="max-height: 500px;"
-          bindscrolltolower="onReachBottom"
-          enable-back-to-top
-        >
-          <view wx:if="{{prescriptionData.length === 0}}" class="empty-state">
-            <text class="empty-text">暂无处方记录</text>
-          </view>
-          
-          <view wx:for="{{prescriptionData}}" wx:key="index" class="table-row">
-            <view class="table-cell">{{item.lastDate}}</view>
-            <view class="table-cell">{{item.lastDays}} 天</view>
-            <view class="table-cell">{{item.nextDate}}</view>
-            <view class="table-cell {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
-              {{item.remainingDays}} 天
-            </view>
-          </view>
-          
-          <!-- 加载更多提示 -->
-          <view wx:if="{{loadingMore}}" class="loading-more">
-            <text>加载更多...</text>
-          </view>
-          
-          <view wx:if="{{noMoreData && prescriptionData.length > 0}}" class="no-more">
-            <text>没有更多数据了</text>
-          </view>
-        </scroll-view>
       </view>
-
-      <!-- 加载状态已移至scroll-view内部 -->
+      
+      <!-- 加载状态 -->
+      <view wx:if="{{isLoading && prescriptionData.length === 0}}" class="loading-wrapper">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载中...</text>
+      </view>
+      
+      <!-- 上拉加载更多 -->
+      <view wx:if="{{loadingMore}}" class="loading-more">
+        <text>正在加载更多...</text>
+      </view>
+      
+      <!-- 无更多数据 -->
+      <view wx:if="{{noMoreData && prescriptionData.length > 0}}" class="no-more">
+        <text>没有更多数据了</text>
+      </view>
+    </scroll-view>
+  </view>
+  
+  <!-- 无权限提示 - 全屏覆盖 -->
+  <view wx:if="{{!hasPermission}}" class="permission-overlay">
+    <view class="permission-content">
+      <text class="permission-icon">🔒</text>
+      <text class="permission-text">您没有权限查看此内容</text>
     </view>
   </view>
 </view>
