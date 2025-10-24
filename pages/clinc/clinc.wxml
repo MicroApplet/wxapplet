@@ -44,16 +44,14 @@
             <text class="empty-text">暂无处方记录</text>
           </view>
           
-          <block wx:for="{{prescriptionData}}" wx:key="index">
-            <view class="table-row">
-              <view class="table-cell">{{item.lastDate}}</view>
-              <view class="table-cell">{{item.lastDays}} 天</view>
-              <view class="table-cell">{{item.nextDate}}</view>
-              <view class="table-cell {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
-                {{item.remainingDays}} 天
-              </view>
+          <view wx:for="{{prescriptionData}}" wx:key="index" class="table-row">
+            <view class="table-cell">{{item.lastDate}}</view>
+            <view class="table-cell">{{item.lastDays}} 天</view>
+            <view class="table-cell">{{item.nextDate}}</view>
+            <view class="table-cell {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
+              {{item.remainingDays}} 天
             </view>
-          </block>
+          </view>
           
           <!-- 加载更多提示 -->
           <view wx:if="{{loadingMore}}" class="loading-more">
