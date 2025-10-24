@@ -112,10 +112,10 @@ Page({
       .then(res => {
         console.log('获取处方数据成功:', res);
         
-        // 处理返回的数据
-        if (res && res.data) {
+        // 处理返回的数据 - res直接是数组格式
+        if (Array.isArray(res)) {
           // 格式化数据，计算剩余天数
-          const formattedData = res.data.map(item => {
+          const formattedData = res.map(item => {
             const today = new Date();
             const nextDate = new Date(item.nextDate);
             const diffTime = nextDate - today;
@@ -129,13 +129,8 @@ Page({
 
           that.setData({
             prescriptionData: formattedData,
-            pagination: {
-              ...that.data.pagination,
-              total: res.total || 0,
-              pages: res.pages || 0
-            },
             hasPermission: true,
-            noMoreData: res.data.length < size
+            noMoreData: res.length < size
           });
         }
       })
