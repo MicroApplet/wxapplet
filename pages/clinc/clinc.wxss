@@ -196,10 +196,9 @@
   color: #333;
 }
 
-/* 表格内容区域 */
+/* 表格内容区域 - 与scroll-view配合使用，移除overflow样式避免冲突 */
 .table-body {
-  max-height: 500px;
-  overflow-y: auto;
+  /* 最大高度通过scroll-view的style属性设置 */
 }
 
 .empty-state {
