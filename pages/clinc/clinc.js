@@ -107,12 +107,26 @@ Page({
       phone
     };
 
-    // 调用后台接口
-    get(rest('/clinc/prescription/reminder/list', queryParams))
+    // 调用后台接口，传入分页回调函数
+    get(rest('/clinc/prescription/reminder/list', queryParams), {
+      pageCallable: (response) => {
+        // 从完整响应中提取分页信息
+        if (response && response.page !== undefined && response.size !== undefined) {
+          that.setData({
+            pagination: {
+              page: response.page || 1,
+              size: response.size || 10,
+              total: response.total || 0,
+              pages: response.pages || 0
+            }
+          });
+        }
+      }
+    })
       .then(res => {
         console.log('获取处方数据成功:', res);
         
-        // 处理返回的数据 - res直接是数组格式
+        // 处理返回的数据 - res是响应中的data部分（数组格式）
         if (Array.isArray(res)) {
           // 格式化数据，计算剩余天数
           const formattedData = res.map(item => {
