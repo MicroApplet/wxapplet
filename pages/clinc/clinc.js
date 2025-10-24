@@ -159,90 +159,6 @@ Page({
 
 
 
-  /**
-   * 模拟生成数据
-   */
-  generateMockData: function(params) {
-    // 模拟总数据量
-    const totalCount = 50;
-    // 根据页码和每页大小计算返回的数据
-    const startIndex = (params.current - 1) * params.size;
-    const endIndex = Math.min(startIndex + params.size, totalCount);
-    
-    // 判断是否有更多数据
-    const noMoreData = endIndex >= totalCount;
-    
-    // 生成模拟数据
-    const data = [];
-    for (let i = startIndex; i < endIndex; i++) {
-      // 模拟一些不同的状态
-      const status = i % 4;
-      let statusText = '';
-      let statusColor = '';
-      
-      switch (status) {
-        case 0:
-          statusText = '未执行';
-          statusColor = '#e64340'; // 红色
-          break;
-        case 1:
-          statusText = '执行中';
-          statusColor = '#1aad19'; // 绿色
-          break;
-        case 2:
-          statusText = '已完成';
-          statusColor = '#1989fa'; // 蓝色
-          break;
-        case 3:
-          statusText = '已过期';
-          statusColor = '#999999'; // 灰色
-          break;
-      }
-      
-      data.push({
-        id: `prescription-${i + 1}`,
-        patientName: `患者${i + 1}`,
-        idNo: `11010119900101${String(i + 1).padStart(4, '0')}`,
-        phone: `1380013800${i % 10}`,
-        medicineName: `药品${i % 5 + 1}`,
-        medicineDosage: `${(i % 3 + 1) * 10}mg/${(i % 2 + 1)}次/日`,
-        executionTime: `2023-06-${String(10 + i % 20).padStart(2, '0')} ${String(i % 24).padStart(2, '0')}:00`,
-        status: status,
-        statusText: statusText,
-        statusColor: statusColor
-      });
-    }
-    
-    // 如果有搜索条件，模拟过滤
-    if (params.patientName || params.idNo || params.phone) {
-      const filteredData = data.filter(item => {
-        if (params.patientName && !item.patientName.includes(params.patientName)) {
-          return false;
-        }
-        if (params.idNo && !item.idNo.includes(params.idNo)) {
-          return false;
-        }
-        if (params.phone && !item.phone.includes(params.phone)) {
-          return false;
-        }
-        return true;
-      });
-      
-      return {
-        data: filteredData,
-        total: filteredData.length,
-        noMoreData: true // 搜索结果不分页
-      };
-    }
-    
-    return {
-      data: data,
-      total: totalCount,
-      noMoreData: noMoreData
-    };
-  },
-
-
 
   /**
    * 监听滚动事件，根据滚动方向调整页码
@@ -260,17 +176,16 @@ Page({
     if (!that.isLoadingPage) {
       // 向上滑动 - 当滚动到底部附近时，加载下一页
       if (scrollTop > that.lastScrollTop && scrollTop >= bottomThreshold) {
-        // 确保不是第一页且还有更多数据
+        // 确保还有更多数据且不在加载中
         if (!that.data.noMoreData && !that.data.loadingMore) {
           console.log('向上滑动，加载下一页');
           that.loadNextPage();
         }
       } 
       // 向下滑动 - 当滚动到顶部附近且不是第一页时，加载上一页
-      else if (scrollTop < that.lastScrollTop && scrollTop <= 50 && that.data.pagination.page > 1) {
-        // 检查是否可以加载上一页
-        const maxPages = Math.ceil(that.data.pagination.total / that.data.pagination.size);
-        if (!that.isLoadingPage && !that.data.refreshing && !that.data.isLoading && !that.data.loadingMore) {
+      else if (scrollTop < that.lastScrollTop && scrollTop <= 50) {
+        // 关键优化：只有当页码大于1时才尝试加载上一页
+        if (that.data.pagination.page > 1 && !that.isLoadingPage && !that.data.refreshing && !that.data.isLoading && !that.data.loadingMore) {
           console.log('向下滑动，加载上一页');
           that.loadPreviousPage();
         }
@@ -311,9 +226,11 @@ Page({
     const that = this;
     const currentPage = that.data.pagination.page;
     
-    // 确保页码不会小于1
+    // 确保页码不会小于1，这是一个额外的安全检查
     if (currentPage > 1) {
+      // 设置加载状态
       that.isLoadingPage = true;
+      // 减少页码并设置加载状态
       that.setData({
         isLoading: true,
         'pagination.page': currentPage - 1
