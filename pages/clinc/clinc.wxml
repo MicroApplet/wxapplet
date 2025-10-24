@@ -14,49 +14,32 @@
 
   <!-- 正常内容 -->
   <view wx:else class="content-container">
-    <!-- 专业用户搜索区域 -->
-    <view wx:if="{{isProfessionalUser}}" class="search-section">
-      <view class="search-header">
-        <text class="section-title">搜索用户</text>
-      </view>
-      
-      <view class="search-form">
-        <view class="form-item">
-          <text class="form-label">姓名:</text>
-          <input class="form-input" placeholder="请输入姓名" 
-                 value="{{searchParams.name}}" 
-                 data-field="name" 
-                 bindinput="onSearchInput"/>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">证件号:</text>
-          <input class="form-input" placeholder="请输入证件号" 
-                 value="{{searchParams.idNo}}" 
-                 data-field="idNo" 
-                 bindinput="onSearchInput"/>
-        </view>
-        
-        <view class="form-item">
-          <text class="form-label">手机号:</text>
-          <input class="form-input" placeholder="请输入手机号" 
-                 value="{{searchParams.phone}}" 
-                 data-field="phone" 
-                 bindinput="onSearchInput"/>
-        </view>
-        
-        <view class="search-buttons">
-          <button class="search-btn primary-btn" bindtap="onSearch">搜索</button>
-          <button class="search-btn secondary-btn" bindtap="onClearSearch">清空</button>
-        </view>
-      </view>
-    </view>
+
 
     <!-- 处方信息区域 -->
     <view class="prescription-section">
       <view class="section-header">
         <text class="section-title">{{isProfessionalUser ? '处方提醒列表' : '我的处方提醒'}}</text>
         <text wx:if="{{isProfessionalUser}}" class="total-count">共 {{pagination.total}} 条记录</text>
+      </view>
+
+      <!-- 专业用户搜索筛选区域 -->
+      <view wx:if="{{isProfessionalUser}}" class="filter-section">
+        <view class="filter-tabs">
+          <view class="filter-tab {{filterType === 'none' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="none">不筛选</view>
+          <view class="filter-tab {{filterType === 'name' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="name">姓名</view>
+          <view class="filter-tab {{filterType === 'idNo' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="idNo">证件号</view>
+          <view class="filter-tab {{filterType === 'phone' ? 'active' : ''}}" bindtap="onFilterTypeChange" data-type="phone">手机号</view>
+        </view>
+        
+        <view class="filter-input-container" wx:if="{{filterType !== 'none'}}">
+          <input class="filter-input" 
+                 placeholder="请输入{{filterType === 'name' ? '姓名' : filterType === 'idNo' ? '证件号' : '手机号'}}" 
+                 value="{{searchValue}}" 
+                 bindinput="onFilterInput" />
+          <button class="filter-btn" bindtap="onFilterSearch">搜索</button>
+          <button class="filter-btn secondary" bindtap="onFilterClear">清空</button>
+        </view>
       </view>
 
       <!-- 处方记录表格 -->

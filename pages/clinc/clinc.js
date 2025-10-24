@@ -17,6 +17,8 @@ Page({
     hasPermission: true,
     prescriptionData: [],
     isProfessionalUser: false,
+    filterType: 'none', // 筛选类型：none, name, idNo, phone
+    searchValue: '', // 搜索值
     searchParams: {
       name: '',
       idNo: '',
@@ -46,9 +48,9 @@ Page({
   onShow: function() {
     console.log('医疗页面显示');
     // 如果是专业用户且数据已加载，可以刷新数据
-    if (this.data.isProfessionalUser && this.data.prescriptionData.length > 0) {
+    //if (this.data.isProfessionalUser && this.data.prescriptionData.length > 0) {
       this.loadPrescriptionData();
-    }
+    //}
   },
 
   /**
@@ -80,7 +82,7 @@ Page({
     const session = getUserSession();
     
     // 使用RoleUtil中的isProfessionalUser函数进行专业用户判断
-    const isProfessional = session && RoleUtil.isProfessionalUser(session.roleBit);
+    const isProfessional = session && RoleUtil.isProfessionalUser(session.getRoleBitBigInt());
     
     that.setData({
       isProfessionalUser: isProfessional
@@ -96,16 +98,17 @@ Page({
   fetchPrescriptionData: function() {
     const that = this;
     const { page, size } = that.data.pagination;
-    const { name, idNo, phone } = that.data.searchParams;
     
     // 构建查询参数
-    // 非专业用户不能使用搜索参数
     const queryParams = {
       page,
-      size,
-      // 只有专业用户才能使用搜索参数
-      ...(that.data.isProfessionalUser ? { name, idNo, phone } : {})
+      size
     };
+    
+    // 如果是专业用户且选择了筛选类型，则添加对应的搜索参数
+    if (that.data.isProfessionalUser && that.data.filterType !== 'none') {
+      queryParams[that.data.filterType] = that.data.searchValue;
+    }
 
     // 调用后台接口，传入分页回调函数
     get(rest('/clinc/prescription/reminder/list', queryParams), {
@@ -174,36 +177,38 @@ Page({
   },
 
   /**
-   * 搜索框输入变化
+   * 切换筛选类型
    */
-  onSearchInput: function(e) {
-    // 只有专业用户才能修改搜索参数
-    if (!this.data.isProfessionalUser) {
-      wx.showToast({
-        title: '只有专业用户才能使用搜索功能',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const { field } = e.currentTarget.dataset;
-    const { value } = e.detail;
-    
+  onFilterTypeChange: function(e) {
+    const type = e.currentTarget.dataset.type;
     this.setData({
-      [`searchParams.${field}`]: value
+      filterType: type,
+      searchValue: '', // 切换类型时清空搜索值
+      'pagination.page': 1,
+      prescriptionData: []
+    });
+    
+    // 如果切换到"不筛选"，直接重新加载数据
+    if (type === 'none') {
+      this.fetchPrescriptionData();
+    }
+  },
+
+  /**
+   * 筛选输入框变化
+   */
+  onFilterInput: function(e) {
+    const value = e.detail.value;
+    this.setData({
+      searchValue: value
     });
   },
 
   /**
-   * 执行搜索
+   * 执行筛选搜索
    */
-  onSearch: function() {
-    // 只有专业用户才能执行搜索
-    if (!this.data.isProfessionalUser) {
-      wx.showToast({
-        title: '只有专业用户才能使用搜索功能',
-        icon: 'none'
-      });
+  onFilterSearch: function() {
+    if (this.data.filterType === 'none') {
       return;
     }
     
@@ -215,28 +220,19 @@ Page({
   },
 
   /**
-   * 清空搜索
+   * 清空筛选
    */
-  onClearSearch: function() {
-    // 只有专业用户才能清空搜索
-    if (!this.data.isProfessionalUser) {
-      wx.showToast({
-        title: '只有专业用户才能使用搜索功能',
-        icon: 'none'
-      });
-      return;
-    }
-    
+  onFilterClear: function() {
     this.setData({
-      searchParams: {
-        name: '',
-        idNo: '',
-        phone: ''
-      },
+      searchValue: '',
       'pagination.page': 1,
       prescriptionData: []
     });
-    this.fetchPrescriptionData();
+    
+    // 如果当前有筛选类型，执行搜索（空值）
+    if (this.data.filterType !== 'none') {
+      this.fetchPrescriptionData();
+    }
   },
 
   /**
