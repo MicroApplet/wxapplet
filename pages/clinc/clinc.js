@@ -2,7 +2,7 @@
 
 // 导入工具和会话管理
 const { RoleCode, RoleUtil } = require('../../utils/role-enum.js');
-const { refresh, UserSession } = require('../../utils/session.js');
+const { refresh } = require('../../utils/session.js');
 
 /**
  * 医疗页面组件
@@ -286,6 +286,28 @@ Page({
     console.log('医疗页面显示');
     // 重新从全局数据更新用户会话信息，确保显示最新数据
     this.updateUserSessionInfo();
+  },
+  
+  /**
+   * 从全局数据更新用户会话信息
+   * 获取用户角色并更新页面内容
+   */
+  updateUserSessionInfo: function() {
+    try {
+      const app = getApp();
+      if (app && app.globalData && app.globalData.sessionInfo) {
+        const sessionInfo = app.globalData.sessionInfo;
+        // 检查用户角色并设置对应的数据展示
+        this.checkUserRole(sessionInfo.roleBit || 0);
+      } else {
+        // 如果没有会话信息，尝试刷新会话
+        console.log('未获取到全局会话信息，尝试刷新');
+        this._handleSessionError();
+      }
+    } catch (error) {
+      console.error('更新用户会话信息失败:', error);
+      this._handleSessionError();
+    }
   },
 
   /**
