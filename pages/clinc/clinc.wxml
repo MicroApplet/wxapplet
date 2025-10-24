@@ -59,42 +59,33 @@
         <text wx:if="{{isProfessionalUser}}" class="total-count">共 {{pagination.total}} 条记录</text>
       </view>
 
-      <!-- 处方记录列表 -->
-      <view class="prescription-list">
-        <view wx:if="{{prescriptionData.length === 0}}" class="empty-state">
-          <text class="empty-text">暂无处方记录</text>
+      <!-- 处方记录表格 -->
+      <view class="prescription-table-container">
+        <!-- 表格表头 -->
+        <view class="table-header">
+          <view class="table-cell">上次日期</view>
+          <view class="table-cell">处方天数</view>
+          <view class="table-cell">下次日期</view>
+          <view class="table-cell">剩余天数</view>
         </view>
         
-        <block wx:for="{{prescriptionData}}" wx:key="index">
-          <view class="prescription-card">
-            <view wx:if="{{isProfessionalUser}}" class="patient-info">
-              <text class="patient-name">{{item.phone || '用户'}}</text>
-            </view>
-            
-            <view class="prescription-details">
-              <view class="detail-row single-row">
-                <view class="detail-item quarter">
-                  <text class="detail-label">上次日期:</text>
-                  <text class="detail-value">{{item.lastDate}}</text>
-                </view>
-                <view class="detail-item quarter">
-                  <text class="detail-label">处方天数:</text>
-                  <text class="detail-value">{{item.lastDays}} 天</text>
-                </view>
-                <view class="detail-item quarter">
-                  <text class="detail-label">下次日期:</text>
-                  <text class="detail-value">{{item.nextDate}}</text>
-                </view>
-                <view class="detail-item quarter">
-                  <text class="detail-label">剩余天数:</text>
-                  <text class="detail-value {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
-                    {{item.remainingDays}} 天
-                  </text>
-                </view>
+        <!-- 表格内容区域 -->
+        <view class="table-body">
+          <view wx:if="{{prescriptionData.length === 0}}" class="empty-state">
+            <text class="empty-text">暂无处方记录</text>
+          </view>
+          
+          <block wx:for="{{prescriptionData}}" wx:key="index">
+            <view class="table-row {{isProfessionalUser ? 'clickable' : ''}}" bindtap="{{isProfessionalUser ? 'onRowClick' : ''}}" data-phone="{{item.phone}}">
+              <view class="table-cell">{{item.lastDate}}</view>
+              <view class="table-cell">{{item.lastDays}} 天</view>
+              <view class="table-cell">{{item.nextDate}}</view>
+              <view class="table-cell {{item.remainingDays <= 3 ? 'warning-text' : ''}}">
+                {{item.remainingDays}} 天
               </view>
             </view>
-          </view>
-        </block>
+          </block>
+        </view>
       </view>
 
       <!-- 加载更多 -->

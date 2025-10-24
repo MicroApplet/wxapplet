@@ -240,6 +240,34 @@ Page({
   },
 
   /**
+   * 专业用户点击表格行，显示对应手机号
+   */
+  onRowClick: function(e) {
+    const phone = e.currentTarget.dataset.phone;
+    if (phone) {
+      wx.showModal({
+        title: '用户手机号',
+        content: phone,
+        showCancel: true,
+        cancelText: '关闭',
+        confirmText: '复制',
+        success(res) {
+          if (res.confirm) {
+            wx.setClipboardData({
+              data: phone,
+              success() {
+                wx.showToast({ title: '复制成功', icon: 'success' });
+              }
+            });
+          }
+        }
+      });
+    } else {
+      wx.showToast({ title: '该记录暂无手机号信息', icon: 'none' });
+    }
+  },
+
+  /**
    * 页面相关事件处理函数--监听用户下拉动作
    * 根据需求，下拉时加载下一页数据
    */
