@@ -71,16 +71,17 @@
 
 /* 搜索按钮样式 */
 .search-btn {
-  min-width: 80rpx;
+  min-width: 60rpx;
   height: 50rpx;
   line-height: 50rpx;
-  padding: 0 15rpx;
+  padding: 0 10rpx;
   background: #1aad19;
   color: #fff;
   font-size: 26rpx;
   border-radius: 6rpx;
   border: none;
   margin-bottom: 10rpx;
+  white-space: nowrap;
 }
 
 /* 搜索选项下拉表样式 */
