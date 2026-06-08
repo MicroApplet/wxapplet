@@ -1,6 +1,5 @@
 {
   "pages": [
-    "pages/ai-chat/ai-chat",
     "pages/index/index",
     "pages/mine/mine",
     "pages/article/detail",
@@ -11,7 +10,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "微信小程序",
+    "navigationBarTitleText": "AI 助手",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
@@ -20,7 +19,7 @@
     "backgroundColor": "#ffffff",
     "list": [
       {
-        "pagePath": "pages/ai-chat/ai-chat",
+        "pagePath": "pages/index/index",
         "text": "AI",
         "iconPath": "icon/home.png",
         "selectedIconPath": "icon/home_active.png"
