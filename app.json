@@ -1,12 +1,12 @@
 {
   "pages": [
     "pages/ai-chat/ai-chat",
+    "pages/index/index",
     "pages/mine/mine",
     "pages/article/detail",
     "pages/video/video",
     "pages/article/article",
-    "pages/clinc/clinc",
-    "pages/ai-chat/ai-chat"
+    "pages/clinc/clinc"
   ],
   "window": {
     "backgroundTextStyle": "light",
