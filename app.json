@@ -20,8 +20,8 @@
     "backgroundColor": "#ffffff",
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "首页",
+        "pagePath": "pages/ai-chat/ai-chat",
+        "text": "AI",
         "iconPath": "icon/home.png",
         "selectedIconPath": "icon/home_active.png"
       },
@@ -36,12 +36,6 @@
         "text": "医疗",
         "iconPath": "icon/activity.png",
         "selectedIconPath": "icon/activity_active.png"
-      },
-      {
-        "pagePath": "pages/ai-chat/ai-chat",
-        "text": "AI",
-        "iconPath": "icon/login.png",
-        "selectedIconPath": "icon/login_active.png"
       },
       {
         "pagePath": "pages/mine/mine",
