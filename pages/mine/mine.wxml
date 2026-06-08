@@ -105,15 +105,6 @@
     </view>
   </view>
   
-  <!-- AI 助手入口 -->
-  <view class="menu-section">
-    <view class="menu-item" bindtap="goAiChat">
-      <text class="menu-icon">🤖</text>
-      <text class="menu-text">AI 助手</text>
-      <text class="menu-arrow">›</text>
-    </view>
-  </view>
-
   <!-- 实名认证弹窗 -->
   <view class="mask" wx:if="{{showIdCardAuth}}" bindtap="onCloseIdCardAuth">
     <view class="mask-content" catchtap="stopPropagation">

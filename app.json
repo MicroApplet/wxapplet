@@ -38,6 +38,12 @@
         "selectedIconPath": "icon/activity_active.png"
       },
       {
+        "pagePath": "pages/ai-chat/ai-chat",
+        "text": "AI",
+        "iconPath": "icon/login.png",
+        "selectedIconPath": "icon/login_active.png"
+      },
+      {
         "pagePath": "pages/mine/mine",
         "text": "我的",
         "iconPath": "icon/user.png",
