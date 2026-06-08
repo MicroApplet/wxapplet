@@ -1,0 +1,28 @@
+.chat-container { display:flex; flex-direction:column; height:100vh; background-color:#f5f5f5; }
+.message-list { flex:1; padding:20rpx; overflow-y:auto; }
+.message-wrapper { display:flex; margin-bottom:30rpx; align-items:flex-start; }
+.user-msg { justify-content:flex-end; }
+.ai-msg { justify-content:flex-start; }
+.avatar { width:60rpx; height:60rpx; border-radius:30rpx; display:flex; align-items:center; justify-content:center; font-size:24rpx; color:#fff; flex-shrink:0; }
+.user-avatar { background-color:#07c160; margin-left:16rpx; }
+.ai-avatar { background-color:#4a90d9; margin-right:16rpx; }
+.bubble { max-width:560rpx; padding:20rpx 24rpx; border-radius:16rpx; font-size:28rpx; line-height:1.5; word-break:break-all; white-space:pre-wrap; }
+.user-bubble { background-color:#07c160; color:#fff; border-bottom-right-radius:4rpx; }
+.ai-bubble { background-color:#fff; color:#333; border-bottom-left-radius:4rpx; box-shadow:0 2rpx 8rpx rgba(0,0,0,0.06); }
+.bubble-text { white-space:pre-wrap; }
+.thinking-indicator { display:flex; align-items:center; }
+.thinking-dot { animation:blink 1.4s infinite; font-size:40rpx; line-height:1; margin-right:4rpx; }
+.thinking-dot:nth-child(2) { animation-delay:0.2s; }
+.thinking-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes blink { 0%,80%,100% { opacity:0 } 40% { opacity:1 } }
+.thinking-text { font-size:26rpx; color:#999; margin-left:8rpx; }
+.error-text { color:#e64340; }
+.input-area { background-color:#fff; border-top:1rpx solid #e5e5e5; padding:16rpx 20rpx; padding-bottom:env(safe-area-inset-bottom,16rpx); }
+.input-wrapper { display:flex; align-items:center; gap:16rpx; }
+.text-input { flex:1; height:72rpx; background-color:#f5f5f5; border-radius:36rpx; padding:0 24rpx; font-size:28rpx; }
+.send-btn { flex-shrink:0; }
+.ui-card-mini { background:#f8f8f8; border-radius:8rpx; padding:16rpx; margin-top:8rpx; }
+.card-title-mini { font-weight:bold; font-size:30rpx; display:block; margin-bottom:8rpx; }
+.field-label { color:#666; font-size:26rpx; }
+.field-value { color:#333; font-size:26rpx; margin-left:8rpx; }
+.action-btn-mini { display:inline-block; padding:8rpx 20rpx; background:#4a90d9; color:#fff; border-radius:8rpx; font-size:26rpx; margin:8rpx 8rpx 0 0; }

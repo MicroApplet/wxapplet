@@ -1,0 +1,52 @@
+<view class="chat-container">
+  <scroll-view class="message-list" scroll-y scroll-into-view="bottom" scroll-with-animation>
+    <block wx:for="{{messages}}" wx:key="id">
+      <view class="message-wrapper {{item.role === 'user' ? 'user-msg' : 'ai-msg'}}">
+        <block wx:if="{{item.role === 'user'}}">
+          <view class="bubble user-bubble">{{item.content.content || item.content.text || item.content}}</view>
+          <view class="avatar user-avatar">我</view>
+        </block>
+        <block wx:elif="{{item.role === 'assistant'}}">
+          <view class="avatar ai-avatar">AI</view>
+          <view class="bubble ai-bubble">
+            <block wx:if="{{item.content.type === 'thinking'}}">
+              <view class="thinking-indicator">
+                <text class="thinking-dot">.</text><text class="thinking-dot">.</text><text class="thinking-dot">.</text>
+                <text class="thinking-text">{{item.content.content}}</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.content.type === 'text' || item.content.type === undefined}}">
+              <text class="bubble-text">{{item.content.content || item.content.text}}</text>
+            </block>
+            <block wx:elif="{{item.content.type === 'error'}}">
+              <text class="error-text">{{item.content.content || item.content.message}}</text>
+            </block>
+            <block wx:elif="{{item.content.type === 'ui'}}">
+              <view class="ui-card-mini">
+                <text class="card-title-mini" wx:if="{{item.content.content.title}}">{{item.content.content.title}}</text>
+                <view wx:for="{{item.content.content.fields || item.content.content.props || []}}" wx:key="key">
+                  <text class="field-label">{{item.label}}：</text>
+                  <text class="field-value">{{item.value}}</text>
+                </view>
+                <view wx:for="{{item.content.content.actions || []}}" wx:key="label">
+                  <view class="action-btn-mini" bindtap="_onAction" data-action="{{item}}">{{item.label}}</view>
+                </view>
+              </view>
+            </block>
+            <block wx:elif="{{item.content.type === 'data'}}">
+              <text>结构化数据（{{item.content.content.data?.length || 0}}条）</text>
+            </block>
+          </view>
+        </block>
+      </view>
+    </block>
+    <view id="bottom"></view>
+  </scroll-view>
+
+  <view class="input-area">
+    <view class="input-wrapper">
+      <input class="text-input" type="text" placeholder="输入消息…" value="{{inputText}}" bindinput="onInput" bindconfirm="sendMessage" disabled="{{waiting}}"/>
+      <button class="send-btn" type="primary" size="mini" bindtap="sendMessage" disabled="{{!inputText.trim() || waiting}}">发送</button>
+    </view>
+  </view>
+</view>

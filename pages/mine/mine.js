@@ -319,7 +319,12 @@ Page({
       });
     },
     
-    // 阻止事件冒泡
+    // 跳转到 AI 助手
+  goAiChat() {
+    wx.navigateTo({ url: '/pages/ai-chat/ai-chat' });
+  },
+
+  // 阻止事件冒泡
   stopPropagation() {
       // 空函数，用于阻止点击弹窗内容时触发遮罩层的关闭事件
     },

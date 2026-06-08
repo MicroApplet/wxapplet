@@ -5,7 +5,8 @@
     "pages/article/detail",
     "pages/video/video",
     "pages/article/article",
-    "pages/clinc/clinc"
+    "pages/clinc/clinc",
+    "pages/ai-chat/ai-chat"
   ],
   "window": {
     "backgroundTextStyle": "light",
