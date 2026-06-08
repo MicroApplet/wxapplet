@@ -34,7 +34,7 @@
               </view>
             </block>
             <block wx:elif="{{item.content.type === 'data'}}">
-              <text>结构化数据（{{item.content.content.data?.length || 0}}条）</text>
+              <text>结构化数据（{{item.content.content.data && item.content.content.data.length || 0}}条）</text>
             </block>
           </view>
         </block>
