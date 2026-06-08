@@ -1,6 +1,6 @@
 {
   "pages": [
-    "pages/index/index",
+    "pages/ai-chat/ai-chat",
     "pages/mine/mine",
     "pages/article/detail",
     "pages/video/video",
